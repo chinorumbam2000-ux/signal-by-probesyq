@@ -24,7 +24,7 @@ import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
 import ProfileAlertList from '../components/profiles/ProfileAlertList';
 import { Link, useLocation } from 'react-router-dom';
-import { LiveControls, SourceStatusPanel } from '../components/live/LiveParts';
+import { LiveRunStatus, SourceStatusPanel } from '../components/live/LiveParts';
 import StartHere from '../components/dashboard/StartHere';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 
@@ -111,20 +111,25 @@ export default function DashboardPage() {
         <>
           {isLive ? (
             <section aria-label="Live feeds" className="space-y-2" data-testid="dashboard-live">
-              {liveStarted ? null : (
-                // Before Start the signals below are the live history's latest closed day — never the replay's.
-                <div className="ls-card px-4 py-3" data-testid="live-ready" role="status">
-                  <p className="text-sm font-semibold text-ink">Live Surveillance ready</p>
-                  <p className="mt-0.5 text-xs text-muted">
-                    Start Live Surveillance to begin receiving simulated source observations. Until then, the signals
-                    below are the latest closed day of the live feed’s synthetic history.
-                  </p>
-                </div>
-              )}
+              {/* Overview only: the simulation is operated on the Live Surveillance page, never from here. */}
               <div className="ls-card flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                <LiveControls compact />
-                <Link to={`/live${location.search}`} className="ls-btn px-3 py-1.5 text-xs">
-                  Live activity →
+                {liveStarted ? (
+                  <p className="flex min-w-0 items-center gap-2 text-sm text-ink">
+                    <span className="font-semibold">Live Surveillance</span>
+                    <LiveRunStatus />
+                  </p>
+                ) : (
+                  // Before Start the signals below are the live history's latest closed day — never the replay's.
+                  <div className="min-w-0 flex-1 basis-72" data-testid="live-ready" role="status">
+                    <p className="text-sm font-semibold text-ink">Live Surveillance ready</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      Open Live Surveillance to begin receiving simulated source observations. Until then, the
+                      signals below are the latest closed day of the live feed’s synthetic history.
+                    </p>
+                  </div>
+                )}
+                <Link to={`/live${location.search}`} className="ls-btn shrink-0 px-3 py-1.5 text-xs">
+                  {liveStarted ? 'Live activity →' : 'Open Live Surveillance →'}
                 </Link>
               </div>
               <SourceStatusPanel compact />

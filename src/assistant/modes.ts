@@ -9,7 +9,7 @@
 import { formatSimulationDate } from '../lib/format';
 import type { AnswerBlock, AssistantAnswer, AssistantContext, IntentId } from './types';
 
-type ModeIntent = Extract<IntentId, 'mode_main' | 'mode_replay' | 'mode_dates'>;
+type ModeIntent = Extract<IntentId, 'mode_main' | 'mode_replay' | 'mode_dates' | 'mode_start'>;
 
 const text = (value: string): AnswerBlock => ({ kind: 'text', text: value });
 const answer = (intent: IntentId, blocks: AnswerBlock[], followUps: string[]): AssistantAnswer => ({
@@ -18,9 +18,16 @@ const answer = (intent: IntentId, blocks: AnswerBlock[], followUps: string[]): A
   followUps: followUps.slice(0, 3),
 });
 
+const START_VERB = /\b(start|begin|launch|turn on|switch on|kick off)\b/;
+const LIVE_THING = /\b(live|feeds?)\b/;
+const ASKING_HOW = /^(how|where|what|can i|can you|could i|i want to|i need to|help me|tell me how|show me how)\b/;
+
 /** Which mode question this is, if any (normalized text). */
 export const parseModeIntent = (t: string): ModeIntent | null => {
   const has = (...needles: string[]) => needles.some((n) => t.includes(n));
+  if ((ASKING_HOW.test(t) && START_VERB.test(t) && LIVE_THING.test(t)) || has('start button', 'start control')) {
+    return 'mode_start';
+  }
   if (
     has('dates different', 'different dates', 'dates differ', 'date different', 'different date', 'dates dont match', 'dates do not match',
       'dates not match', 'dates are not the same', 'not the same date', 'same dates', 'same date', 'dates dont line up', 'dates inconsistent',
@@ -90,10 +97,34 @@ const datesDiffer = (ctx: AssistantContext, replayDate: string): AssistantAnswer
     text('The data is not inconsistent: each mode keeps its own calendar, and nothing in one mode changes the other.'),
   ], ['What is the main mode?', 'What is Scenario Replay?']);
 
+/** How to start Live Surveillance: one control, on one page. */
+const startLive = (ctx: AssistantContext): AssistantAnswer => {
+  const live = ctx.live;
+  const now = !live
+    ? 'You are in Scenario Replay now: choosing Live Surveillance in the sidebar’s mode switch opens it, ready to start — it does not start on its own.'
+    : live.finished
+      ? 'The live period is complete. Reset on the same page starts it again from the beginning.'
+      : live.playing
+        ? 'It is running now.'
+        : live.started
+          ? 'It is paused now: Resume, in the same place, continues it.'
+          : 'It has not started yet.';
+  return answer('mode_start', [
+    text(
+      'Open the Live Surveillance page — in the sidebar under Overview — and press Start Live Surveillance. That one button starts the simulated source feeds.',
+    ),
+    text(
+      'The same controls then Pause, Resume and Reset the simulation, and 1×, 2× and 4× set its speed. The Dashboard and the top bar show the live state, but do not start or stop it.',
+    ),
+    text(now),
+  ], live ? ['Are all sources active?', 'Is this real-time?'] : ['What is the main mode?', 'What is Scenario Replay?']);
+};
+
 export const answerModeIntent = (intent: IntentId, ctx: AssistantContext, replaySimulationDate: string): AssistantAnswer | null => {
   const replayDate = formatSimulationDate(replaySimulationDate);
   if (intent === 'mode_main') return mainMode(ctx);
   if (intent === 'mode_replay') return replayMode(ctx, replayDate);
   if (intent === 'mode_dates') return datesDiffer(ctx, replayDate);
+  if (intent === 'mode_start') return startLive(ctx);
   return null;
 };

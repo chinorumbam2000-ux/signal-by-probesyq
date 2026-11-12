@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
 
 export const START_HERE_KEY = 'labsentinel.startHere.dismissed.v1';
@@ -16,11 +16,11 @@ const readDismissed = () => {
  * One line for a first-time visitor: what the product does, and the two ways
  * to see it — Live Surveillance first and recommended, Scenario Replay as the
  * secondary training walkthrough. Dismissible for the browser session;
- * changes no data.
+ * changes no data. Its links only navigate: the live simulation is started
+ * on the Live Surveillance page, with its one Start control.
  */
 export default function StartHere() {
-  const { mode, started, setMode, start } = useLiveSurveillance();
-  const navigate = useNavigate();
+  const { mode, started } = useLiveSurveillance();
   const [dismissed, setDismissed] = useState(readDismissed);
   if (dismissed || (mode === 'live' && started)) return null;
 
@@ -32,12 +32,6 @@ export default function StartHere() {
       /* storage unavailable: dismissed for this page only */
     }
   };
-  const watchLive = () => {
-    setMode('live');
-    start();
-    navigate('/live');
-  };
-
   return (
     <section
       aria-label="Start here"
@@ -53,9 +47,9 @@ export default function StartHere() {
         .
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" className="ls-btn-primary px-3 py-1.5 text-xs" onClick={watchLive}>
-          ▶ Watch Live Surveillance
-        </button>
+        <Link to="/live" className="ls-btn-primary px-3 py-1.5 text-xs">
+          Open Live Surveillance
+        </Link>
         <Link
           to="/replay"
           className="rounded-md px-2 py-1.5 text-xs font-medium text-brand underline-offset-2 hover:underline"

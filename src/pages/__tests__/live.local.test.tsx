@@ -74,10 +74,11 @@ describe('Live Surveillance', () => {
     const view = renderAt('/dashboard');
     const strip = await screen.findByTestId('start-here', undefined, WAIT);
     expect(within(strip).getByRole('link', { name: 'View Scenario Replay' }).getAttribute('href')).toBe('/replay');
-    fireEvent.click(within(strip).getByRole('button', { name: '▶ Watch Live Surveillance' }));
+    fireEvent.click(within(strip).getByRole('link', { name: 'Open Live Surveillance' }));
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
-    // Started: the simulation is playing, and the strip has gone.
-    expect(screen.getAllByRole('button', { name: '❚❚ Pause' }).length).toBeGreaterThan(0);
+    // It only navigates: the simulation is ready on its page, not started.
+    expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: '❚❚ Pause' })).toBeNull();
     expect(screen.queryByTestId('start-here')).toBeNull();
     view.unmount();
     window.sessionStorage.removeItem('labsentinel.surveillanceMode.v1');
@@ -103,7 +104,7 @@ describe('Live Surveillance', () => {
     expect(sources().getAttribute('data-run-state')).toBe('idle');
     expect(sources().textContent).toContain('Simulated sources · not started');
     expect(sources().textContent).not.toContain('Active');
-    fireEvent.click(button('▶ Start'));
+    fireEvent.click(button('Start Live Surveillance'));
     expect(vi.getTimerCount()).toBe(1);
     play(120);
     expect(sources().textContent).toContain('3 / 3 simulated sources active');
@@ -124,7 +125,7 @@ describe('Live Surveillance', () => {
     fireEvent.click(button('↺ Reset'));
     expect(vi.getTimerCount()).toBe(0);
     expect(screen.getByText(/No activity yet/)).toBeTruthy();
-    expect(screen.getAllByRole('button', { name: '▶ Start' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' }).length).toBeGreaterThan(0);
   });
 
   it('updates every analyst view as observations arrive, and COVID-19 rises to the top', async () => {
@@ -132,7 +133,7 @@ describe('Live Surveillance', () => {
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
-    fireEvent.click(button('▶ Start'));
+    fireEvent.click(button('Start Live Surveillance'));
     play(OPERATING_MINUTES * 8 + 30, 4);
     fireEvent.click(button('❚❚ Pause'));
     vi.useRealTimers();

@@ -38,7 +38,18 @@ is the secondary, training mode.
 The two are separate synthetic scenarios, so their dates are intentionally
 independent; neither is out of step with the other.
 
-The switch sits at the top of the sidebar, Live Surveillance first.
+The switch sits at the top of the sidebar, Live Surveillance first. It
+changes the mode; it never starts the simulation.
+
+**One Start control.** The simulation is started in one place: the
+**Start Live Surveillance** button on the Live Surveillance page. The same
+controls then Pause, Resume and Reset it and set the speed. The Dashboard is
+the surveillance overview: it shows "Live Surveillance ready" and an
+"Open Live Surveillance" link before Start, the run state afterwards, and the
+source summary, but no playback controls. The top bar shows the live
+surveillance date and the run state ("Not started", "Running · 1×", "Paused",
+"Complete") as status only. The Dashboard's "Start here" strip offers
+**Open Live Surveillance**, which only navigates.
 
 - **A fresh session opens in Live Surveillance** — the first page after
   sign-in, and any session with no stored mode. Before Start, the Dashboard

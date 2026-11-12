@@ -70,7 +70,7 @@ describe('default mode', () => {
     expect(screen.getByTestId('dashboard-live')).toBeTruthy();
     const ready = screen.getByTestId('live-ready');
     expect(ready.textContent).toContain('Live Surveillance ready');
-    expect(ready.textContent).toContain('Start Live Surveillance to begin receiving simulated source observations');
+    expect(ready.textContent).toContain('Open Live Surveillance to begin receiving simulated source observations');
     expect(topBar().textContent).toContain('Live Surveillance · Simulated source feeds');
     expect(topBar().textContent).not.toMatch(/Replay Day|Day \d of 5/);
     expect(document.querySelector('main')?.textContent).not.toMatch(/Replay Day|Replay date/);
@@ -137,7 +137,8 @@ describe('Live Surveillance first', () => {
   it('Start Here recommends Live Surveillance, with Scenario Replay as the secondary path', async () => {
     renderAt('/dashboard');
     const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    const live = within(strip).getByRole('button', { name: '▶ Watch Live Surveillance' });
+    const live = within(strip).getByRole('link', { name: 'Open Live Surveillance' });
+    expect(live.getAttribute('href')).toBe('/live');
     const replay = within(strip).getByRole('link', { name: 'View Scenario Replay' });
     expect(live.className).toContain('ls-btn-primary');
     expect(replay.className).not.toMatch(/ls-btn-primary|\bls-btn\b/);

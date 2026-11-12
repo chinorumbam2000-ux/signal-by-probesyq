@@ -84,7 +84,7 @@ const liveChanges = (live: LiveAssistantContext): AssistantAnswer => {
   const changes = scoreEvents(live).filter((e) => e.op >= live.now - 60).slice(-6);
   const sources = window.filter((e) => e.kind === 'source');
   if (!live.started && live.activity.length === 0) {
-    return answer('live_changes', [text('The live simulation has not started yet. Start it on the Live Surveillance page to see observations arrive.'), text(SIMULATED)]);
+    return answer('live_changes', [text('The live simulation has not started yet. Press Start Live Surveillance on the Live Surveillance page to see observations arrive.'), text(SIMULATED)]);
   }
   const blocks: AnswerBlock[] = [
     text(`In the last simulated hour (to ${live.clock}), ${observations} ${observations === 1 ? 'observation' : 'observations'} arrived from the simulated feeds.`),
@@ -137,7 +137,7 @@ const sourcesAnswer = (live: LiveAssistantContext): AssistantAnswer => {
   const active = live.sources.filter((s) => s.status === 'HEALTHY').length;
   if (!live.started && !live.finished) {
     return answer('live_sources', [
-      text('The live simulation has not started, so none of the three simulated sources is sending yet. Press Start on the Live Surveillance page.'),
+      text('The live simulation has not started, so none of the three simulated sources is sending yet. Press Start Live Surveillance on the Live Surveillance page.'),
       text(SIMULATED),
     ], ['Is this real-time?']);
   }

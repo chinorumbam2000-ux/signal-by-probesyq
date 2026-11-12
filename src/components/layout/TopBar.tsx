@@ -12,7 +12,7 @@ import { usePortfolio } from '../../lib/profiles/usePortfolio';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 import { STATUS_LABEL } from '../../lib/profiles/derive';
 import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
-import { PlayPauseButton, useLiveClock } from '../live/LiveParts';
+import { LiveRunStatus, useLiveClock } from '../live/LiveParts';
 
 /**
  * The top bar. On analyst pages it carries the replay day controls (the
@@ -105,7 +105,8 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               <span className="ml-2 font-normal text-muted">live surveillance date · simulated clock</span>
             </p>
           </div>
-          <PlayPauseButton />
+          {/* Status only: the simulation is started and paused on the Live Surveillance page. */}
+          <LiveRunStatus />
         </>
       ) : classroom ? (
         <>

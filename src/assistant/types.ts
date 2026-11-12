@@ -165,6 +165,7 @@ export type IntentId =
   | 'mode_main'
   | 'mode_replay'
   | 'mode_dates'
+  | 'mode_start'
   | 'profile_type_about'
   | 'profile_membership'
   | 'profile_difference'

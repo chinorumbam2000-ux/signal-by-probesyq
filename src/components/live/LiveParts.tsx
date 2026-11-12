@@ -74,28 +74,40 @@ export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
 
 /* ------------------------------------------------------------------------ */
 
-/** One Start / Pause / Resume button, for the top bar. */
-export function PlayPauseButton() {
-  const { simulator, playing, started, start, pause, resume } = useLiveSurveillance();
-  const label = !started ? '▶ Start' : playing ? '❚❚ Pause' : '▶ Resume';
-  const action = !started ? start : playing ? pause : resume;
+/** The live simulation's state in words: "Not started", "Running · 2×", "Paused", "Complete". */
+export function useLiveRunLabel(): string {
+  const { simulator, playing, started, speed } = useLiveSurveillance();
+  if (simulator.finished) return 'Complete';
+  if (playing) return `Running · ${speed}×`;
+  return started ? 'Paused' : 'Not started';
+}
+
+/** The live simulation's state, for the top bar and the Dashboard: status only, never a control. */
+export function LiveRunStatus({ className = '' }: { className?: string }) {
+  const label = useLiveRunLabel();
   return (
-    <button type="button" className="ls-btn shrink-0 px-2.5 py-1.5 text-xs" onClick={action} disabled={simulator.finished && !playing}>
-      {simulator.finished ? 'Complete' : label}
-    </button>
+    <span className={`shrink-0 rounded-full border border-hairline px-2 py-0.5 text-[11px] font-medium text-muted ${className}`} data-testid="live-run-status">
+      <span className="sr-only">Live simulation: </span>
+      {label}
+    </span>
   );
 }
 
-export function LiveControls({ compact = false }: { compact?: boolean }) {
+/**
+ * The live simulation's controls — the one place that starts it. They live
+ * on the Live Surveillance page only: the Dashboard and the top bar show the
+ * live state but never operate the simulator.
+ */
+export function LiveControls() {
   const { simulator, playing, started, speed, start, pause, resume, reset, setSpeed } = useLiveSurveillance();
   const finished = simulator.finished;
   const progress = Math.round((simulator.op / END_MINUTE) * 100);
-  const btn = compact ? 'ls-btn px-2.5 py-1 text-xs' : 'ls-btn px-3 py-1.5 text-sm';
+  const btn = 'ls-btn px-3 py-1.5 text-sm';
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Live simulation controls">
       {!started ? (
-        <button type="button" className={compact ? 'ls-btn-primary px-2.5 py-1 text-xs' : 'ls-btn-primary'} onClick={start}>
-          ▶ Start
+        <button type="button" className="ls-btn-primary" onClick={start} data-testid="live-start">
+          <span aria-hidden="true">▶ </span>Start Live Surveillance
         </button>
       ) : playing ? (
         <button type="button" className={btn} onClick={pause}>
@@ -109,20 +121,16 @@ export function LiveControls({ compact = false }: { compact?: boolean }) {
       <button type="button" className={btn} onClick={reset}>
         ↺ Reset
       </button>
-      {compact ? null : (
-        <div role="group" aria-label="Speed" className="flex gap-1">
-          {SPEEDS.map((s) => (
-            <button key={s} type="button" aria-pressed={speed === s} onClick={() => setSpeed(s)} className={`${btn} ${speed === s ? 'ring-2 ring-brand' : ''}`}>
-              {s}×
-            </button>
-          ))}
-        </div>
-      )}
-      {compact ? null : (
-        <span className="text-xs text-muted" aria-live="off">
-          {finished ? 'Simulation complete' : `${progress}% of the ${ALL_DATES.length - 7}-day live period`}
-        </span>
-      )}
+      <div role="group" aria-label="Speed" className="flex gap-1">
+        {SPEEDS.map((s) => (
+          <button key={s} type="button" aria-pressed={speed === s} onClick={() => setSpeed(s)} className={`${btn} ${speed === s ? 'ring-2 ring-brand' : ''}`}>
+            {s}×
+          </button>
+        ))}
+      </div>
+      <span className="text-xs text-muted" aria-live="off">
+        {finished ? 'Simulation complete' : `${progress}% of the ${ALL_DATES.length - 7}-day live period`}
+      </span>
     </div>
   );
 }
