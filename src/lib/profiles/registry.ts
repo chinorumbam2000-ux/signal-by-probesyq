@@ -274,12 +274,6 @@ export const settingsFor = (id: ProfileId): ProfileSettings => {
   };
 };
 
-export const DATA_ORIGIN_LABEL: Record<DataOrigin, string> = {
-  'replay-scenario': 'Scenario Replay data',
-  'replay-derived': 'Derived from the replay results',
-  'portfolio-fixture': 'Synthetic portfolio data',
-};
-
 /** Profiles whose test codes are not LOINC are demonstration codes, not real terminology. */
 export const isDemoTestCode = (code: string): boolean =>
   TEST_BY_CODE[code]?.system !== 'http://loinc.org';

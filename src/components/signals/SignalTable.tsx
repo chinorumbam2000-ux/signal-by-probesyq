@@ -4,6 +4,7 @@ import SeverityBadge from './SeverityBadge';
 import { EmptyState } from '../common/States';
 import ProfileTypeTag from '../profiles/ProfileTypeTag';
 import { PROFILE_BY_ID, type ProfileId } from '../../lib/profiles/registry';
+import { useModeWording } from '../../lib/modeWording';
 
 interface SignalTableProps {
   alerts: OutbreakAlert[];
@@ -37,11 +38,12 @@ export default function SignalTable({
   emptyMessage,
   canReview = () => false,
 }: SignalTableProps) {
+  const wording = useModeWording();
   if (alerts.length === 0) {
     return (
       <EmptyState
         icon="✓"
-        title="No alerts on this replay day"
+        title={wording.noAlerts}
         message={
           emptyMessage ??
           'Regional respiratory activity is at the expected baseline, so no Signal by ProbeSyQ alert has been raised. Advance the replay day to watch alerts appear as the signal develops.'
@@ -75,7 +77,9 @@ export default function SignalTable({
             <tr key={alert.id} className="transition-colors hover:bg-canvas">
               <td className="ls-td text-muted">
                 <span className="block">{formatSimulationDateTime(alert.detectedAt)}</span>
-                <span className="block text-[11px]">Day {alert.detectedDay}</span>
+                {wording.dayTag(alert.detectedDay) ? (
+                  <span className="block text-[11px]">{wording.dayTag(alert.detectedDay)}</span>
+                ) : null}
               </td>
               {profileNames ? (
                 <td className="ls-td font-medium text-ink">
@@ -110,7 +114,7 @@ export default function SignalTable({
                 </span>
                 {alert.acknowledgement ? (
                   <span className="mt-1 block text-[11px] text-muted">
-                    on Day {alert.acknowledgement.day}
+                    on {wording.day(alert.acknowledgement.day)}
                   </span>
                 ) : null}
               </td>
@@ -141,7 +145,7 @@ export default function SignalTable({
                       type="button"
                       onClick={() => onAcknowledge(alert.id)}
                       className="ls-btn px-3 py-1.5 text-xs"
-                      aria-label={`Acknowledge alert: ${profileOf(alert) ? `${profileOf(alert)} — ` : ''}${alert.title}, detected on replay day ${alert.detectedDay}`}
+                      aria-label={`Acknowledge alert: ${profileOf(alert) ? `${profileOf(alert)} — ` : ''}${alert.title}, detected on ${wording.detectedOn(alert.detectedDay)}`}
                     >
                       Acknowledge
                     </button>

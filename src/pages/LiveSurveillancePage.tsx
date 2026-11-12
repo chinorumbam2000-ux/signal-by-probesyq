@@ -8,7 +8,6 @@ import {
   LiveControls,
   SourceStatusPanel,
   TodaySoFar,
-  useLiveClock,
 } from '../components/live/LiveParts';
 import { HISTORY_DATES } from '../lib/live/dataset';
 import { settingsFor, RVS_PROFILE_ID } from '../lib/profiles/registry';
@@ -22,7 +21,6 @@ import { withProfileParam } from '../lib/profiles/selection';
 export default function LiveSurveillancePage() {
   const { setMode } = useLiveSurveillance();
   const { search } = useLocation();
-  const clock = useLiveClock();
   // This page is the live simulation.
   useEffect(() => setMode('live'), [setMode]);
   const reference = settingsFor(RVS_PROFILE_ID).ewma.referenceDays;
@@ -37,8 +35,7 @@ export default function LiveSurveillancePage() {
           </p>
           <p className="mt-1 max-w-3xl text-sm text-muted">
             Synthetic laboratory observations arrive through three simulated source feeds and are validated,
-            normalized, routed to every applicable profile and scored as they arrive. Live surveillance date:{' '}
-            <span className="font-semibold text-ink">{clock}</span> (simulated clock).
+            normalized, routed to every applicable profile and scored as they arrive.
           </p>
         </div>
         <PageMeta />

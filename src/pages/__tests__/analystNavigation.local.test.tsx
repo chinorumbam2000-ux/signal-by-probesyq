@@ -9,7 +9,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom';
 import App from '../../App';
 import { answerQuestion, answerText } from '../../assistant/answerEngine';
 import { ANALYST_SECTIONS, SYSTEM_ROUTES, systemItems } from '../../lib/navigation';
-import { signInForTest } from './signedIn';
+import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
 
 const calls: string[] = [];
 let lastPath = '';
@@ -170,7 +170,8 @@ describe('Investigations', () => {
     }
   });
 
-  it('says so when there is nothing to investigate yet', async () => {
+  it('says so when there is nothing to investigate yet (Scenario Replay, Day 1)', async () => {
+    chooseScenarioReplayForTest();
     renderAt('/investigations');
     expect(await screen.findByText('Nothing to investigate yet')).toBeTruthy();
   });

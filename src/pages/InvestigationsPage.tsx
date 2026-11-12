@@ -9,6 +9,7 @@ import { INVESTIGATION_STATUS_STYLES, REVIEW_DISCLAIMER } from '../lib/investiga
 import { REPORT_STATUS_STYLES } from '../lib/reporting';
 import { PROFILE_BY_ID } from '../lib/profiles/registry';
 import ProfileTypeTag from '../components/profiles/ProfileTypeTag';
+import { useModeWording } from '../lib/modeWording';
 
 const STEPS = [
   { label: 'Signal', detail: 'A detected alert', to: '/signals' },
@@ -30,6 +31,8 @@ export default function InvestigationsPage() {
   // Every profile's alerts: each row names its profile, and opens that
   // profile's investigation (never another profile's).
   const { profileAlerts: alerts, getInvestigation, reports, currentDay } = useSimulation();
+  // In Live Surveillance the replay's signals are not shown as live ones: the note says where to go.
+  const isLive = useModeWording().mode === 'live';
   const ordered = [...alerts].sort(
     (a, b) =>
       b.detectedDay - a.detectedDay ||
@@ -52,6 +55,8 @@ export default function InvestigationsPage() {
 
       <LiveModeNote what="Investigations" />
 
+      {isLive ? null : (
+      <>
       <ol aria-label="Investigation workflow" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {STEPS.map((step, index) => (
           <li key={step.label} className="ls-card px-4 py-3">
@@ -154,6 +159,8 @@ export default function InvestigationsPage() {
           </div>
         )}
       </Card>
+      </>
+      )}
 
       <p className="text-xs text-muted">{REVIEW_DISCLAIMER}</p>
     </div>

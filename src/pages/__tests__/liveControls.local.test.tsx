@@ -91,13 +91,14 @@ describe('one Start control for Live Surveillance', () => {
     expect(within(topBar()).queryAllByRole('button').filter((b) => /start|pause|resume|reset/i.test(b.textContent ?? ''))).toEqual([]);
   });
 
-  it('the Dashboard has no playback controls: ready text, a link to the page, and the live state', async () => {
+  it('the Dashboard has no playback controls: one read-only Live status line', async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     const live = screen.getByTestId('dashboard-live');
     expect(within(live).queryAllByRole('button')).toEqual([]);
-    expect(screen.getByTestId('live-ready').textContent).toContain('Open Live Surveillance to begin receiving simulated source observations');
-    expect(within(live).getByRole('link', { name: 'Open Live Surveillance →' }).getAttribute('href')).toBe('/live');
+    expect(screen.getByTestId('dashboard-live-status').textContent).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
+    // No second link to the page: the Start here strip has the one Dashboard link.
+    expect(within(live).queryAllByRole('link')).toEqual([]);
     expect(startButtons()).toEqual([]);
   });
 
@@ -128,7 +129,7 @@ describe('one Start control for Live Surveillance', () => {
     const group = screen.getAllByRole('group', { name: 'Surveillance mode' })[0];
     fireEvent.click(within(group).getByRole('button', { name: 'Live Surveillance' }));
     expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('live');
-    expect(screen.getByTestId('live-ready')).toBeTruthy();
+    expect(screen.getByTestId('dashboard-live-status').getAttribute('data-run-state')).toBe('idle');
     const clock = screen.getAllByTestId('live-clock')[0].textContent;
     act(() => {
       vi.advanceTimersByTime(TICK_MS * 10);

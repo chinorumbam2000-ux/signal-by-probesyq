@@ -20,6 +20,7 @@ import { usePortfolio } from '../lib/profiles/usePortfolio';
 import { PROFILE_DAYS } from '../lib/profiles/derive';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import ProfileHeading from '../components/profiles/ProfileHeading';
+import { useModeWording } from '../lib/modeWording';
 
 const VOLUME_COLOR = '#2563EB';
 const POSITIVITY_COLOR = '#DC2626';
@@ -55,6 +56,7 @@ const tooltipStyles = {
 
 export default function AnalyticsPage() {
   const { currentDay, isLoading, error, clearError } = useSimulation();
+  const wording = useModeWording();
   // Every series follows the selected surveillance profile (?profile=).
   const portfolio = usePortfolio();
   const { view } = portfolio;
@@ -322,8 +324,7 @@ export default function AnalyticsPage() {
               </table>
             </div>
             <p className="border-t border-hairline px-4 py-3 text-[11px] leading-snug text-muted">
-              Values beyond the current replay day are withheld until the day is
-              reached.
+              {wording.withheld}
             </p>
           </Card>
         </div>

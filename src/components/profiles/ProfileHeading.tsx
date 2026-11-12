@@ -2,16 +2,9 @@ import SeverityBadge from '../signals/SeverityBadge';
 import MethodNote from '../common/MethodNote';
 import ProfileStatusTag from './ProfileStatusTag';
 import ProfileTypeTag from './ProfileTypeTag';
-import { DATA_ORIGIN_LABEL, PROFILE_BY_ID, RVS_PROFILE_ID, TEST_BY_CODE, profileScopeText, settingsFor } from '../../lib/profiles/registry';
+import { TEST_BY_CODE, profileScopeText, settingsFor } from '../../lib/profiles/registry';
 import type { ProfileView } from '../../lib/profiles/usePortfolio';
-
-const ORIGIN_NOTE = {
-  'replay-scenario': 'The narrated five-day Scenario Replay.',
-  'replay-derived':
-    `Built from the same replay results as ${PROFILE_BY_ID[RVS_PROFILE_ID].displayName}, filtered to this profile’s tests. Its daily counts are smaller, so its score moves more from day to day.`,
-  'portfolio-fixture':
-    'Synthetic portfolio data with demonstration test codes (not LOINC). Not part of the narrated replay.',
-} as const;
+import { useModeWording } from '../../lib/modeWording';
 
 /**
  * Names the profile the page is showing, its status in words, where its data
@@ -21,6 +14,7 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
   const { profile, status, score, statusReason } = view;
   const settings = settingsFor(profile.id);
   const tests = profile.testCodes.map((code) => TEST_BY_CODE[code]?.name ?? code).join(', ');
+  const wording = useModeWording();
 
   return (
     <section
@@ -35,7 +29,7 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
         {score ? <SeverityBadge severity={score.severity} /> : null}
         <ProfileStatusTag status={status} />
         <span className="text-xs text-muted">
-          {profile.typeDescriptor} · {DATA_ORIGIN_LABEL[profile.dataOrigin]}
+          {profile.typeDescriptor} · {wording.dataOrigin(profile.dataOrigin)}
         </span>
       </div>
       {/* What this profile's figures cover — the same rule on every page that shows it. */}
@@ -70,15 +64,28 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
       {compact ? null : (
         <>
           <p className="text-xs text-muted">
-            {ORIGIN_NOTE[profile.dataOrigin]} Tests: {tests}. Data Confidence is overall participating-source
+            {wording.originNote(profile.dataOrigin)} Tests: {tests}. Data Confidence is overall participating-source
             quality: the same for every profile, not specific to {profile.displayName}.
           </p>
           <MethodNote label="Profile settings">
-            {settings.label}: {settings.note} Replay baseline Day {settings.replay.baselineDay} (at least{' '}
-            {settings.replay.minimumBaselineTests} tests); a facility is affected at +
-            {settings.replay.affectedMarginPoints} percentage points over baseline and assessed only with at
-            least {settings.engine.facilityMinimumTests} tests; positivity scale {settings.replay.positivityScalePoints}{' '}
-            points; persistence cap {settings.replay.persistenceCapDays} days. Detection methods (live data only):
+            {settings.label}: {settings.note}{' '}
+            {wording.mode === 'live' ? (
+              <>
+                Live Surveillance: rolling {settings.engine.baselineWindowDays}-day baseline (at least{' '}
+                {settings.engine.minimumBaselineDays} days); a facility is affected with at least{' '}
+                {settings.engine.facilityMinimumTests} tests that day and volume at least +
+                {settings.engine.volumeIncreasePercent}% or positivity at least +{settings.engine.positivityIncreasePoints}{' '}
+                percentage points over its baseline.
+              </>
+            ) : (
+              <>
+                Replay baseline Day {settings.replay.baselineDay} (at least {settings.replay.minimumBaselineTests} tests);
+                a facility is affected at +{settings.replay.affectedMarginPoints} percentage points over baseline and
+                assessed only with at least {settings.engine.facilityMinimumTests} tests; positivity scale{' '}
+                {settings.replay.positivityScalePoints} points; persistence cap {settings.replay.persistenceCapDays} days.
+              </>
+            )}{' '}
+            Detection methods (live data only):
             EWMA λ {settings.ewma.lambda}, k {settings.ewma.k}, {settings.ewma.referenceDays}-day reference; CUSUM k{' '}
             {settings.cusum.k}, h {settings.cusum.h}.
             {profile.liveAvailable

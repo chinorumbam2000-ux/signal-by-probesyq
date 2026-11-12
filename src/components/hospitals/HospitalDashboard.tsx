@@ -14,6 +14,7 @@ import { formatDateTime, formatSimulationDate } from '../../lib/format';
 import { getScenario } from '../../data/simulation';
 import SeverityBadge from '../signals/SeverityBadge';
 import { EmptyState } from '../common/States';
+import { useModeWording } from '../../lib/modeWording';
 
 const VOLUME_COLOR = '#2563EB';
 const POSITIVITY_COLOR = '#DC2626';
@@ -93,14 +94,15 @@ export default function HospitalDashboard({
 
   const volumeData = metrics.volumeSeries.map((point) => ({
     ...point,
-    dayLabel: `Day ${point.day}`,
+    dayLabel: label(point.day),
   }));
   // Days whose positive count is withheld are not plotted (a gap, never a value).
   const positivityData = metrics.positivitySeries.map((point) => ({
     ...point,
     positivity: privacy.on(point.day).suppressed ? null : point.positivity,
-    dayLabel: `Day ${point.day}`,
+    dayLabel: label(point.day),
   }));
+  const wording = useModeWording();
   const withheldDays = metrics.positivitySeries.filter((point) => privacy.on(point.day).suppressed).map((p) => p.day);
 
   return (
@@ -121,7 +123,7 @@ export default function HospitalDashboard({
         <section className="ls-card">
           <header className="ls-card-header">
             <h2 className="ls-card-title">Test Volume</h2>
-            <span className="ls-label">Day 1 → current</span>
+            <span className="ls-label">{wording.trendRange(currentDay)}</span>
           </header>
           <div className="h-[200px] p-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -144,7 +146,7 @@ export default function HospitalDashboard({
         <section className="ls-card">
           <header className="ls-card-header">
             <h2 className="ls-card-title">Positivity Rate</h2>
-            <span className="ls-label">Day 1 → current</span>
+            <span className="ls-label">{wording.trendRange(currentDay)}</span>
           </header>
           <div className="h-[200px] p-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -178,7 +180,7 @@ export default function HospitalDashboard({
           </div>
           {withheldDays.length ? (
             <p className="px-4 pb-3 text-[11px] text-muted">
-              Not plotted: Day {withheldDays.join(', Day ')} — fewer than 5 positive results, withheld under the
+              Not plotted: {withheldDays.map(label).join(', ')} — fewer than 5 positive results, withheld under the
               small-count rule.
             </p>
           ) : null}

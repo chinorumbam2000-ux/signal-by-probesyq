@@ -21,6 +21,7 @@ import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/p
 import { isScope } from '../lib/profiles/selection';
 import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
+import { useModeWording } from '../lib/modeWording';
 
 /**
  * Investigation context lives in the URL:
@@ -52,6 +53,7 @@ export default function SignalsPage() {
     error,
     clearError,
   } = useSimulation();
+  const wording = useModeWording();
 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -300,9 +302,8 @@ export default function SignalsPage() {
             Signals &amp; Alerts
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Each alert reports the values recorded when it was detected. Those values do
-            not change as the replay advances — current regional figures are shown
-            separately below.
+            Each alert reports the values recorded when it was detected. Those values{' '}
+            {wording.frozenValues} — current regional figures are shown separately below.
           </p>
         </div>
         <PageMeta />
@@ -394,7 +395,7 @@ export default function SignalsPage() {
       {/* Current values kept explicitly separate from the frozen detection values. */}
       <Card
         title={`Current regional figures — ${view.isNarrated ? '' : `${view.profile.displayName}, `}${period.currentLabel}`}
-        subtitle="Values for the selected replay day, shown separately from the detection-time values above"
+        subtitle={`${wording.currentFigures}, shown separately from the detection-time values above`}
         action={
           view.isNarrated ? (
           <button

@@ -14,9 +14,9 @@ import {
   PROFILE_BY_ID,
   RVS_PROFILE_ID,
   TEST_BY_CODE,
-  DATA_ORIGIN_LABEL,
   type ProfileId,
 } from '../lib/profiles/registry';
+import { modeWording } from '../lib/modeWording';
 import {
   activeSignals,
   countStatuses,
@@ -288,7 +288,7 @@ const profileStatus = (id: ProfileId, ctx: AssistantContext, day?: SimulationDay
     text(`${profile.displayName} on ${onDay(s.current.day)}: ${s.current.statusReason}`),
     profileMetrics(s),
     text(
-      `${profile.displayName} counts ${joinAnd(tests)} results (${DATA_ORIGIN_LABEL[profile.dataOrigin].toLowerCase()}). ${SEPARATE}`,
+      `${profile.displayName} counts ${joinAnd(tests)} results (${modeWording(live ? 'live' : 'replay').dataOrigin(profile.dataOrigin).toLowerCase()}). ${SEPARATE}`,
     ),
   ];
   blocks.push(...lowVolume(s));

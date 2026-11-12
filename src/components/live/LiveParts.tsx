@@ -147,19 +147,51 @@ const STATUS_STYLE: Record<string, string> = {
 const minutesText = (minutes: number | null) =>
   minutes === null ? 'none yet' : minutes < 1 ? 'just now' : `${minutes} min ago`;
 
-/** The three simulated sources, from the live state (never a hard-coded "connected"). */
-export function SourceStatusPanel({ compact = false }: { compact?: boolean }) {
+type LiveRun = 'idle' | 'running' | 'paused' | 'complete';
+
+/** The sources' state, from the live simulation (never a hard-coded "connected"). */
+function useLiveRun() {
   const { simulator, started, playing } = useLiveSurveillance();
   const feeds = simulator.feedHealth();
   const active = feeds.filter((f) => f.isReporting && f.status !== 'DELAYED').length;
   // The feeds only send while the simulation runs: never "active" before Start or after the end.
-  const run: 'idle' | 'running' | 'paused' | 'complete' = simulator.finished
-    ? 'complete'
-    : !started
-      ? 'idle'
-      : playing
-        ? 'running'
-        : 'paused';
+  const run: LiveRun = simulator.finished ? 'complete' : !started ? 'idle' : playing ? 'running' : 'paused';
+  return { simulator, feeds, active, run };
+}
+
+/** The simulator's feed note, without restating that the source is simulated (the panel heading says so). */
+const feedNote = (note: string) => note.replace(/ (?:from|through) the simulated .+ source\.$/, '.');
+
+const FEED_ISSUE: Record<string, string> = { DELAYED: 'delayed', DEGRADED: 'degraded', OFFLINE: 'offline' };
+
+/**
+ * The Dashboard's one line about Live Surveillance: run state and an aggregate
+ * of the sources, in words (never colour alone). Read-only — the feed is
+ * operated, and its sources detailed, on the Live Surveillance page.
+ */
+export function LiveStatusLine() {
+  const { feeds, active, run } = useLiveRun();
+  const parts: string[] = [];
+  if (run === 'complete') parts.push('Complete');
+  else if (run === 'idle') parts.push('Not started', `${feeds.filter((f) => f.isReporting).length} / ${feeds.length} sources ready`);
+  else {
+    parts.push(run === 'running' ? 'Running' : 'Paused', `${active} / ${feeds.length} sources active`);
+    for (const f of feeds) {
+      if (f.status !== 'HEALTHY') parts.push(`${shortFacilityName(f.hospitalId)} ${FEED_ISSUE[f.status] ?? f.status.toLowerCase()}`);
+    }
+  }
+  return (
+    <p role="status" className="ls-card px-4 py-2.5 text-sm text-ink" data-testid="dashboard-live-status" data-run-state={run}>
+      {/* The app's usual " · " separator, as plain text: it reads and copies cleanly. */}
+      <span className="font-semibold">Live Surveillance</span>
+      {parts.map((part) => ` · ${part}`).join('')}
+    </p>
+  );
+}
+
+/** The three simulated sources in detail: the Live Surveillance page. */
+export function SourceStatusPanel() {
+  const { simulator, feeds, active, run } = useLiveRun();
   const heading =
     run === 'idle'
       ? 'Simulated sources · not started'
@@ -179,27 +211,24 @@ export function SourceStatusPanel({ compact = false }: { compact?: boolean }) {
     <section aria-label="Simulated source feeds" className="ls-card px-4 py-3" data-testid="source-status" data-run-state={run}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-ink">{heading}</h2>
-        <p className="text-[11px] text-muted">Simulated source feeds · times are simulated</p>
       </div>
-      <ul className={`mt-2 grid gap-2 ${compact ? 'sm:grid-cols-3' : 'md:grid-cols-3'}`}>
+      <ul className="mt-2 grid gap-2 md:grid-cols-3">
         {feeds.map((f) => (
           <li key={f.hospitalId} className="rounded-lg border border-hairline px-3 py-2" data-testid={`source-${f.hospitalId}`}>
             <p className="truncate text-sm font-semibold text-ink" title={f.facilityName}>
               {f.facilityName}
             </p>
-            <p className="text-[11px] text-muted">{SOURCE_TYPE[f.hospitalId]} (simulated)</p>
+            <p className="text-[11px] text-muted">{SOURCE_TYPE[f.hospitalId]}</p>
             <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
               <span className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${chip(f.status).style}`}>
                 {chip(f.status).text}
               </span>
               <span className="text-muted">Last observation: {minutesText(simulator.minutesSinceResult(f.hospitalId))}</span>
             </p>
-            {compact ? null : (
-              <p className="mt-1 text-[11px] text-muted">
-                {f.eventsReceived.toLocaleString('en-US')} messages · {f.terminologyMappedPercent.toFixed(1)}% mapped ·{' '}
-                {f.completenessPercent.toFixed(1)}% complete · {f.note}
-              </p>
-            )}
+            <p className="mt-1 text-[11px] text-muted">
+              {f.eventsReceived.toLocaleString('en-US')} messages · {f.terminologyMappedPercent.toFixed(1)}% mapped ·{' '}
+              {f.completenessPercent.toFixed(1)}% complete · {feedNote(f.note)}
+            </p>
           </li>
         ))}
       </ul>
@@ -233,7 +262,7 @@ export function ActivityStream({ limit = 40, kinds }: { limit?: number; kinds?: 
     <section aria-labelledby="activity-heading" className="ls-card flex min-h-0 flex-col" data-testid="activity-stream">
       <header className="ls-card-header">
         <h2 id="activity-heading" className="ls-card-title">Live activity</h2>
-        <span className="text-[11px] text-muted">Newest first · simulated time</span>
+        <span className="text-[11px] text-muted">Newest first</span>
       </header>
       <p className="sr-only" aria-live="polite">
         {announce ? announce.text : ''}

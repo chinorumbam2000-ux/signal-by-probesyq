@@ -7,6 +7,7 @@ import { formatSimulationDateTime } from '../../lib/format';
 import { PROFILE_BY_ID, type ProfileId } from '../../lib/profiles/registry';
 import { rateDisplay, regionalPositivePrivacy } from '../../lib/profiles/privacy';
 import type { ProfileAlert } from '../../lib/profiles/portfolio';
+import { useModeWording } from '../../lib/modeWording';
 
 /**
  * The investigation of an alert from a profile other than the narrated one.
@@ -35,6 +36,7 @@ export default function ProfileInvestigationShell({
   onBack: () => void;
 }) {
   const [reportMessage, setReportMessage] = useState<string | null>(null);
+  const wording = useModeWording();
   const profile = PROFILE_BY_ID[alert.profileId as ProfileId];
   const d = alert.detection;
   const positives = regionalPositivePrivacy(profile.id, alert.detectedDay);
@@ -73,7 +75,7 @@ export default function ProfileInvestigationShell({
           ))}
         </dl>
         <p className="mt-3 text-xs text-muted">
-          These values were recorded when the alert was raised and do not change as the replay advances.
+          These values were recorded when the alert was raised and {wording.frozenValues}.
         </p>
       </section>
 

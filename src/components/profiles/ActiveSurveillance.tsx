@@ -1,7 +1,7 @@
 import SeverityBadge from '../signals/SeverityBadge';
 import ProfileStatusTag from './ProfileStatusTag';
 import ProfileTypeTag from './ProfileTypeTag';
-import { DATA_ORIGIN_LABEL } from '../../lib/profiles/registry';
+import { useModeWording } from '../../lib/modeWording';
 import { activeSignals, type ProfileSummary } from '../../lib/profiles/portfolio';
 import type { Portfolio } from '../../lib/profiles/usePortfolio';
 import { useOptionalLiveSurveillance } from '../../context/LiveSurveillanceContext';
@@ -134,6 +134,7 @@ function ProfileCard({
   today?: ProfileDay;
 }) {
   const { profile, current, score, scoreChange, status } = summary;
+  const wording = useModeWording();
   const facilities = current.scenario.affectedHospitals.length;
   const areas = current.scenario.affectedZipCodes;
   return (
@@ -150,7 +151,7 @@ function ProfileCard({
           </h3>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted">
             <ProfileTypeTag profile={profile} />
-            <span>{DATA_ORIGIN_LABEL[profile.dataOrigin]}</span>
+            <span>{wording.dataOrigin(profile.dataOrigin)}</span>
           </p>
         </div>
         {score ? (

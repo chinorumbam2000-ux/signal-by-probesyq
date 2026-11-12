@@ -20,6 +20,7 @@ import {
   formatSimulationDateTime,
 } from '../lib/format';
 import { currentProfileName } from '../lib/profiles/registry';
+import { useModeWording } from '../lib/modeWording';
 
 /**
  * Simulated public-health reporting.
@@ -31,6 +32,8 @@ export default function ReportsPage() {
   const { reports, runReportAction, updateReportNotes, error, clearError } =
     useSimulation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // In Live Surveillance the replay's reports are not shown as live ones: the note says where to go.
+  const isLive = useModeWording().mode === 'live';
 
   if (error) {
     return (
@@ -62,7 +65,7 @@ export default function ReportsPage() {
         <p className="mt-2 text-xs leading-relaxed text-muted">{REPORTING_SCOPE_NOTE}</p>
       </div>
 
-      {reports.length === 0 ? (
+      {isLive ? null : reports.length === 0 ? (
         <Card>
           <EmptyState
             icon="▤"

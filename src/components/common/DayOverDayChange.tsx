@@ -1,4 +1,5 @@
 import type { ChangeDirection, DayOverDayComparison } from '../../types';
+import { useModeWording } from '../../lib/modeWording';
 
 const DIRECTION_STYLES: Record<ChangeDirection, string> = {
   up: 'text-severity-critical',
@@ -26,6 +27,8 @@ export default function DayOverDayChange({
   comparison,
   className = '',
 }: DayOverDayChangeProps) {
+  const wording = useModeWording();
+  const previousDay = comparison.previousDay ?? comparison.currentDay - 1;
   if (!comparison.available) {
     return (
       <section className={`ls-card ${className}`} aria-label="Day-to-day change">
@@ -37,7 +40,7 @@ export default function DayOverDayChange({
             Baseline — no previous surveillance day available.
           </p>
           <p className="mt-1.5 text-xs text-muted">
-            Day 1 establishes the baseline that later days are compared against.
+            {wording.noPreviousDay}
           </p>
         </div>
       </section>
@@ -48,7 +51,7 @@ export default function DayOverDayChange({
     <section className={`ls-card ${className}`} aria-label="Day-to-day change">
       <header className="ls-card-header">
         <h2 className="ls-card-title">
-          Change: Day {comparison.previousDay} → Day {comparison.currentDay}
+          Change: {wording.day(previousDay)} → {wording.day(comparison.currentDay)}
         </h2>
         <span
           className={`text-sm font-semibold tabular-nums ${
@@ -65,17 +68,16 @@ export default function DayOverDayChange({
       <div className="w-full overflow-x-auto">
         <table className="w-full min-w-[520px] border-collapse">
           <caption className="sr-only">
-            Comparison of replay day {comparison.previousDay} with day{' '}
-            {comparison.currentDay}
+            {wording.comparison(previousDay, comparison.currentDay)}
           </caption>
           <thead className="border-b border-hairline bg-canvas">
             <tr>
               <th scope="col" className="ls-th">Metric</th>
               <th scope="col" className="ls-th text-right">
-                Day {comparison.previousDay}
+                {wording.day(previousDay)}
               </th>
               <th scope="col" className="ls-th text-right">
-                Day {comparison.currentDay}
+                {wording.day(comparison.currentDay)}
               </th>
               <th scope="col" className="ls-th text-right">Change</th>
             </tr>

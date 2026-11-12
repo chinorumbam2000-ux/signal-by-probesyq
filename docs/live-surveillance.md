@@ -43,17 +43,29 @@ changes the mode; it never starts the simulation.
 
 **One Start control.** The simulation is started in one place: the
 **Start Live Surveillance** button on the Live Surveillance page. The same
-controls then Pause, Resume and Reset it and set the speed. The Dashboard is
-the surveillance overview: it shows "Live Surveillance ready" and an
-"Open Live Surveillance" link before Start, the run state afterwards, and the
-source summary, but no playback controls. The top bar shows the live
-surveillance date and the run state ("Not started", "Running · 1×", "Paused",
-"Complete") as status only. The Dashboard's "Start here" strip offers
-**Open Live Surveillance**, which only navigates.
+controls then Pause, Resume and Reset it and set the speed. The top bar shows
+the live surveillance date and the run state ("Not started", "Running · 1×",
+"Paused", "Complete") as status only.
+
+**Dashboard and Live Surveillance.** The Dashboard is the surveillance
+overview; the Live Surveillance page operates the feed and details its
+sources. The Dashboard has one read-only line, from the live state —
+"Live Surveillance · Not started · 3 / 3 sources ready", "… · Running ·
+2 / 3 sources active · Shrewsbury Community delayed", "… · Paused · …",
+"… · Complete" — and no source cards, playback controls or second link. Its
+"Start here" strip offers **Open Live Surveillance** (navigation only) while it
+is shown; afterwards the sidebar (the menu on a phone) leads there.
+
+**Mode-correct wording.** Each mode names its own days and data: Scenario
+Replay's "Day 4", "Scenario Replay data" and replay rules; Live Surveillance's
+"Feb 12", "Live Surveillance data", rolling-baseline settings and closed-day
+rule. The phrases come from one place (`src/lib/modeWording.ts`). Pages that
+still follow Scenario Replay (Investigations, Reports) show only a short note
+in Live Surveillance, never the replay's records as live ones.
 
 - **A fresh session opens in Live Surveillance** — the first page after
   sign-in, and any session with no stored mode. Before Start, the Dashboard
-  says "Live Surveillance ready" and shows the live feed's latest closed
+  says "Live Surveillance · Not started" and shows the live feed's latest closed
   history day, never the replay's values.
 - **An explicit choice is kept for the browser session** (`sessionStorage`,
   key `labsentinel.surveillanceMode.v1`, still named for compatibility):

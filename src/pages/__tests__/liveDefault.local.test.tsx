@@ -68,9 +68,9 @@ describe('default mode', () => {
     expect(pressed('Scenario Replay')).toBe('false');
     // The live context, never the replay's values.
     expect(screen.getByTestId('dashboard-live')).toBeTruthy();
-    const ready = screen.getByTestId('live-ready');
-    expect(ready.textContent).toContain('Live Surveillance ready');
-    expect(ready.textContent).toContain('Open Live Surveillance to begin receiving simulated source observations');
+    const status = screen.getByTestId('dashboard-live-status');
+    expect(status.getAttribute('data-run-state')).toBe('idle');
+    expect(status.textContent).toMatch(/^Live Surveillance.*Not started.*3 \/ 3 sources ready$/);
     expect(topBar().textContent).toContain('Live Surveillance · Simulated source feeds');
     expect(topBar().textContent).not.toMatch(/Replay Day|Day \d of 5/);
     expect(document.querySelector('main')?.textContent).not.toMatch(/Replay Day|Replay date/);
