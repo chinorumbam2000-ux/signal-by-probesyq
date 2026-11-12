@@ -141,7 +141,7 @@ describe('Live Surveillance', () => {
     // Dashboard: Active Surveillance from the live closed day (Feb 15), COVID-19 first.
     fireEvent.click(screen.getAllByRole('link', { name: /Dashboard/ })[0]);
     const section = await screen.findByTestId('active-surveillance', {}, WAIT);
-    expect(section.textContent).toContain('Live Surveillance · Feb 15 (latest closed day)');
+    expect(screen.getByText('Live Surveillance · signals for Feb 15 (latest closed day)')).toBeTruthy();
     const cards = within(within(section).getByRole('list', { name: 'Active signals' })).getAllByRole('heading', { level: 3 });
     expect(cards[0].textContent).toBe('COVID-19');
     expect(within(screen.getByTestId('profile-card-covid-19')).getByText('87')).toBeTruthy();

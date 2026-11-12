@@ -200,7 +200,7 @@ describe('the small-count rule at facility and county level', () => {
     renderAt('/dashboard?profile=influenza-a');
     await screen.findByTestId('profile-heading', {}, WAIT);
     // Influenza A, Day 1: 1 positive of 33.
-    expect(screen.getByText('<5 of 33 tests · baseline <5')).toBeTruthy();
+    expect(screen.getByText('Baseline <5 · change withheld (fewer than 5 positives)')).toBeTruthy();
     expect(document.body.textContent).not.toContain('3.0%');
     expect(screen.getByTestId('low-volume-note').textContent).toContain('fewer than 5 positive results');
     cleanup();
@@ -220,7 +220,8 @@ describe('the small-count rule at facility and county level', () => {
 describe('score traceability', () => {
   it('lists the score’s components, the same ones Roella explains', async () => {
     atDay(4);
-    renderAt('/dashboard?profile=influenza-a');
+    // The Dashboard leaves the breakdown to its score section; the profile pages keep it.
+    renderAt('/facilities?profile=influenza-a');
     const list = await screen.findByTestId('score-components', {}, WAIT);
     const flu = summarizeProfiles(4).find((s) => s.profile.id === 'influenza-a')!;
     expect(list.textContent).toContain(`Score components (${flu.score!.composite} of 100)`);

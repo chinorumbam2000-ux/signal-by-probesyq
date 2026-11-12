@@ -95,17 +95,15 @@ describe('Live Surveillance: no Scenario Replay wording', () => {
     }
   });
 
-  it('Dashboard: live data origin, live profile settings, live dates in the day-to-day change', { timeout: 20000 }, async () => {
+  it('Dashboard: live data origin, live profile settings, live dates in the indicators’ change', { timeout: 20000 }, async () => {
     await liveDuringOutage();
     await go(/^Dashboard/, /Regional Outbreak Status/);
     expect(within(screen.getByTestId('profile-card-influenza-a')).getByText('Live Surveillance data')).toBeTruthy();
     const heading = screen.getByTestId('profile-heading');
     expect(heading.textContent).toContain('Live Surveillance data');
     expect(heading.textContent).toContain('Live Surveillance: rolling 7-day baseline');
-    const change = screen.getByRole('region', { name: 'Day-to-day change' });
-    expect(within(change).getByRole('heading', { level: 2 }).textContent).toBe('Change: Feb 11 → Feb 12');
-    expect(within(change).getByRole('table').querySelector('caption')?.textContent).toBe('Comparison of Feb 11 with Feb 12');
-    expect(within(change).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['Metric', 'Feb 11', 'Feb 12', 'Change']);
+    for (const change of screen.getAllByTestId('kpi-change')) expect(change.textContent).toMatch(/ vs Feb 11$| since Feb 11 withheld/);
+    expect(screen.getByTestId('score-movement').textContent).toMatch(/^Why the score moved · [+−±]\d+ since Feb 11/);
   });
 
   it('Signals: live wording, and acknowledge buttons name the live date', { timeout: 20000 }, async () => {
@@ -146,9 +144,9 @@ describe('Scenario Replay keeps its own wording', () => {
     for (let i = 0; i < 4; i += 1) fireEvent.click(button('Next replay day'));
     await go(/^Dashboard/, /Regional Outbreak Status/);
     expect((await screen.findByTestId('profile-heading', undefined, WAIT)).textContent).toContain('Scenario Replay data');
-    const change = screen.getByRole('region', { name: 'Day-to-day change' });
-    expect(within(change).getByRole('heading', { level: 2 }).textContent).toBe('Change: Day 4 → Day 5');
-    expect(within(change).getByRole('table').querySelector('caption')?.textContent).toBe('Comparison of replay day 4 with day 5');
+    expect(screen.getAllByTestId('kpi-change').map((c) => c.textContent)).toHaveLength(5);
+    for (const change of screen.getAllByTestId('kpi-change')) expect(change.textContent).toMatch(/ vs Day 4$/);
+    expect(screen.getByTestId('score-movement').textContent).toMatch(/^Why the score moved · \+13 since Day 4/);
     await go(/^Signals/, /Signals/);
     expect(main().textContent).toContain('do not change as the replay advances');
     expect(main().textContent).toContain('Values for the selected replay day');

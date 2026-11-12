@@ -297,7 +297,7 @@ banner.
 | Route | Screen | What it contains |
 |-------|--------|------------------|
 | `/` | Sign in | Presentation sign-in (name, the fixed Public Health Analyst role, password; not authentication). Every other screen requires it and returns to the page originally requested; Sign Out in the top bar. `/smart/launch`, `/smart/callback` and `/smart/sidecar` are never behind it |
-| `/dashboard` | Public Health Dashboard | Six numbered sections: current situation (both scores), epidemiological indicators, geographic intelligence, data quality, current alert, day-to-day change |
+| `/dashboard` | Public Health Dashboard | A concise overview: Active Surveillance, the selected profile, its outbreak score beside Data Confidence, key indicators with the change since the previous day and why the score moved, one small trend, a geographic summary, and the highest-priority alert (reviewed on Signals) |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
 | `/signals` | Signals & Alerts | Alert table, acknowledgement, Signal Investigation breakdown, Why This Signal, human-in-the-loop investigation workflow |
@@ -1115,7 +1115,7 @@ src/
 │   │                  DataConfidenceCard, FeedHealthCard, DayOverDayChange,
 │   │                  PrivacyValue
 │   ├── dashboard/     SectionHeading, CurrentSituationCard, KpiCard, TrendChart,
-│   │                  HighestRiskArea, DataQualitySummary, CurrentAlertSection
+│   │                  HighestRiskArea, AlertSummary, ScoreMovement, StartHere
 │   ├── hospitals/     HospitalDashboard, VendorSidecar, FhirStatusPanel
 │   ├── layout/        AppShell, Sidebar, TopBar
 │   ├── map/           OutbreakMap, ZipDetailPanel, MapLegend

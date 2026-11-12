@@ -37,7 +37,7 @@ export default function HighestRiskArea({
   return (
     <div className="ls-card flex flex-col">
       <header className="ls-card-header">
-        <h2 className="ls-card-title">Highest-risk surveillance area</h2>
+        <h3 className="ls-card-title">Highest-risk surveillance area</h3>
         <button type="button" onClick={onOpenMap} className="ls-btn px-3 py-1.5 text-xs">
           Open map →
         </button>
@@ -98,9 +98,8 @@ export default function HighestRiskArea({
           <div className="flex h-full flex-col justify-center text-center">
             <p className="text-sm font-medium text-ink">No area is currently affected</p>
             <p className="mt-1.5 text-xs leading-relaxed text-muted">
-              No surveillance area is above the detection margin on this replay day.
-              That is an absence of signal, not an absence of testing — all three
-              facilities are still reporting.
+              No surveillance area is above the detection margin. That is an absence
+              of signal, not an absence of testing.
             </p>
           </div>
         )}

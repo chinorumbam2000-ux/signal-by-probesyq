@@ -51,8 +51,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Dashboard',
     title: 'Regional Outbreak Status',
     shows:
-      'Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the current situation (the Composite Outbreak Signal Score beside Data Confidence), epidemiological indicators, geographic intelligence, data quality, the current alert and the day-to-day change.',
-    use: 'Start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, then follow its alert into Signals.',
+      'Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the Composite Outbreak Signal Score beside Data Confidence, the key indicators with their change since the previous day and why the score moved, a small trend, a geographic summary, and the highest-priority alert awaiting review across every profile.',
+    use: 'Start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, then review alerts in Signals. Facility data quality is on Facilities, trend detail on Analytics.',
   },
   map: {
     nav: 'Outbreak Map',

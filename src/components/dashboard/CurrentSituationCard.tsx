@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom';
 import type { ConfidenceLevel, DataConfidenceResult, SignalScoreResult } from '../../types';
-import { SEVERITY_STYLES, formatSimulationDate } from '../../lib/format';
+import { SEVERITY_STYLES } from '../../lib/format';
 import { CONFIDENCE_DISCLAIMER } from '../../lib/dataConfidence';
 import SeverityBadge from '../signals/SeverityBadge';
 import MethodNote from '../common/MethodNote';
@@ -25,64 +26,55 @@ const CONFIDENCE_STYLES: Record<ConfidenceLevel, { badge: string; bar: string }>
 };
 
 interface CurrentSituationCardProps {
-  score: SignalScoreResult;
+  /** Null when the selected profile has no score; Data Confidence is still shown. */
+  score: SignalScoreResult | null;
   confidence: DataConfidenceResult;
-  simulationDate: string;
-  stage: string;
-  day: number;
-  /** Replaces "Replay Day N of 5" (Live Surveillance). */
-  periodLabel?: string;
+  /** Where the detailed, per-facility data quality lives. */
+  facilitiesPath: string;
 }
 
 /**
- * Section 1 — the two headline readings, side by side but never merged.
+ * The Dashboard's one home for the score: the Composite Outbreak Signal Score
+ * and Data Confidence, side by side but never merged.
  *
  * "How concerning is this?" and "how much can I trust it?" are different
  * questions with different answers. They sit in separate panels with separate
  * colour languages — severity keeps the red-amber-green scale, confidence uses
  * a neutral teal/slate — and a visible divider between them, so no one reads
- * one number as qualifying the other.
+ * one number as qualifying the other. The five Data Confidence inputs are
+ * detailed on Facilities, one link away.
  */
-export default function CurrentSituationCard({
-  score,
-  confidence,
-  simulationDate,
-  stage,
-  day,
-  periodLabel,
-}: CurrentSituationCardProps) {
-  const severity = SEVERITY_STYLES[score.severity];
+export default function CurrentSituationCard({ score, confidence, facilitiesPath }: CurrentSituationCardProps) {
+  const severity = score ? SEVERITY_STYLES[score.severity] : null;
   const conf = CONFIDENCE_STYLES[confidence.level];
 
   return (
-    <section className="ls-card overflow-hidden" aria-label="Current situation">
-      <span aria-hidden="true" className={`block h-1 w-full ${severity.accent}`} />
+    <div className="ls-card overflow-hidden" data-testid="score-and-confidence">
+      {severity ? <span aria-hidden="true" className={`block h-1 w-full ${severity.accent}`} /> : null}
 
-      <div className="grid grid-cols-1 divide-y divide-hairline lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-        {/* Outbreak signal */}
-        <div className={`p-6 ${severity.soft}`}>
-          <div className="flex items-center justify-between gap-3">
-            <p className="ls-label">Composite Outbreak Signal Score</p>
-            <SeverityBadge severity={score.severity} size="md" />
+      <div className={`grid grid-cols-1 divide-y divide-hairline ${score ? 'lg:grid-cols-2 lg:divide-x lg:divide-y-0' : ''}`}>
+        {score && severity ? (
+          <div className={`p-6 ${severity.soft}`} data-testid="outbreak-score">
+            <div className="flex items-center justify-between gap-3">
+              <p className="ls-label">Composite Outbreak Signal Score</p>
+              <SeverityBadge severity={score.severity} size="md" />
+            </div>
+            <p className="mt-3 text-5xl font-semibold leading-none tabular-nums text-ink">
+              {score.composite}
+              <span className="text-2xl font-medium text-muted"> / 100</span>
+            </p>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/70">
+              <span
+                className={`block h-full rounded-full transition-all duration-500 ${severity.accent}`}
+                style={{ width: `${Math.max(score.composite, 2)}%` }}
+              />
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-muted">How concerning the epidemiological signal is.</p>
+            <MethodNote className="mt-1.5">{SCORE_DISCLAIMER_TEXT}</MethodNote>
           </div>
-          <p className="mt-3 text-5xl font-semibold leading-none tabular-nums text-ink">
-            {score.composite}
-            <span className="text-2xl font-medium text-muted"> / 100</span>
-          </p>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/70">
-            <span
-              className={`block h-full rounded-full transition-all duration-500 ${severity.accent}`}
-              style={{ width: `${Math.max(score.composite, 2)}%` }}
-            />
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-muted">
-            How concerning the epidemiological signal is.
-          </p>
-          <MethodNote className="mt-1.5">{SCORE_DISCLAIMER_TEXT}</MethodNote>
-        </div>
+        ) : null}
 
-        {/* Data confidence */}
-        <div className="bg-white p-6">
+        <div className="bg-white p-6" data-testid="data-confidence">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="ls-label">Data Confidence Score</p>
@@ -105,19 +97,20 @@ export default function CurrentSituationCard({
             />
           </div>
           <p className="mt-3 text-xs leading-relaxed text-muted">
-            How trustworthy the underlying data is. A separate reading that never changes the
-            outbreak score.
+            How trustworthy the underlying data is. A separate reading that never changes the outbreak score.
           </p>
-          <MethodNote label="About this measure" className="mt-1.5">{CONFIDENCE_DISCLAIMER}</MethodNote>
+          <div className="mt-1.5 flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
+            <MethodNote label="About this measure">{CONFIDENCE_DISCLAIMER}</MethodNote>
+            <Link
+              to={facilitiesPath}
+              className="text-xs font-semibold text-brand hover:underline"
+              data-testid="facility-quality-link"
+            >
+              View facility data quality <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-hairline bg-canvas px-6 py-3">
-        <p className="text-xs text-muted">
-          <span className="font-medium text-ink">{periodLabel ?? `Replay Day ${day} of 5`}</span> · {stage} ·
-          {periodLabel ? 'live surveillance date' : 'replay date'} {formatSimulationDate(simulationDate)}
-        </p>
-      </div>
-    </section>
+    </div>
   );
 }

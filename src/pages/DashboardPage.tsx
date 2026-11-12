@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
-import KpiCard from '../components/dashboard/KpiCard';
+import KpiCard, { type KpiChange } from '../components/dashboard/KpiCard';
 import TrendChart from '../components/dashboard/TrendChart';
 import SectionHeading from '../components/dashboard/SectionHeading';
 import CurrentSituationCard from '../components/dashboard/CurrentSituationCard';
-import DataQualitySummary from '../components/dashboard/DataQualitySummary';
 import HighestRiskArea from '../components/dashboard/HighestRiskArea';
-import CurrentAlertSection from '../components/dashboard/CurrentAlertSection';
-import DayOverDayChange from '../components/common/DayOverDayChange';
-import DataConfidenceCard from '../components/common/DataConfidenceCard';
-import FeedHealthCard from '../components/common/FeedHealthCard';
+import AlertSummary from '../components/dashboard/AlertSummary';
+import ScoreMovement from '../components/dashboard/ScoreMovement';
 import OutbreakMap from '../components/map/OutbreakMap';
 import MapLegend from '../components/map/MapLegend';
 import Card from '../components/common/Card';
@@ -22,53 +19,39 @@ import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
-import ProfileAlertList from '../components/profiles/ProfileAlertList';
 import { LiveStatusLine } from '../components/live/LiveParts';
 import StartHere from '../components/dashboard/StartHere';
 
 /**
- * The Public Health Dashboard, organised as six numbered sections that read in
- * order: where we are, what the epidemiology says, where it is happening,
- * whether the data holds up, what the alert is, and what changed since
- * yesterday.
+ * The Public Health Dashboard: a concise overview for deciding what needs
+ * attention. It reads top to bottom as
  *
- * Progressive disclosure throughout — each section answers its question on the
- * surface and keeps the working behind a toggle, so the page stays scannable
- * without anything becoming unreachable.
+ *   Start here · profile selector · Live status line · Active Surveillance
+ *   · the selected profile · its score and Data Confidence · key indicators
+ *   (with the change since the previous day, why the score moved, one small
+ *   trend) · geographic summary · the highest-priority alert.
  *
- * Above them, Active Surveillance lists every surveillance profile. The six
- * sections then show the selected profile (?profile=, Respiratory Viral
- * Syndrome by default, exactly as before). A profile with no data or no
- * usable baseline shows why it has no score instead of a score.
+ * It summarises; the full pages own the detail. Signals owns the alert queue
+ * and its actions, Facilities the five Data Confidence inputs and feed health,
+ * Analytics the trend exploration, Live Surveillance its sources.
+ *
+ * The selected profile comes from ?profile= (Respiratory Viral Activity by
+ * default). A profile with no data or no usable baseline shows why it has no
+ * score instead of a score.
  */
 export default function DashboardPage() {
-  const {
-    regionalAlert,
-    investigations,
-    isLoading,
-    error,
-    clearError,
-  } = useSimulation();
+  const { isLoading, error, clearError } = useSimulation();
 
   const portfolio = usePortfolio();
   const { view, period } = portfolio;
   // The period on screen: the replay day, or Live Surveillance's latest closed day.
   const isLive = period.mode === 'live';
   const currentDay = period.day;
-  const simulationDate = period.date;
-  const dataConfidence = period.dataConfidence;
-  const feedHealth = period.feedHealth;
-  const {
-    scenario: currentScenario,
-    score: signalScore,
-    zipMetrics,
-    cumulativeTotals,
-    baseline,
-  } = view;
-  const mapPath = `/map?profile=${encodeURIComponent(view.profile.id)}`;
+  const { scenario: currentScenario, score: signalScore, zipMetrics, baseline } = view;
+  const profileParam = encodeURIComponent(view.profile.id);
+  const mapPath = `/map?profile=${profileParam}`;
   const navigate = useNavigate();
   const [resetToken, setResetToken] = useState(0);
-  const [showQualityDetail, setShowQualityDetail] = useState(false);
 
   if (error) {
     return (
@@ -78,8 +61,19 @@ export default function DashboardPage() {
     );
   }
 
-  // Read the stored record only — never create one just to render a status.
-  const investigation = regionalAlert ? investigations[regionalAlert.id] : undefined;
+  // The change since the previous day, from the engine's own day-over-day
+  // comparison (small-count rule already applied), shown on each indicator.
+  const comparison = view.display.dayOverDay;
+  const since =
+    comparison?.available && comparison.previousDay !== null ? period.label(comparison.previousDay) : null;
+  const changeOf = (metricLabel: string): KpiChange | null => {
+    if (!comparison?.available || !since) return null;
+    const metric = comparison.metrics.find((m) => m.label === metricLabel);
+    if (!metric) return null;
+    return metric.delta.startsWith('Withheld')
+      ? { delta: metric.delta, direction: 'none', since, withheld: true }
+      : { delta: metric.delta, direction: metric.direction, since };
+  };
 
   return (
     <div className="space-y-6">
@@ -114,65 +108,62 @@ export default function DashboardPage() {
 
           <ActiveSurveillance portfolio={portfolio} day={currentDay} />
 
-          <ProfileHeading view={view} />
+          {/* The score sentence and its breakdown are left to the score section below. */}
+          <ProfileHeading view={view} showScore={false} />
 
-          {signalScore ? (
-          <>
-          {/* ============ SECTION 1 — CURRENT SITUATION ============ */}
+          {/* ============ OUTBREAK SCORE + DATA CONFIDENCE ============ */}
           <section aria-labelledby="section-situation" className="space-y-3">
             <SectionHeading
               id="section-situation"
-              index={1}
-              title="Current situation"
-              subtitle="Two separate readings: how concerning the signal is, and how far the data behind it can be trusted"
+              title={signalScore ? 'Outbreak score and data confidence' : 'Data confidence'}
+              subtitle={
+                signalScore
+                  ? 'Two separate readings: how concerning the signal is, and how far the data behind it can be trusted'
+                  : 'Source-wide: the same for every profile'
+              }
             />
             <CurrentSituationCard
               score={signalScore}
-              confidence={dataConfidence}
-              simulationDate={simulationDate}
-              stage={currentScenario.stage}
-              day={currentDay}
-              periodLabel={isLive ? `Live Surveillance · ${period.currentLabel} (latest closed day)` : undefined}
+              confidence={period.dataConfidence}
+              facilitiesPath={`/facilities?profile=${profileParam}`}
             />
           </section>
 
-          {/* ============ SECTION 2 — EPIDEMIOLOGICAL INDICATORS ============ */}
+          {signalScore ? (
+          <>
+          {/* ============ KEY INDICATORS ============ */}
           <section aria-labelledby="section-indicators" className="space-y-3">
             <SectionHeading
               id="section-indicators"
-              index={2}
-              title="Epidemiological indicators"
+              title="Key indicators"
               subtitle={
                 isLive
-                  ? `${period.currentLabel} figures against the rolling 7-day baseline`
-                  : `Day ${currentDay} figures against the Day 1 baseline`
+                  ? 'The latest closed day against the rolling 7-day baseline, with the change since the previous day'
+                  : 'The replay day against the Day 1 baseline, with the change since the previous day'
               }
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
               <KpiCard
-                label={`Test Volume — ${period.currentLabel}`}
+                label="Tests"
                 value={currentScenario.totalTests.toLocaleString('en-US')}
-                delta={`${formatSignedPercent(signalScore.volumeIncreasePercent, 0)} vs baseline`}
-                deltaTone={signalScore.volumeIncreasePercent > 0 ? 'up' : 'neutral'}
-                footnote={`Baseline ${baseline.tests} · ${cumulativeTotals.tests.toLocaleString(
-                  'en-US',
-                )} cumulative`}
+                change={changeOf('Tests')}
+                footnote={`${formatSignedPercent(signalScore.volumeIncreasePercent, 0)} vs baseline ${baseline.tests}`}
               />
               <KpiCard
-                label={`Positivity — ${period.currentLabel}`}
+                label="Positivity"
                 value={view.display.regional.suppressed ? view.display.positivity : formatPercent(currentScenario.positivityRate)}
-                delta={
+                change={changeOf('Positivity')}
+                footnote={
                   view.display.ratesWithheld
-                    ? 'Change withheld (fewer than 5 positives)'
-                    : formatPercentagePoints(signalScore.positivityDeltaPoints)
+                    ? `Baseline ${view.display.baselinePositivity} · change withheld (fewer than 5 positives)`
+                    : `${formatPercentagePoints(signalScore.positivityDeltaPoints)} vs baseline ${view.display.baselinePositivity}`
                 }
-                deltaTone={!view.display.ratesWithheld && signalScore.positivityDeltaPoints > 0 ? 'up' : 'neutral'}
-                footnote={`${view.display.positives} of ${currentScenario.totalTests} tests · baseline ${view.display.baselinePositivity}`}
               />
               <KpiCard
                 label="Affected Facilities"
                 value={`${currentScenario.affectedHospitals.length} / 3`}
+                change={changeOf('Affected facilities')}
                 footnote={
                   currentScenario.affectedHospitals.length === 0
                     ? 'No facility above the detection margin'
@@ -180,8 +171,9 @@ export default function DashboardPage() {
                 }
               />
               <KpiCard
-                label="Geographic Spread"
+                label="Affected Areas"
                 value={`${currentScenario.affectedZipCodes.length} / 3`}
+                change={changeOf('Affected geographic areas')}
                 footnote={
                   currentScenario.affectedZipCodes.length === 0
                     ? 'No surveillance area affected'
@@ -193,6 +185,7 @@ export default function DashboardPage() {
                 value={`${currentScenario.persistenceDays} ${
                   currentScenario.persistenceDays === 1 ? 'day' : 'days'
                 }`}
+                change={changeOf('Persistence')}
                 footnote={
                   currentScenario.persistenceDays === 0
                     ? 'Positivity at or below baseline'
@@ -201,12 +194,12 @@ export default function DashboardPage() {
               />
             </div>
 
+            {comparison ? <ScoreMovement comparison={comparison} /> : null}
+
             <Card
               title="Test Volume &amp; Positivity Trend"
               subtitle={
-                isLive
-                  ? `Closed days through ${period.currentLabel} — synthetic aggregate data`
-                  : `Day 1 through Day ${currentDay} — synthetic aggregate data`
+                isLive ? 'Closed days · synthetic aggregate data' : `Day 1 to Day ${currentDay} · synthetic aggregate data`
               }
               bodyClassName="p-4"
             >
@@ -214,12 +207,11 @@ export default function DashboardPage() {
             </Card>
           </section>
 
-          {/* ============ SECTION 3 — GEOGRAPHIC INTELLIGENCE ============ */}
+          {/* ============ GEOGRAPHIC SUMMARY ============ */}
           <section aria-labelledby="section-geography" className="space-y-3">
             <SectionHeading
               id="section-geography"
-              index={3}
-              title="Geographic intelligence"
+              title="Geographic summary"
               subtitle="Synthetic surveillance areas, with small counts suppressed"
             />
 
@@ -273,73 +265,15 @@ export default function DashboardPage() {
           </>
           ) : null}
 
-          {/* ============ SECTION 4 — DATA QUALITY ============ */}
-          <section aria-labelledby="section-quality" className="space-y-3">
-            <SectionHeading
-              id="section-quality"
-              index={4}
-              title="Data quality"
-              subtitle="Whether today's figures can be relied on — separate from how severe they are"
-              action={
-                <button
-                  type="button"
-                  onClick={() => setShowQualityDetail((open) => !open)}
-                  aria-expanded={showQualityDetail}
-                  className="ls-btn text-xs"
-                >
-                  {showQualityDetail ? 'Hide details' : 'View Data Confidence'}
-                </button>
-              }
-            />
-
-            <DataQualitySummary confidence={dataConfidence} feeds={feedHealth} />
-
-            {showQualityDetail ? (
-              <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-                <DataConfidenceCard confidence={dataConfidence} />
-                <FeedHealthCard feeds={feedHealth} className="xl:col-span-2" />
-              </div>
-            ) : null}
-          </section>
-
-          {/* ============ SECTION 5 — CURRENT ALERT ============ */}
+          {/* ============ HIGHEST-PRIORITY ALERT ============ */}
           <section aria-labelledby="section-alert" className="space-y-3">
             <SectionHeading
               id="section-alert"
-              index={5}
-              title="Current alert"
-              subtitle="What the signal is, who is reviewing it, and how to look closer"
+              title="Highest-priority alert"
+              subtitle="Across every profile. Alerts are reviewed, acknowledged and investigated on the Signals page."
             />
-            {view.isNarrated && signalScore ? (
-              <CurrentAlertSection
-                scenario={currentScenario}
-                score={signalScore}
-                confidence={dataConfidence}
-                feeds={feedHealth}
-                alert={regionalAlert}
-                investigation={investigation}
-              />
-            ) : (
-              <ProfileAlertList view={view} dayLabel={period.currentLabel} label={period.label} />
-            )}
+            <AlertSummary alerts={portfolio.alerts} />
           </section>
-
-          {/* ============ SECTION 6 — DAY-TO-DAY CHANGE ============ */}
-          {view.dayOverDay ? (
-          <section aria-labelledby="section-change" className="space-y-3">
-            <SectionHeading
-              id="section-change"
-              index={6}
-              title={
-                view.dayOverDay.available
-                  ? `What changed since ${period.label(view.dayOverDay.previousDay ?? 0)}?`
-                  : 'What changed since the previous day?'
-              }
-              subtitle="Movement in each component input, and why the score responded"
-            />
-            <DayOverDayChange comparison={view.display.dayOverDay ?? view.dayOverDay} />
-          </section>
-          ) : null}
 
           <PrivacyNote className="px-1 pb-2" />
         </>

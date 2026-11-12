@@ -56,6 +56,14 @@ sources. The Dashboard has one read-only line, from the live state —
 "Start here" strip offers **Open Live Surveillance** (navigation only) while it
 is shown; afterwards the sidebar (the menu on a phone) leads there.
 
+**What the Dashboard keeps.** The Dashboard summarises and links; the full
+pages own the detail. It shows the selected profile's outbreak score beside
+Data Confidence (the five Data Confidence inputs are on Facilities), the key
+indicators with their change since the previous day and the engine's own
+"Why the score moved", one small trend (Analytics has the rest), a geographic
+summary, and one line naming the highest-priority alert awaiting review with
+a link to Signals, where alerts are acknowledged and investigated.
+
 **Mode-correct wording.** Each mode names its own days and data: Scenario
 Replay's "Day 4", "Scenario Replay data" and replay rules; Live Surveillance's
 "Feb 12", "Live Surveillance data", rolling-baseline settings and closed-day

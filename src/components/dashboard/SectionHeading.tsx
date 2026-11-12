@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 
 interface SectionHeadingProps {
-  /** Section number, shown as a quiet ordinal so the page reads in order. */
-  index: number;
   title: string;
   subtitle?: string;
   action?: ReactNode;
@@ -11,20 +9,14 @@ interface SectionHeadingProps {
 
 /**
  * One consistent heading treatment for every dashboard section, so the page
- * scans as a sequence rather than a pile of cards.
+ * scans as a sequence rather than a pile of cards. Descriptive headings only:
+ * the sections are not numbered.
  */
-export default function SectionHeading({
-  index,
-  title,
-  subtitle,
-  action,
-  id,
-}: SectionHeadingProps) {
+export default function SectionHeading({ title, subtitle, action, id }: SectionHeadingProps) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
-        <p className="ls-label">Section {index}</p>
-        <h2 id={id} className="mt-0.5 text-base font-semibold tracking-tight text-ink">
+        <h2 id={id} className="text-base font-semibold tracking-tight text-ink">
           {title}
         </h2>
         {subtitle ? <p className="mt-0.5 text-xs text-muted">{subtitle}</p> : null}

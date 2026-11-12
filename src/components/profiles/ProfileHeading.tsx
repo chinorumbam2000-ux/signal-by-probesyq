@@ -9,8 +9,20 @@ import { useModeWording } from '../../lib/modeWording';
 /**
  * Names the profile the page is showing, its status in words, where its data
  * comes from, and the settings it is scored with.
+ *
+ * `showScore={false}` (the Dashboard) leaves the score sentence and its
+ * component breakdown to the page's own score section; the reason a profile
+ * has no score is still shown.
  */
-export default function ProfileHeading({ view, compact = false }: { view: ProfileView; compact?: boolean }) {
+export default function ProfileHeading({
+  view,
+  compact = false,
+  showScore = true,
+}: {
+  view: ProfileView;
+  compact?: boolean;
+  showScore?: boolean;
+}) {
   const { profile, status, score, statusReason } = view;
   const settings = settingsFor(profile.id);
   const tests = profile.testCodes.map((code) => TEST_BY_CODE[code]?.name ?? code).join(', ');
@@ -36,14 +48,14 @@ export default function ProfileHeading({ view, compact = false }: { view: Profil
       <p className="text-xs text-ink" data-testid="profile-scope">
         {profileScopeText(profile.id)}
       </p>
-      <p className="text-sm text-ink">{statusReason}</p>
+      {showScore || !score ? <p className="text-sm text-ink">{statusReason}</p> : null}
       {view.display.lowVolume ? (
         <p role="note" className="rounded-md border border-dashed border-muted/60 px-3 py-2 text-xs text-ink" data-testid="low-volume-note">
           <span className="font-semibold">{view.display.lowVolume.title}: </span>
           {view.display.lowVolume.text}
         </p>
       ) : null}
-      {score ? (
+      {score && showScore ? (
         // Traceability: the score is the sum of these five components, the same
         // objects Roella explains. Rates are withheld where the count is.
         <details className="group" data-testid="score-components">

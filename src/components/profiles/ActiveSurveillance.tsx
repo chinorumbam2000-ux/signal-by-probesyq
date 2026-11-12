@@ -36,9 +36,9 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
           <h2 id="active-surveillance-heading" className="text-lg font-semibold text-ink">
             {headline}
           </h2>
+          {/* The period is named once, in the page header; it is not repeated here. */}
           <p className="mt-0.5 text-xs text-muted">
-            {period.mode === 'live' ? `Live Surveillance · ${period.currentLabel} (latest closed day)` : `Replay Day ${day}`} · each
-            profile scored against its own baseline and observations — scores are never combined. Aggregate
+            Each profile is scored against its own baseline and observations — scores are never combined. Aggregate
             profiles include their pathogens’ results; they are not separate diseases.
           </p>
         </div>
@@ -61,14 +61,6 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
           </button>
         </div>
       </div>
-
-      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Profile status counts">
-        <Count label="Active signal" value={counts.activeSignal} />
-        <Count label="Within expected range" value={counts.withinExpectedRange} />
-        <Count label="Insufficient baseline" value={counts.insufficientBaseline} />
-        <Count label="No data" value={counts.noData} />
-        {counts.inactive > 0 ? <Count label="Inactive" value={counts.inactive} /> : null}
-      </dl>
 
       {cards.length === 0 ? (
         <p className="ls-card px-4 py-3 text-sm text-muted">No profile has an active signal on {period.label(day)}.</p>
@@ -109,15 +101,6 @@ export default function ActiveSurveillance({ portfolio, day }: { portfolio: Port
         </div>
       ) : null}
     </section>
-  );
-}
-
-function Count({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="ls-card px-3 py-2">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.05em] text-muted">{label}</dt>
-      <dd className="text-xl font-semibold tabular-nums text-ink">{value}</dd>
-    </div>
   );
 }
 

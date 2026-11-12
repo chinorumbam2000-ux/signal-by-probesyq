@@ -62,20 +62,16 @@ const renderAt = (path: string) =>
 const selector = () => screen.getByLabelText('Surveillance profile') as HTMLSelectElement;
 const WAIT = { timeout: 5000 };
 const situationText = () =>
-  screen.getAllByRole('region', { name: 'Current situation' }).map((el) => el.textContent).join(' ');
+  screen.getAllByRole('region', { name: 'Outbreak score and data confidence' }).map((el) => el.textContent).join(' ');
 
 describe('Dashboard — Active Surveillance', () => {
-  it('lists the active signals ranked, with each status counted separately', async () => {
+  it('lists the active signals ranked, with the other statuses shown apart', async () => {
     atDay(5);
     renderAt('/dashboard');
     const section = await screen.findByTestId('active-surveillance', {}, WAIT);
     expect(within(section).getByRole('heading', { level: 2 }).textContent).toBe('4 signals require attention');
-    const counts = within(section).getByLabelText('Profile status counts');
-    const count = (label: string) => within(counts).getByText(label).nextElementSibling?.textContent;
-    expect(count('Active signal')).toBe('4');
-    expect(count('Within expected range')).toBe('1');
-    expect(count('Insufficient baseline')).toBe('1');
-    expect(count('No data')).toBe('0');
+    // The per-status tiles are gone: the headline count, the cards and "Other profiles" carry it.
+    expect(within(section).queryByLabelText('Profile status counts')).toBeNull();
     const cards = within(within(section).getByRole('list', { name: 'Active signals' })).getAllByRole('heading', { level: 3 });
     expect(cards.map((h) => h.textContent)).toEqual(['COVID-19', 'Respiratory Viral Activity', 'Influenza A', 'RSV']);
     // Status in words, not colour alone.
@@ -94,7 +90,7 @@ describe('Dashboard — Active Surveillance', () => {
     expect(screen.getByText('Respiratory Viral Activity | Worcester County, MA')).toBeTruthy();
     expect(selector().value).toBe('respiratory-viral-syndrome');
     expect(situationText()).toContain('87');
-    expect(screen.getByText('Baseline 100 · 699 cumulative')).toBeTruthy();
+    expect(screen.getByText('+76% vs baseline 100')).toBeTruthy();
   });
 
   it('shows all profiles, and a profile chosen from a card, through the URL', async () => {
@@ -110,7 +106,7 @@ describe('Dashboard — Active Surveillance', () => {
     expect(lastSearch).toBe('?profile=influenza-a');
     expect(screen.getByText('Influenza A | Worcester County, MA')).toBeTruthy();
     expect(situationText()).toContain('67');
-    expect(screen.getByText('Baseline 33 · 234 cumulative')).toBeTruthy();
+    expect(screen.getByText(/vs baseline 33$/)).toBeTruthy();
   });
 
   it('shows why an unscored profile has no score instead of a score', async () => {
@@ -120,9 +116,10 @@ describe('Dashboard — Active Surveillance', () => {
     expect(heading.textContent).toContain('Cholera');
     expect(heading.textContent).toContain('Insufficient baseline');
     expect(heading.textContent).toContain('below the minimum of 10');
-    expect(screen.queryByRole('region', { name: 'Current situation' })).toBeNull();
-    // Data quality is still shown: it is source-wide.
-    expect(screen.getByRole('heading', { name: /Data quality/ })).toBeTruthy();
+    expect(screen.queryByTestId('outbreak-score')).toBeNull();
+    // Data Confidence is still shown: it is source-wide.
+    expect(screen.getByRole('heading', { level: 2, name: 'Data confidence' })).toBeTruthy();
+    expect(screen.getByTestId('data-confidence').textContent).toContain('Data Confidence Score');
   });
 
   it('falls back to the default for an unknown profile, and says so', async () => {
