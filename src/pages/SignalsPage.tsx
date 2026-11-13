@@ -1,60 +1,46 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
 import SignalTable from '../components/signals/SignalTable';
-import SignalInvestigation, {
-  type InvestigationMode,
-} from '../components/signals/SignalInvestigation';
-import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
+import { ErrorState, LoadingState } from '../components/common/States';
 import { SIGNAL_DISCLAIMER } from '../lib/signalScore';
 import { SCORE_DISCLAIMER_TEXT } from '../lib/brand';
 import { formatSimulationDateTime } from '../lib/format';
-import { findDetection } from '../lib/alerts';
-import { useNavigate } from 'react-router-dom';
 import MethodNote from '../components/common/MethodNote';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
-import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
+import { SEVERITY_RANK, type ProfileAlert } from '../lib/profiles/portfolio';
 import { isScope } from '../lib/profiles/selection';
-import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
+import { INVESTIGATIONS_PATH, investigationPath } from '../lib/investigationWorkflow';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 import { useModeWording } from '../lib/modeWording';
+import type { OutbreakAlert } from '../types';
 
 /**
- * Investigation context lives in the URL:
- *   ?alert=<id>             investigate that alert, at detection by default
- *   ?alert=<id>&view=current  ... but showing current conditions
- *   ?view=current           investigate current conditions with no alert
- *                           (the dashboard and map entry points)
+ * Signals: the alert queue. Every detected alert, whether it has been
+ * acknowledged and whether its review has started. "Investigate" starts an
+ * alert's review and continues on Investigations, which owns the evidence and
+ * the review workflow; an alert already in review offers "Open Investigation".
  *
- * Keeping it in the URL is what makes refresh and browser back/forward restore
- * the right screen.
+ * Older links to an investigation on this page (?alert=<id>, ?view=current)
+ * are forwarded to the same view on Investigations, with every query
+ * parameter (the profile included) kept, so bookmarks and history still work.
  */
-const ALERT_PARAM = 'alert';
-const VIEW_PARAM = 'view';
-
 export default function SignalsPage() {
   const {
-    currentDay,
     alerts,
-    dataConfidence,
-    feedHealth,
-    dayOverDay,
     getInvestigation,
-    runInvestigationAction,
-    prepareReport,
-    reports,
+    beginInvestigation,
     acknowledgeAlert,
     isLoading,
     error,
     clearError,
   } = useSimulation();
   const wording = useModeWording();
-
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { search, hash } = useLocation();
   // The alert list follows the selected surveillance profile (?profile=):
   // Respiratory Viral Activity by default, exactly as before; "All profiles"
   // lists every profile's alerts together, each labelled with its profile.
@@ -63,29 +49,12 @@ export default function SignalsPage() {
   const live = useLiveSurveillance();
   const isLive = live.mode === 'live';
   const acknowledge = isLive ? live.acknowledge : acknowledgeAlert;
-  const alertParam = searchParams.get(ALERT_PARAM);
-  const viewParam = searchParams.get(VIEW_PARAM);
 
-  const keepProfile = (): Record<string, string> => {
-    const profile = searchParams.get('profile');
-    return profile ? { profile } : {};
-  };
-  const openList = () => setSearchParams(keepProfile());
-
-  const openInvestigation = (alertId: string) => {
-    // Detection-time is the default: the user clicked a specific historical alert.
-    // The selected profile stays in the URL, so Back returns to the same list.
-    const profile = searchParams.get('profile');
-    setSearchParams({ ...(profile ? { profile } : {}), [ALERT_PARAM]: alertId, [VIEW_PARAM]: 'detection' });
-  };
-
-  const setMode = (mode: InvestigationMode) => {
-    // Only the URL changes. The global simulation day, acknowledgements and the
-    // stored alert history are all untouched.
-    const next: Record<string, string> = { [VIEW_PARAM]: mode };
-    if (alertParam) next[ALERT_PARAM] = alertParam;
-    setSearchParams(next);
-  };
+  // A legacy investigation link: the investigation now lives on Investigations.
+  const params = new URLSearchParams(search);
+  if (params.has('alert') || params.has('view')) {
+    return <Navigate to={`${INVESTIGATIONS_PATH}${search}${hash}`} replace />;
+  }
 
   if (error) {
     return (
@@ -95,170 +64,18 @@ export default function SignalsPage() {
     );
   }
 
-  const investigatingCurrentOnly = !alertParam && viewParam === 'current';
-  const isInvestigating = Boolean(alertParam) || investigatingCurrentOnly;
-
-  // Live Surveillance alerts are reviewed and acknowledged from the list; the
-  // investigation workflow and reports follow Scenario Replay in this release.
-  if (isLive && isInvestigating) {
-    return (
-      <div className="space-y-5">
-        <header>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
-        </header>
-        <Card>
-          <EmptyState
-            icon="!"
-            title="Investigations follow Scenario Replay"
-            message="In Live Surveillance, alerts are reviewed and acknowledged from the alert list. The investigation workflow and public-health reports work on Scenario Replay in this release."
-            action={
-              <button type="button" onClick={openList} className="ls-btn-primary">
-                Back to all signals
-              </button>
-            }
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  if (isInvestigating) {
-    const selectedAlert = alertParam
-      ? alerts.find((alert) => alert.id === alertParam)
-      : undefined;
-
-    // An alert reference we cannot honour: either it does not exist at all, or
-    // it exists but has not been detected by the currently selected day.
-    // An alert of another profile opens that profile's investigation shell —
-    // never the Respiratory Viral Activity view. Its review workflow works as
-    // for any alert; its detailed evidence view does not exist yet, and says so.
-    const profileDetection = alertParam ? findProfileDetection(alertParam) : undefined;
-    if (alertParam && !selectedAlert && profileDetection && profileDetection.profileId !== RVS_PROFILE_ID) {
-      const profileName = PROFILE_BY_ID[profileDetection.profileId].displayName;
-      const profileAlert = portfolio.alerts.find((alert) => alert.id === alertParam);
-      if (!profileAlert) {
-        return (
-          <div className="space-y-5">
-            <header>
-              <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
-            </header>
-            <Card>
-              <EmptyState
-                icon="!"
-                title="That alert has not been detected yet"
-                message={`"${profileDetection.title}" (${profileName}) is first detected on replay Day ${profileDetection.detectedDay}. The replay is currently on Day ${currentDay}.`}
-                action={
-                  <button type="button" onClick={openList} className="ls-btn-primary">
-                    Back to all signals
-                  </button>
-                }
-              />
-            </Card>
-          </div>
-        );
-      }
-      return (
-        <div className="space-y-5">
-          <header className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-ink">Signal Investigation</h1>
-              <p className="mt-1 max-w-3xl text-sm text-muted">{profileName} · review of a detected signal.</p>
-            </div>
-            <PageMeta />
-          </header>
-          <ProfileInvestigationShell
-            alert={profileAlert}
-            investigation={getInvestigation(profileAlert.id)}
-            onAction={(action, note) => runInvestigationAction(profileAlert.id, action, note)}
-            onPrepareReport={() => {
-              const failure = prepareReport(profileAlert.id);
-              if (!failure) navigate(`/reports?profile=${encodeURIComponent(profileAlert.profileId)}`);
-              return failure;
-            }}
-            hasReport={reports.some((report) => report.alertId === profileAlert.id)}
-            onBack={openList}
-          />
-        </div>
-      );
-    }
-
-    if (alertParam && !selectedAlert) {
-      const detection = findDetection(alertParam);
-      return (
-        <div className="space-y-5">
-          <header>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink">
-              Signal Investigation
-            </h1>
-          </header>
-          <Card>
-            <EmptyState
-              icon="!"
-              title={
-                detection
-                  ? 'That alert has not been detected yet'
-                  : 'That alert could not be found'
-              }
-              message={
-                detection
-                  ? `"${detection.title}" is first detected on replay Day ${detection.detectedDay}. The replay is currently on Day ${currentDay}, so there is no detection-time breakdown to show. Advance to Day ${detection.detectedDay} or later, then investigate it from the alert list.`
-                  : `No alert matches the reference "${alertParam}". It may be from an older session, or the link may be incomplete.`
-              }
-              action={
-                <button type="button" onClick={openList} className="ls-btn-primary">
-                  Back to all signals
-                </button>
-              }
-            />
-          </Card>
-        </div>
-      );
-    }
-
-    const mode: InvestigationMode = viewParam === 'current' ? 'current' : 'detection';
-
-    return (
-      <div className="space-y-5">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-ink">
-              Signal Investigation
-            </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted">
-              How the composite outbreak signal score was calculated.
-            </p>
-          </div>
-          <PageMeta />
-        </header>
-        <SignalInvestigation
-          alert={selectedAlert}
-          currentDay={currentDay}
-          mode={mode}
-          onModeChange={setMode}
-          onBack={openList}
-          confidence={dataConfidence}
-          feeds={feedHealth}
-          dayOverDay={dayOverDay}
-          investigation={selectedAlert ? getInvestigation(selectedAlert.id) : undefined}
-          onInvestigationAction={(action, note) =>
-            selectedAlert
-              ? runInvestigationAction(selectedAlert.id, action, note)
-              : 'No signal selected.'
-          }
-          onPrepareReport={() => {
-            if (!selectedAlert) return;
-            const failure = prepareReport(selectedAlert.id);
-            if (!failure) navigate('/reports');
-          }}
-          hasReport={
-            selectedAlert
-              ? reports.some((report) => report.alertId === selectedAlert.id)
-              : false
-          }
-        />
-      </div>
-    );
-  }
+  const profileOfAlert = (alert: OutbreakAlert): string =>
+    'profileId' in alert ? (alert as ProfileAlert).profileId : RVS_PROFILE_ID;
+  // The review workflow follows Scenario Replay in this release: in Live the queue acknowledges only.
+  const review = isLive
+    ? undefined
+    : {
+        statusOf: (alert: OutbreakAlert) => getInvestigation(alert.id)?.status ?? 'NEW',
+        investigationPath: (alert: OutbreakAlert) => investigationPath(alert.id, profileOfAlert(alert)),
+        onInvestigate: (alert: OutbreakAlert) => {
+          if (beginInvestigation(alert.id) === null) navigate(investigationPath(alert.id, profileOfAlert(alert)));
+        },
+      };
 
   const activeProfiles = new Set(
     portfolio.summaries.filter((s) => s.status === 'ACTIVE_SIGNAL').map((s) => s.profile.id),
@@ -298,8 +115,9 @@ export default function SignalsPage() {
             Signals &amp; Alerts
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            The alert queue: review, acknowledge and investigate alerts here. Each alert reports the values recorded
-            when it was detected; those values {wording.frozenValues}.
+            The alert queue: every detected alert, its acknowledgement and whether its review has started. Each alert
+            reports the values recorded when it was detected; those values {wording.frozenValues}.
+            {isLive ? null : ' Investigate starts an alert’s review, which continues on Investigations.'}
           </p>
         </div>
         <PageMeta />
@@ -346,20 +164,19 @@ export default function SignalsPage() {
       </div>
 
       <Card
-        title="Alert history"
-        subtitle="Values are frozen at detection time. Investigate opens that alert's own detection-time breakdown."
+        title="Alert queue"
+        subtitle="Scores and severities are frozen at detection. The evidence and the review are on each alert's investigation."
         bodyClassName="p-0"
       >
         {isLoading ? (
-          <LoadingState label="Loading alert history…" />
+          <LoadingState label="Loading alerts…" />
         ) : (
           <SignalTable
             alerts={listAlerts}
-            onInvestigate={(alert) => openInvestigation(alert.id)}
             onAcknowledge={acknowledge}
+            review={review}
             profileNames={profileNames}
             profileIds={profileIds}
-            canReview={(alert) => !isLive && 'profileId' in alert && alert.profileId !== RVS_PROFILE_ID}
             emptyMessage={
               selection === RVS_PROFILE_ID
                 ? undefined
@@ -378,14 +195,13 @@ export default function SignalsPage() {
         >
           View profile on Dashboard <span aria-hidden="true">→</span>
         </Link>
-        {view.isNarrated ? (
-          <button
-            type="button"
-            onClick={() => setSearchParams({ ...keepProfile(), [VIEW_PARAM]: 'current' })}
+        {view.isNarrated && !isLive ? (
+          <Link
+            to={`${INVESTIGATIONS_PATH}?profile=${encodeURIComponent(view.profile.id)}&view=current`}
             className="font-semibold text-brand hover:underline"
           >
-            Investigate current conditions →
-          </button>
+            Investigate current conditions <span aria-hidden="true">→</span>
+          </Link>
         ) : null}
       </p>
 

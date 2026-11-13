@@ -227,10 +227,13 @@ statistical threshold and changes no score.
 
 ## Investigations and reports
 
-- Every profile's alert can be acknowledged, reviewed (Begin Review, Continue
-  Monitoring, Escalate, Dismiss, Confirmed Concern, Close) and reported.
-- Investigation records store their `profileId`; the Investigations list names
-  each alert's profile.
+- Every profile's alert can be acknowledged on Signals, and its review started
+  there with *Investigate*; the review (Begin Review, Continue Monitoring,
+  Escalate, Dismiss, Confirmed Concern, Close) and the report continue on
+  Investigations.
+- Investigation records store their `profileId`; the Investigations list (the
+  alerts under review) names each alert's profile, and each investigation's
+  link carries it (`/investigations?profile=<id>&alert=<id>`).
 - An alert of any other profile opens **its own** investigation shell: the alert's frozen
   detection-time values, the review workflow, and a clear statement that the
   detailed evidence view (step-by-step score breakdown and facility, area and

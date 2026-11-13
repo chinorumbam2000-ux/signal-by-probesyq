@@ -159,7 +159,7 @@ describe('Scenario Replay keeps its own wording', () => {
     expect(main().textContent).toContain('Values beyond the current replay day are withheld');
     await go(/^Investigations/, /Investigations/);
     expect(screen.queryByTestId('live-mode-note')).toBeNull();
-    expect(screen.getByRole('region', { name: 'Signals and their review table' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Under review' })).toBeTruthy();
   });
 });
 

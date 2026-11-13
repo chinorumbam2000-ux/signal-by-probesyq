@@ -150,30 +150,34 @@ describe('analyst screens carry no implementation labels', () => {
 });
 
 describe('Investigations', () => {
-  it('lists each detected signal with its review and report status, linking to its investigation', async () => {
+  it('lists only the signals under review, with their review and report status, linking to each investigation', async () => {
     renderAt('/replay');
     await screen.findByRole('heading', { level: 1 });
     for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     cleanup();
     renderAt('/investigations');
-    const table = (await screen.findByRole('table', { name: /investigation and report status/ })) as HTMLElement;
-    // Every profile's alerts, each naming its profile and opening that profile's investigation.
+    // No review has started: every alert is still only in the Signals queue.
+    expect(await screen.findByText('No investigation yet')).toBeTruthy();
+    expect(screen.getByText('15 alerts have not started review yet: they are in the Signals queue.')).toBeTruthy();
+    cleanup();
+    renderAt('/signals?profile=all');
+    fireEvent.click(await screen.findByRole('button', { name: /^Investigate alert: Influenza A — Regional outbreak signal detected/ }));
+    await screen.findByTestId('profile-investigation');
+    fireEvent.click(screen.getByRole('button', { name: '← Back to investigations' }));
+    const table = (await screen.findByRole('table', { name: /under review/ })) as HTMLElement;
     const rows = within(table).getAllByRole('row').slice(1);
-    expect(rows.length).toBe(15);
-    expect(rows.filter((row) => row.textContent?.startsWith('Respiratory Viral Activity'))).toHaveLength(4);
-    for (const row of rows) {
-      expect(within(row).getByText('NEW')).toBeTruthy();
-      expect(within(row).getByText('Not prepared')).toBeTruthy();
-      expect(within(row).getByRole('link', { name: /Open investigation/ }).getAttribute('href')).toMatch(
-        /^\/signals\?profile=[a-z0-9-]+&alert=ALERT-/,
-      );
-    }
+    expect(rows).toHaveLength(1);
+    expect(within(rows[0]).getByText('Under review')).toBeTruthy();
+    expect(within(rows[0]).getByText('Not prepared')).toBeTruthy();
+    expect(within(rows[0]).getByRole('link', { name: /Open investigation/ }).getAttribute('href')).toBe(
+      '/investigations?profile=influenza-a&alert=ALERT-INFLUENZA-A-REGIONAL-D3',
+    );
   });
 
   it('says so when there is nothing to investigate yet (Scenario Replay, Day 1)', async () => {
     chooseScenarioReplayForTest();
     renderAt('/investigations');
-    expect(await screen.findByText('Nothing to investigate yet')).toBeTruthy();
+    expect(await screen.findByText('No investigation yet')).toBeTruthy();
   });
 });
 

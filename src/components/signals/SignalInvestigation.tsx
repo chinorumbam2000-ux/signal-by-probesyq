@@ -1,7 +1,5 @@
 import type {
-  DataConfidenceResult,
   DayOverDayComparison,
-  FacilityFeedHealth,
   InvestigationAction,
   InvestigationRecord,
   OutbreakAlert,
@@ -11,7 +9,8 @@ import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import { SCORE_DISCLAIMER_TEXT } from '../../lib/brand';
 import { SEVERITY_STYLES, formatSimulationDate, formatSimulationDateTime } from '../../lib/format';
 import { useSimulation } from '../../context/SimulationContext';
-import { findDay } from '../../lib/surveillanceDays';
+import { dataConfidenceFor, findDay } from '../../lib/surveillanceDays';
+import { getAllFeedHealth } from '../../data/feedHealth';
 import SeverityBadge from './SeverityBadge';
 import WhyThisSignalPanel from './WhyThisSignalPanel';
 import DataConfidenceCard from '../common/DataConfidenceCard';
@@ -19,6 +18,7 @@ import FeedHealthCard from '../common/FeedHealthCard';
 import DayOverDayChange from '../common/DayOverDayChange';
 import InvestigationWorkflowPanel from './InvestigationWorkflowPanel';
 import MethodNote from '../common/MethodNote';
+import ProfileTypeTag from '../profiles/ProfileTypeTag';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 
 export type InvestigationMode = 'detection' | 'current';
@@ -31,8 +31,7 @@ interface SignalInvestigationProps {
   mode: InvestigationMode;
   onModeChange: (mode: InvestigationMode) => void;
   onBack: () => void;
-  confidence: DataConfidenceResult;
-  feeds: FacilityFeedHealth[];
+  /** The change since the previous day, for the current-conditions view. */
   dayOverDay: DayOverDayComparison;
   /** Human review state; absent when investigating current conditions only. */
   investigation?: InvestigationRecord;
@@ -42,16 +41,18 @@ interface SignalInvestigationProps {
 }
 
 /**
- * Explains the five components that produced a composite score.
+ * The investigation of a Respiratory Viral Activity signal.
  *
- * Which day is explained depends on the mode:
- *   - "detection" replays the day the alert actually fired
+ * Which day is explained depends on the view:
+ *   - "detection" (the default) replays the day the alert actually fired
  *   - "current"   explains the globally selected simulation day
  *
- * Both are computed through the same shared scorer over the same authoritative
- * dataset, so neither duplicates the formula and no score is hard-coded.
- * Switching modes changes nothing global — not the simulation day, not
- * acknowledgements, not the stored alert history.
+ * Everything on screen describes that one day: the score and its single
+ * component breakdown, why the signal fired, and the Data Confidence and feed
+ * health of that day. Both views are computed through the same shared scorer
+ * over the same authoritative dataset, so neither duplicates the formula and
+ * no score is hard-coded. Switching views changes nothing global — not the
+ * simulation day, not acknowledgements, not the stored alert history.
  */
 export default function SignalInvestigation({
   alert,
@@ -59,8 +60,6 @@ export default function SignalInvestigation({
   mode,
   onModeChange,
   onBack,
-  confidence,
-  feeds,
   dayOverDay,
   investigation,
   onInvestigationAction,
@@ -74,16 +73,21 @@ export default function SignalInvestigation({
     ? alert.detectedDay
     : currentDay;
 
-  // The active data source's day, in both modes: live and at detection.
+  // The active data source's day, in both views: at detection and now.
   const { surveillanceDays, scoreForDay } = useSimulation();
-  const scenario = findDay(surveillanceDays, day).scenario;
+  const surveillanceDay = findDay(surveillanceDays, day);
+  const scenario = surveillanceDay.scenario;
   const score = scoreForDay(day);
+  // Data Confidence and feed health of the same day as the score, never of another.
+  const confidence = dataConfidenceFor(surveillanceDay);
+  const feeds = getAllFeedHealth(day);
   const totalPoints = score.components.reduce(
     (sum, component) => sum + component.points,
     0,
   );
 
   const isDetection = effectiveMode === 'detection' && Boolean(alert);
+  const when = isDetection ? 'at detection' : 'now';
 
   // In detection mode the headline reports the alert's own recorded severity
   // and score. For the regional signal these equal the recomputed values (a
@@ -95,12 +99,14 @@ export default function SignalInvestigation({
     isDetection && alert ? alert.detection.severity : score.severity;
   const styles = SEVERITY_STYLES[headlineSeverity];
   const sameDay = alert ? alert.detectedDay === currentDay : true;
+  const profile = PROFILE_BY_ID[RVS_PROFILE_ID];
+  const dayLabel = `Day ${day} · ${formatSimulationDate(scenario.simulationDate)}`;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-testid="signal-investigation">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button type="button" onClick={onBack} className="ls-btn px-3 py-1.5 text-xs">
-          ← Back to all signals
+          ← Back to investigations
         </button>
 
         {alert ? (
@@ -137,72 +143,31 @@ export default function SignalInvestigation({
         ) : null}
       </div>
 
-      {/* Which day is on screen, and why — stated before any numbers. */}
-      <div
-        className={`rounded-xl border p-4 ${
-          isDetection
-            ? 'border-brand/30 bg-brand-light'
-            : 'border-hairline bg-white shadow-card'
-        }`}
+      {/* The alert, and which day is on screen and why — stated before any numbers. */}
+      <section
+        className={`ls-card overflow-hidden border ${styles.soft}`}
+        aria-label={alert ? `${profile.displayName} — ${alert.title}, ${when}` : `${profile.displayName}, current conditions`}
+        data-testid="investigation-identity"
       >
-        <p className="text-sm font-semibold text-ink">
-          {isDetection
-            ? `At detection — Day ${day} · ${formatSimulationDate(scenario.simulationDate)}`
-            : `Current conditions — Day ${day} · ${formatSimulationDate(scenario.simulationDate)}`}
-        </p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
-          {isDetection && alert ? (
-            <>
-              These are the values recorded when &ldquo;{alert.title}&rdquo; triggered on{' '}
-              {formatSimulationDateTime(alert.detectedAt)}. They are a frozen snapshot of
-              that moment and do not change as the replay advances.
-              {!sameDay ? (
-                <>
-                  {' '}
-                  The replay is currently on Day {currentDay}; switch to{' '}
-                  <span className="font-medium text-ink">Current conditions</span> to see
-                  where the signal stands now.
-                </>
-              ) : null}
-            </>
-          ) : (
-            <>
-              These are the values for the selected replay day
-              {alert ? (
-                <>
-                  {' '}
-                  — not the values recorded when &ldquo;{alert.title}&rdquo; triggered on
-                  Day {alert.detectedDay}
-                </>
-              ) : null}
-              . Changing the replay day changes this view.
-            </>
-          )}
-        </p>
-        {alert && sameDay ? (
-          <p className="mt-2 text-xs text-muted">
-            This alert was detected on the currently selected day, so both views describe
-            the same day.
-          </p>
-        ) : null}
-      </div>
-
-      <div className={`ls-card overflow-hidden border ${styles.soft}`}>
         <span aria-hidden="true" className={`block h-1 w-full ${styles.accent}`} />
         <div className="flex flex-wrap items-start justify-between gap-4 p-5">
           <div className="min-w-0">
-            <p className="ls-label">Signal</p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">
-              {alert ? alert.title : PROFILE_BY_ID[RVS_PROFILE_ID].displayName}
-            </h2>
-            <p className="mt-1 text-sm text-muted">
-              Worcester County, MA · Replay Day {scenario.day} · {scenario.stage}
+            <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-ink">
+              {profile.displayName} <ProfileTypeTag profile={profile} />
             </p>
+            <p className="mt-1 text-sm text-muted">
+              Worcester County, MA
+              {alert ? <> · detected {formatSimulationDateTime(alert.detectedAt)} (Day {alert.detectedDay})</> : null}
+            </p>
+            {alert ? (
+              <p className="mt-1 text-sm text-muted">
+                {alert.detection.detail.startsWith('Composite Score') ? null : <>{alert.detection.detail} · </>}
+                {alert.detection.geography} · {alert.detection.facilities}
+              </p>
+            ) : null}
           </div>
           <div className="text-right">
-            <p className="ls-label">
-              {isDetection ? `Severity at detection` : 'Severity now'}
-            </p>
+            <p className="ls-label">{isDetection ? 'Score at detection' : 'Score now'}</p>
             <div className="mt-1 flex items-center justify-end gap-2">
               <SeverityBadge severity={headlineSeverity} size="md" />
               <span className="text-2xl font-semibold tabular-nums text-ink">
@@ -212,118 +177,85 @@ export default function SignalInvestigation({
             </div>
           </div>
         </div>
-      </div>
+        <div className={`border-t px-5 py-3 ${isDetection ? 'border-brand/20 bg-brand-light' : 'border-hairline bg-white'}`}>
+          <p className="text-sm font-semibold text-ink" data-testid="investigation-day">
+            {isDetection ? `At detection — ${dayLabel}` : `Current conditions — ${dayLabel}`}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            {isDetection && alert ? (
+              <>
+                Every value below was recorded when &ldquo;{alert.title}&rdquo; triggered: a frozen snapshot that
+                does not change as the replay advances.
+                {!sameDay ? (
+                  <>
+                    {' '}
+                    The replay is now on Day {currentDay}; choose{' '}
+                    <span className="font-medium text-ink">Current conditions</span> to see where the signal stands
+                    now.
+                  </>
+                ) : (
+                  ' It was detected on the selected replay day, so both views describe the same day.'
+                )}
+              </>
+            ) : (
+              <>
+                Every value below is for the selected replay day
+                {alert ? <> — not the values recorded when &ldquo;{alert.title}&rdquo; triggered on Day {alert.detectedDay}</> : null}
+                . Changing the replay day changes this view.
+              </>
+            )}
+          </p>
+        </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
-        <section className="ls-card xl:col-span-3">
-          <header className="ls-card-header">
-            <h2 className="ls-card-title">
-              {isDetection
-                ? `Why did Signal by ProbeSyQ trigger this on Day ${day}?`
-                : `What is driving the signal on Day ${day}?`}
-            </h2>
-          </header>
-          <ul className="divide-y divide-hairline">
-            {score.components.map((component) => (
-              <li key={component.key} className="px-5 py-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-sm font-semibold text-ink">{component.label}</p>
-                  <p className="text-sm font-semibold tabular-nums text-ink">
-                    {component.points}
-                    <span className="text-muted"> / {component.maxPoints}</span>
-                  </p>
+      {/* The one score breakdown: each component's points, then the total. */}
+      <section className="ls-card" aria-labelledby="score-breakdown-heading" data-testid="score-breakdown">
+        <header className="ls-card-header">
+          <h2 id="score-breakdown-heading" className="ls-card-title">
+            {isDetection ? 'Score at detection' : 'Score now'}: how the {score.composite} is made up
+          </h2>
+          <span className="ls-label">{isDetection ? `Day ${day} — at detection` : `Day ${day} — current`}</span>
+        </header>
+        <ul className="divide-y divide-hairline">
+          {score.components.map((component) => (
+            <li key={component.key} className="px-5 py-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-sm font-semibold text-ink">{component.label}</p>
+                <p className="text-sm font-semibold tabular-nums text-ink">
+                  {component.points}
+                  <span className="text-muted"> / {component.maxPoints}</span>
+                </p>
+              </div>
+              <p className="mt-1 text-sm text-muted">{component.evidence}</p>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hairline" aria-hidden="true">
+                  <span
+                    className="block h-full rounded-full bg-brand transition-all duration-500"
+                    style={{ width: `${Math.max(component.score, 0)}%` }}
+                  />
                 </div>
-                <p className="mt-1 text-sm text-muted">{component.evidence}</p>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hairline">
-                    <span
-                      className="block h-full rounded-full bg-brand transition-all duration-500"
-                      style={{ width: `${Math.max(component.score, 0)}%` }}
-                    />
-                  </div>
-                  <span className="w-28 shrink-0 text-right text-[11px] tabular-nums text-muted">
-                    {component.score.toFixed(0)}/100 × {Math.round(component.weight * 100)}%
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="ls-card xl:col-span-2">
-          <header className="ls-card-header">
-            <h2 className="ls-card-title">Composite score</h2>
-            <span className="ls-label">
-              {isDetection ? `Day ${day} — at detection` : `Day ${day} — current`}
-            </span>
-          </header>
-          <div className="p-5">
-            <table className="w-full border-collapse font-mono text-sm">
-              <caption className="sr-only">
-                Weighted contribution of each component to the composite outbreak signal
-                score on replay day {day}
-              </caption>
-              <thead>
-                <tr className="border-b border-hairline">
-                  <th scope="col" className="pb-2 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                    Component
-                  </th>
-                  <th scope="col" className="pb-2 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                    Points
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                {score.components.map((component) => (
-                  <tr key={component.key}>
-                    <td className="py-2.5 text-ink">{component.label}</td>
-                    <td className="py-2.5 text-right tabular-nums text-ink">
-                      {String(component.points).padStart(2, ' ')} / {component.maxPoints}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-ink/20">
-                  <td className="pt-3 text-sm font-semibold text-ink">TOTAL</td>
-                  <td className="pt-3 text-right text-sm font-semibold tabular-nums text-ink">
-                    {score.composite} / 100
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            {totalPoints !== score.composite ? (
-              <p className="mt-3 text-[11px] leading-snug text-muted">
-                Component points are rounded for display, so they may differ from the
-                composite total by one point. The composite is calculated from the
-                unrounded weighted sum.
-              </p>
-            ) : null}
-
-            <div className="mt-5 rounded-lg bg-canvas p-3">
-              <p className="ls-label">Interpretation</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink">
-                {score.composite === 0
-                  ? 'Regional respiratory testing and positivity are at expected baseline levels. No component is currently contributing to the composite signal.'
-                  : `Sustained increases in respiratory testing and positivity ${
-                      isDetection ? 'were' : 'are'
-                    } occurring across ${scenario.affectedHospitals.length} participating ${
-                      scenario.affectedHospitals.length === 1 ? 'facility' : 'facilities'
-                    } and ${scenario.affectedZipCodes.length} geographic ${
-                      scenario.affectedZipCodes.length === 1 ? 'area' : 'areas'
-                    }, persisting for ${scenario.persistenceDays} consecutive ${
-                      scenario.persistenceDays === 1 ? 'day' : 'days'
-                    }.`}
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
+                <span className="w-28 shrink-0 text-right text-[11px] tabular-nums text-muted">
+                  {component.score.toFixed(0)}/100 × {Math.round(component.weight * 100)}%
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-baseline justify-between gap-2 border-t-2 border-ink/20 px-5 py-3">
+          <p className="text-sm font-semibold text-ink">Composite Outbreak Signal Score</p>
+          <p className="text-sm font-semibold tabular-nums text-ink">{score.composite} / 100</p>
+        </div>
+        {totalPoints !== score.composite ? (
+          <p className="px-5 pb-3 text-[11px] leading-snug text-muted">
+            Component points are rounded for display, so they may differ from the composite total by one point. The
+            composite is calculated from the unrounded weighted sum.
+          </p>
+        ) : null}
+      </section>
 
       {/*
         Human review belongs to the alert, not to a particular view of it, so
-        it shows in both detection and current modes.
+        it shows in both detection and current views.
       */}
       {investigation && onInvestigationAction ? (
         <InvestigationWorkflowPanel
@@ -334,17 +266,32 @@ export default function SignalInvestigation({
         />
       ) : null}
 
+      {/* The interpretation, without repeating the score or the Data Confidence shown here. */}
       <WhyThisSignalPanel
         scenario={scenario}
         score={score}
         confidence={confidence}
         feeds={feeds}
+        showHeadlineScore={false}
+        showCalculation={false}
+        showDataTrust={false}
+        compact
       />
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <DataConfidenceCard confidence={confidence} />
-        <FeedHealthCard feeds={feeds} className="xl:col-span-2" />
-      </div>
+      <section aria-labelledby="data-confidence-heading" className="space-y-3" data-testid="investigation-confidence">
+        <div>
+          <h2 id="data-confidence-heading" className="text-sm font-semibold text-ink">
+            {isDetection ? 'Data Confidence at detection' : 'Data Confidence now'} — {dayLabel}
+          </h2>
+          <p className="text-xs text-muted">
+            How far the participating sources could be trusted on that day. It never changes the outbreak score.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+          <DataConfidenceCard confidence={confidence} />
+          <FeedHealthCard feeds={feeds} className="xl:col-span-2" />
+        </div>
+      </section>
 
       {/*
         Day-over-day always describes the globally selected day, so it is only

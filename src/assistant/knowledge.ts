@@ -72,8 +72,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Signals',
     title: 'Signals & Alerts',
     shows:
-      'the alert queue: every alert with its profile, severity, score at detection, detection date and review state, with counts of alerts awaiting acknowledgement and detected on this day; then the signal investigation breakdown ("Why this signal") and the human-in-the-loop investigation workflow. Current figures for a profile are on the Dashboard.',
-    use: 'Acknowledge new alerts here (the notification bell lists them and links here), then open Investigate to see the detection-time evidence and record review steps.',
+      'the surveillance alert queue: every alert with its profile, severity, score at detection, detection date, acknowledgement and whether its review has started, with counts of alerts awaiting acknowledgement and detected on this day. Current figures for a profile are on the Dashboard.',
+    use: 'Acknowledge alerts here (the notification bell lists them and links here). Choose Investigate to start an alert\'s review: it becomes an investigation and continues on Investigations; an alert already in review offers Open Investigation.',
   },
   hospitals: {
     nav: 'Facilities',
@@ -85,8 +85,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   investigations: {
     nav: 'Investigations',
     title: 'Investigations',
-    shows: 'every detected signal with the status of its human review and of its public-health report.',
-    use: 'Open an investigation to review the detection-time evidence and record review steps; reports follow on Reports.',
+    shows: 'the signals that have entered active review: each one\'s review status, assigned analyst and report, and for each investigation its detection-time evidence (the score at detection and its breakdown, why the signal fired, the Data Confidence at detection) and the review actions.',
+    use: 'Open an investigation to review its evidence and record review steps (Begin Review, Escalate, Dismiss and so on), then prepare a public-health report from it; reports follow on Reports. New alerts stay on Signals until their review starts.',
   },
   analytics: {
     nav: 'Analytics',
@@ -181,8 +181,9 @@ export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute,
   { words: ['hospital', 'facility', 'facilities', 'vendor', 'sidecar', 'feed'], route: 'hospitals', what: 'facility-level details, feed health and the vendor sidecar' },
   { words: ['trend', 'chart', 'over time', 'history', 'analytics'], route: 'analytics', what: 'score, volume, positivity and spread trends across the simulated days' },
   { words: ['observation', 'lab data', 'laboratory', 'records', 'results', 'loinc'], route: 'laboratory-data', what: 'the synthetic laboratory Observation records' },
-  { words: ['investigation', 'investigat', 'case review'], route: 'investigations', what: 'every detected signal and the status of its review' },
-  { words: ['alert', 'signal', 'acknowledge'], route: 'signals', what: 'alerts, acknowledgement and each signal\'s evidence' },
+  { words: ['acknowledge', 'alert queue'], route: 'signals', what: 'the alert queue, where alerts are acknowledged' },
+  { words: ['investigation', 'investigat', 'case review', 'evidence', 'begin review', 'under review', 'escalat', 'dismiss'], route: 'investigations', what: 'the signals under review, their evidence and their review actions' },
+  { words: ['alert', 'signal'], route: 'signals', what: 'the alert queue: every alert, its acknowledgement and whether its review has started' },
   { words: ['report'], route: 'reports', what: 'the simulated public-health reporting workflow' },
   { words: ['fhir ingestion', 'ingest', 'upload a fhir', 'submit a fhir'], route: 'fhir-ingestion', what: 'the development FHIR R4 ingestion pipeline' },
   { words: ['ewma', 'cusum', 'dynamic surveillance', 'statistical'], route: 'dynamic-surveillance', what: 'dynamic signals and the EWMA and CUSUM detectors' },

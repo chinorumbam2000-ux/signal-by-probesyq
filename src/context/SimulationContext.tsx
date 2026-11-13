@@ -135,6 +135,12 @@ export interface SimulationContextValue {
   reports: ReportRecord[];
   /** Returns the record for an alert, creating a NEW one on first access. */
   getInvestigation: (alertId: string) => InvestigationRecord | undefined;
+  /**
+   * Starts the review of an alert from the Signals queue ("Investigate"): it
+   * acknowledges the alert if nobody has yet, then begins the review, in one
+   * step. Returns an error string when refused.
+   */
+  beginInvestigation: (alertId: string) => string | null;
   /** Applies an analyst action. Returns an error string when refused. */
   runInvestigationAction: (
     alertId: string,
@@ -325,15 +331,19 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
    */
   const ensureInvestigation = useCallback(
     (alertId: string): InvestigationRecord | undefined => {
+      // An alert acknowledged on Signals is acknowledged in its review too, so
+      // the review never asks for a second acknowledgement.
+      const acknowledged = Boolean(acknowledgements[alertId]);
       const existing = investigations[alertId];
-      if (existing) return existing;
+      if (existing) return acknowledged && !existing.acknowledged ? { ...existing, acknowledged } : existing;
 
       // Any profile's alert, once it has been detected on or before the current day.
       const detection = findProfileDetection(alertId);
       if (!detection || detection.detectedDay > currentDay) return undefined;
-      return createInvestigation(alertId, detection.detectedDay, detection.detectedAt, detection.profileId);
+      const created = createInvestigation(alertId, detection.detectedDay, detection.detectedAt, detection.profileId);
+      return acknowledged ? { ...created, acknowledged } : created;
     },
-    [investigations, currentDay],
+    [investigations, acknowledgements, currentDay],
   );
 
   const getInvestigation = useCallback(
@@ -367,6 +377,30 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       if (action === 'acknowledge') {
         acknowledgeAlert(alertId);
       }
+      return null;
+    },
+    [ensureInvestigation, currentDay, acknowledgeAlert],
+  );
+
+  const beginInvestigation = useCallback(
+    (alertId: string): string | null => {
+      let record = ensureInvestigation(alertId);
+      if (!record) return 'That signal is not available on the current simulation day.';
+      // Already in review: nothing to start.
+      if (record.status !== 'NEW') return null;
+      const steps: InvestigationAction[] = record.acknowledged ? ['begin-review'] : ['acknowledge', 'begin-review'];
+      for (const action of steps) {
+        const result = applyInvestigationAction({ record, action, day: currentDay, investigator: DEFAULT_INVESTIGATOR });
+        if (!result.ok) {
+          setWorkflowError(result.error);
+          return result.error;
+        }
+        record = result.record;
+      }
+      const started = record;
+      setInvestigations((current) => ({ ...current, [alertId]: started }));
+      setWorkflowError(null);
+      if (steps.includes('acknowledge')) acknowledgeAlert(alertId);
       return null;
     },
     [ensureInvestigation, currentDay, acknowledgeAlert],
@@ -526,6 +560,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       investigations,
       reports,
       getInvestigation,
+      beginInvestigation,
       runInvestigationAction,
       prepareReport,
       runReportAction,
@@ -556,6 +591,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     investigations,
     reports,
     getInvestigation,
+    beginInvestigation,
     runInvestigationAction,
     prepareReport,
     runReportAction,

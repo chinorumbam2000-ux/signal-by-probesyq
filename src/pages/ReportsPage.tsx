@@ -70,10 +70,10 @@ export default function ReportsPage() {
           <EmptyState
             icon="▤"
             title="No reports prepared yet"
-            message="Open a signal from the Signals page, begin a review, then use Prepare Public Health Report to create a draft. Reports are held in this browser only."
+            message="Reports are prepared from an investigation: start a review with Investigate on the Signals page, then use Prepare Public Health Report on its investigation. Reports are held in this browser only."
             action={
-              <Link to="/signals" className="ls-btn-primary">
-                Go to Signals
+              <Link to="/investigations" className="ls-btn-primary">
+                Go to Investigations
               </Link>
             }
           />

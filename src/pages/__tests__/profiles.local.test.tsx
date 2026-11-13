@@ -43,8 +43,11 @@ afterEach(() => {
 });
 
 let lastSearch = '';
+let lastPath = '';
 function LocationProbe() {
-  lastSearch = useLocation().search;
+  const location = useLocation();
+  lastSearch = location.search;
+  lastPath = location.pathname;
   return null;
 }
 
@@ -223,16 +226,20 @@ describe('profile-aware pages', () => {
     });
     fireEvent.click(ack);
     expect(screen.getByText('COVID-19 — Regional outbreak signal detected')).toBeTruthy(); // acknowledgement log
-    // Only the narrated profile's regional signal opens the investigation view.
-    expect(within(table).getAllByRole('button', { name: 'Investigate' })).toHaveLength(1);
+    // Every alert can start its review; none has yet.
+    expect(within(table).getAllByRole('button', { name: /^Investigate alert:/ })).toHaveLength(15);
+    expect(within(table).queryByRole('link', { name: /^Open investigation:/ })).toBeNull();
   });
 
   it('opens another profile’s alert in its own investigation shell, never the RVS view', async () => {
     atDay(5);
     renderAt('/signals?profile=covid-19&alert=ALERT-COVID-19-REGIONAL-D5&view=detection');
     const shell = await screen.findByTestId('profile-investigation', {}, WAIT);
+    // The old Signals link is forwarded to the investigation on Investigations, profile kept.
+    expect(lastPath).toBe('/investigations');
+    expect(lastSearch).toBe('?profile=covid-19&alert=ALERT-COVID-19-REGIONAL-D5&view=detection');
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('COVID-19 — Regional outbreak signal detected');
     expect(within(shell).getByText('COVID-19')).toBeTruthy();
-    expect(within(shell).getByText('Regional outbreak signal detected')).toBeTruthy();
     expect(screen.getByTestId('evidence-unavailable').textContent).toContain(
       'Detailed evidence review for COVID-19 is not yet available',
     );

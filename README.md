@@ -300,9 +300,9 @@ banner.
 | `/dashboard` | Public Health Dashboard | A concise overview: Active Surveillance, the selected profile, its outbreak score beside Data Confidence, key indicators with the change since the previous day and why the score moved, one small trend, a geographic summary, and the highest-priority alert (reviewed on Signals) |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
-| `/signals` | Signals & Alerts | The alert queue: counts awaiting acknowledgement and detected on this day, the alert table with acknowledgement, Signal Investigation breakdown, Why This Signal, human-in-the-loop investigation workflow (current figures are on the Dashboard) |
+| `/signals` | Signals & Alerts | The alert queue: counts awaiting acknowledgement and detected on this day, and every alert with its profile, score and severity at detection, acknowledgement and review status. *Acknowledge*; *Investigate* starts the review and opens it on Investigations; an alert in review offers *Open Investigation* (current figures are on the Dashboard) |
 | `/facilities` | Facilities | Facility status (reporting, freshness, completeness, LOINC mapping, signal contribution), the selected facility's dashboard, data confidence and feed health, the clinician sidecar demonstration, and collapsed integration details. `/hospitals` (its former address) redirects here |
-| `/investigations` | Investigations | Every detected signal with its review and report status; each opens its investigation on Signals |
+| `/investigations` | Investigations | The signals that have entered review (new alerts stay on Signals): review status, assigned analyst and report. `?alert=<id>` opens one investigation: the score at detection with its one component breakdown, Why This Signal, the Data Confidence at detection, the human-in-the-loop review actions and *Prepare Public Health Report*. Old `/signals?alert=…` links are forwarded here |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
 | `/replay` | Scenario Replay | The five-day simulated respiratory outbreak: replay controls and the day-by-day progression. `/simulation` (its former address) redirects here |
 | `/reports` | Reports | Simulated public-health reporting workflow and its audit timeline |
@@ -558,9 +558,10 @@ wherever the score is presented:
 
 > The LabSentinel Composite Outbreak Signal Score used in this prototype is an illustrative, non-validated demonstration model and is not intended for clinical diagnosis or public-health decision-making.
 
-`/signals` → *Investigate* opens the Signal Investigation view, which shows each
-component's raw evidence, its normalized score, its weight and its point
-contribution, alongside the weighted total.
+`/signals` → *Investigate* starts the alert's review and opens its investigation
+on `/investigations?alert=<id>`, which shows each component's raw evidence, its
+normalized score, its weight and its point contribution, with the weighted
+total — once, as the score at detection.
 
 ---
 
@@ -741,9 +742,23 @@ Each alert carries a **frozen detection-time snapshot**: the detail line,
 severity, geography, facility count, volume, positivity and composite score as
 they stood on its detection day. Advancing the simulation never rewrites them,
 so an alert stamped *Nov 4, 9:05 AM* still reports Day 2's `+24% vs baseline`
-when you are looking at Day 5. *Investigate* opens the alert's detection-time
-breakdown by default; the current-conditions view is a deliberate, labelled
-switch (`?alert=<id>&view=detection|current`).
+when you are looking at Day 5. An investigation opens on the alert's
+detection-time breakdown by default; the current-conditions view is a
+deliberate, labelled switch (`/investigations?alert=<id>&view=detection|current`).
+
+**Signals and Investigations.** Signals is the alert queue: *Acknowledge*
+records that an analyst has seen an alert, and *Investigate* starts its review
+(acknowledging it too, if nobody has yet — never twice) and moves to the
+investigation on Investigations. Investigations lists only the alerts whose
+review has started; each investigation holds the evidence, the review actions
+(Begin Review, Continue Monitoring, Escalate, Dismiss, Confirmed Concern,
+Close) and *Prepare Public Health Report*. Links from earlier releases to an
+investigation on Signals (`/signals?alert=<id>`, `/signals?view=current`, with
+any `profile` and `view`) are forwarded to the same view on
+`/investigations`, replacing the old history entry so Back does not bounce. In
+Live Surveillance, alerts are acknowledged on Signals; the detailed
+investigation and reports follow Scenario Replay, and an investigation link
+says so instead of showing replay evidence.
 
 The selected day, acknowledgements and investigation state persist through a
 browser refresh via `sessionStorage`. Everything read back is validated — a

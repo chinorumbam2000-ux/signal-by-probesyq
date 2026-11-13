@@ -210,13 +210,13 @@ describe('Signals is the alert queue', () => {
     expect(counts.textContent).not.toMatch(/Nov|Day \d/);
     const table = screen.getByRole('table');
     const headers = within(table).getAllByRole('columnheader').map((th) => th.textContent);
-    expect(headers).toEqual(['Detected', 'Profile', 'Alert', 'Score', 'Severity', 'Geography', 'Facilities', 'Status', 'Actions']);
+    expect(headers).toEqual(['Detected', 'Profile', 'Alert', 'Score', 'Severity', 'Acknowledgement', 'Review', 'Actions']);
     expect(within(table).getAllByRole('row')).toHaveLength(alerts.length + 1);
     // The score column carries the score; the description does not repeat it.
     expect(table.textContent).not.toMatch(/Composite Score: \d+/);
     expect(within(table).getAllByText(/out of 100 at detection/).length).toBe(alerts.length);
     expect(within(table).getAllByRole('button', { name: /^Acknowledge alert:/ })).toHaveLength(alerts.length);
-    expect(within(table).getAllByRole('button', { name: 'Investigate' }).length).toBeGreaterThan(0);
+    expect(within(table).getAllByRole('button', { name: /^Investigate alert:/ })).toHaveLength(alerts.length);
     // One small link instead: the profile shown, on the Dashboard.
     const figures = screen.getByTestId('current-figures-link');
     expect(figures.textContent).toMatch(/^Current figures for COVID-19 are on the Dashboard\./);
@@ -226,13 +226,16 @@ describe('Signals is the alert queue', () => {
   it('keeps the narrated profile’s single-profile table, with its descriptions, and acknowledgement', async () => {
     await replayAt('/signals');
     const table = screen.getByRole('table');
-    // No Score column here, so the regional alert's description keeps its score.
-    expect(within(table).queryByRole('columnheader', { name: 'Score' })).toBeNull();
-    expect(table.textContent).toContain('Composite Score: 74');
+    // The Score column carries the regional alert's score; its description does not repeat it.
+    expect(within(table).getByRole('columnheader', { name: 'Score' })).toBeTruthy();
+    expect(table.textContent).not.toContain('Composite Score: 74');
+    expect(table.textContent).toContain('+24% vs baseline');
     const ack = within(table).getAllByRole('button', { name: /^Acknowledge alert:/ })[0];
     fireEvent.click(ack);
     expect(screen.getByRole('button', { name: /^Notifications:/ }).getAttribute('aria-label')).toContain('14 alerts');
-    expect(within(screen.getByTestId('current-figures-link')).getByRole('button', { name: 'Investigate current conditions →' })).toBeTruthy();
+    expect(within(screen.getByTestId('current-figures-link')).getByRole('link', { name: 'Investigate current conditions' }).getAttribute('href')).toBe(
+      '/investigations?profile=respiratory-viral-syndrome&view=current',
+    );
   });
 
   it('Live: the acknowledgement log names the live date, not a scenario timestamp', { timeout: 20000 }, async () => {

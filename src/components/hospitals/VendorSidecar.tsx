@@ -188,7 +188,7 @@ export default function VendorSidecar({
           </dl>
           <button
             type="button"
-            onClick={() => navigate('/signals?view=current')}
+            onClick={() => navigate('/investigations?view=current')}
             className="ls-btn mt-3 w-full text-[11px]"
           >
             Open full investigation →

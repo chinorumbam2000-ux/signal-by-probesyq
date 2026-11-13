@@ -436,7 +436,7 @@ const alerts = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer => {
   return answer('alerts', [
     text(`${plural(f.alerts.length, 'alert')} ${f.alerts.length === 1 ? 'has' : 'have'} been detected by Day ${f.day}:`),
     list(f.alerts.map((a) => `${a.title} — first detected Day ${a.detectedDay}, ${a.detection.severity}${live ? `, ${a.status}` : ''}`)),
-    text('Open Signals to acknowledge them and investigate the regional signal.'),
+    text('Open Signals to acknowledge them; choose Investigate on the regional signal to start its review, which continues on Investigations.'),
   ], ['What should I investigate next?', 'Why is the score this high?']);
 };
 
@@ -468,7 +468,7 @@ const investigate = (ctx: AssistantContext): AssistantAnswer => {
     const top = [...f.hospitals].filter((h) => h.isAffected).sort((a, b) => b.positivityRate - a.positivityRate)[0];
     const regional = f.alerts.find((a) => a.kind === 'regional');
     const unack = f.alerts.filter((a) => a.status !== 'Acknowledged');
-    if (regional) steps.push(`Open the regional signal on Signals and work through its investigation (${regional.title}, detected Day ${regional.detectedDay}).`);
+    if (regional) steps.push(`Start the review of the regional signal from Signals (Investigate), then work through its investigation on Investigations (${regional.title}, detected Day ${regional.detectedDay}).`);
     if (ctx.alerts && unack.length) steps.push(`Acknowledge ${plural(unack.length, 'alert')} still awaiting review.`);
     if (newSites.length) steps.push(`Review the newly affected ${newSites.length === 1 ? 'facility' : 'facilities'}: ${joinAnd(newSites)}.`);
     if (top) steps.push(`Compare positivity across facilities: ${top.hospital.name} is highest at ${facilityPositivity(top.positivityRate)}.`);

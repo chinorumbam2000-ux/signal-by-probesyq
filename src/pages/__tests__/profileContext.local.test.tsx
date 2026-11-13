@@ -148,13 +148,20 @@ describe('global alert counts', () => {
 });
 
 describe('investigations and reports name their profile', () => {
-  it('lists every profile’s alert with its profile', async () => {
+  it('lists every profile’s alert under review with its profile', { timeout: 20000 }, async () => {
     atDay(5);
+    // Start two reviews from the queue: each becomes an investigation of its own profile.
+    for (const name of [/^Investigate alert: COVID-19 — Regional/, /^Investigate alert: Influenza A — Regional/]) {
+      renderAt('/signals?profile=all');
+      fireEvent.click(await screen.findByRole('button', { name }, WAIT));
+      await screen.findByTestId('profile-investigation', {}, WAIT);
+      cleanup();
+    }
     renderAt('/investigations');
-    const table = await screen.findByRole('table', { name: /investigation and report status/ }, WAIT);
-    expect(within(table).getByRole('columnheader', { name: 'Profile' })).toBeTruthy();
-    expect(within(table).getAllByText('COVID-19').length).toBe(4);
-    expect(within(table).getAllByRole('link', { name: /^Open investigation: Influenza A — / }).length).toBe(4);
+    const table = await screen.findByRole('table', { name: /under review/ }, WAIT);
+    expect(within(table).getAllByRole('row')).toHaveLength(3);
+    expect(within(table).getAllByText('COVID-19').length).toBe(1);
+    expect(within(table).getAllByRole('link', { name: /^Open investigation: Influenza A — / }).length).toBe(1);
   });
 
   it('reviews a COVID-19 alert and drafts a COVID-19 report — never an RVS one', async () => {

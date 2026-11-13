@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { InvestigationAction, InvestigationRecord } from '../../types';
 import SeverityBadge from '../signals/SeverityBadge';
+import ProfileTypeTag from './ProfileTypeTag';
 import InvestigationWorkflowPanel from '../signals/InvestigationWorkflowPanel';
 import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import { formatSimulationDateTime } from '../../lib/format';
@@ -46,17 +47,19 @@ export default function ProfileInvestigationShell({
       <section className="ls-card p-5" aria-label={`${profile.displayName} alert at detection`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="ls-label">{profile.displayName}</p>
+            <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-ink">
+              {profile.displayName} <ProfileTypeTag profile={profile} />
+            </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <SeverityBadge severity={d.severity} size="md" />
-              <h2 className="text-base font-semibold text-ink">{alert.title}</h2>
+              <h2 className="text-base font-semibold text-ink">At detection — Day {alert.detectedDay}</h2>
             </div>
             <p className="mt-1 text-sm text-muted">
               Detected on Replay Day {alert.detectedDay} · {formatSimulationDateTime(alert.detectedAt)} (scenario time) · {alert.status}
             </p>
           </div>
           <button type="button" onClick={onBack} className="ls-btn text-sm">
-            ← Back to signals
+            ← Back to investigations
           </button>
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -158,7 +158,7 @@ export default function ZipDetailPanel({
 
         <button
           type="button"
-          onClick={() => navigate('/signals?view=current')}
+          onClick={() => navigate('/investigations?view=current')}
           className="ls-btn-primary mt-5 w-full"
         >
           Investigate →

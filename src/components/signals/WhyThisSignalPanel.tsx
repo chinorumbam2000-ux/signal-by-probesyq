@@ -23,6 +23,14 @@ interface WhyThisSignalPanelProps {
   feeds: FacilityFeedHealth[];
   /** Compact suits the narrow vendor sidecar column. */
   compact?: boolean;
+  /**
+   * Where the surrounding screen already shows the score, its breakdown and
+   * the Data Confidence (an investigation), these are left out so each is
+   * shown once.
+   */
+  showHeadlineScore?: boolean;
+  showCalculation?: boolean;
+  showDataTrust?: boolean;
   className?: string;
 }
 
@@ -40,6 +48,9 @@ export default function WhyThisSignalPanel({
   confidence,
   feeds,
   compact = false,
+  showHeadlineScore = true,
+  showCalculation = true,
+  showDataTrust = true,
   className = '',
 }: WhyThisSignalPanelProps) {
   const styles = SEVERITY_STYLES[score.severity];
@@ -125,13 +136,15 @@ export default function WhyThisSignalPanel({
             {formatSimulationDate(scenario.simulationDate)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <SeverityBadge severity={score.severity} />
-          <span className="text-lg font-semibold tabular-nums text-ink">
-            {score.composite}
-            <span className="text-sm font-medium text-muted">/100</span>
-          </span>
-        </div>
+        {showHeadlineScore ? (
+          <div className="flex items-center gap-2">
+            <SeverityBadge severity={score.severity} />
+            <span className="text-lg font-semibold tabular-nums text-ink">
+              {score.composite}
+              <span className="text-sm font-medium text-muted">/100</span>
+            </span>
+          </div>
+        ) : null}
       </header>
 
       <dl className="divide-y divide-hairline">
@@ -144,6 +157,7 @@ export default function WhyThisSignalPanel({
       </dl>
 
       {/* The arithmetic, available but not shouting. */}
+      {showCalculation ? (
       <details className="border-t border-hairline px-5 py-3">
         <summary className="cursor-pointer text-xs font-medium text-brand">
           Show the weighted calculation
@@ -189,8 +203,10 @@ export default function WhyThisSignalPanel({
         </table>
             </div>
       </details>
+      ) : null}
 
       {/* Data trust, kept visibly separate from the severity above. */}
+      {showDataTrust ? (
       <div className="grid grid-cols-1 gap-px border-t border-hairline bg-hairline sm:grid-cols-3">
         <div className="bg-white px-5 py-3">
           <p className="ls-label">Data Confidence</p>
@@ -228,6 +244,7 @@ export default function WhyThisSignalPanel({
           </p>
         </div>
       </div>
+      ) : null}
 
       {offline.length > 0 ? (
         <p className="border-t border-hairline bg-canvas px-5 py-3 text-xs leading-relaxed text-ink">

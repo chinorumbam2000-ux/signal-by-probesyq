@@ -161,6 +161,10 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   }
   if (UNSUPPORTED.test(t)) return result('unsupported');
 
+  // "What is Signals?" / "What are Investigations?": the pages, not the score or the next step.
+  const workflowPage = t.match(/^what (?:is|are) (?:the )?(signals|investigations)(?: page)?$/)?.[1];
+  if (workflowPage) return result('page_help', { page: workflowPage === 'signals' ? 'signals' : 'investigations' });
+
   // Page help ("what does this page show", "what does the Analytics page show").
   const pageNamed = PAGE_NAMES.find(([re]) => re.test(t))?.[1];
   if (has(t, 'this page', 'this screen', 'am i looking at', 'this view', 'use this page', 'on this page') ||

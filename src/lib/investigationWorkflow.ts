@@ -288,6 +288,24 @@ export const REPORTABLE_STATUSES: InvestigationStatus[] = [
 export const canPrepareReport = (record: InvestigationRecord | undefined): boolean =>
   Boolean(record) && REPORTABLE_STATUSES.includes(record!.status);
 
+/**
+ * Each review status in words, for tables and badges. NEW means the review has
+ * not started: the alert is still only in the Signals queue.
+ */
+export const REVIEW_STATUS_LABEL: Record<InvestigationStatus, string> = {
+  NEW: 'Not started',
+  'UNDER REVIEW': 'Under review',
+  MONITORING: 'Monitoring',
+  ESCALATED: 'Escalated',
+  DISMISSED: 'Dismissed',
+  'CONFIRMED CONCERN': 'Confirmed concern',
+  CLOSED: 'Closed',
+};
+
+/** Whether an alert has entered the review workflow (and so belongs on Investigations). */
+export const isUnderReview = (record: InvestigationRecord | undefined): boolean =>
+  Boolean(record) && record!.status !== 'NEW';
+
 /** Badge treatment per status. Kept out of the components so it stays one list. */
 export const INVESTIGATION_STATUS_STYLES: Record<InvestigationStatus, string> = {
   NEW: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/20',
@@ -298,4 +316,15 @@ export const INVESTIGATION_STATUS_STYLES: Record<InvestigationStatus, string> = 
   'CONFIRMED CONCERN':
     'bg-severity-critical/10 text-severity-critical ring-1 ring-inset ring-severity-critical/30',
   CLOSED: 'bg-canvas text-muted ring-1 ring-inset ring-hairline',
+};
+
+/** Where investigations live: the list, and each one's detail (?alert=). */
+export const INVESTIGATIONS_PATH = '/investigations';
+
+/** The detail route of an alert's investigation, carrying the alert's own profile. */
+export const investigationPath = (alertId: string, profileId?: string): string => {
+  const params = new URLSearchParams();
+  if (profileId) params.set('profile', profileId);
+  params.set('alert', alertId);
+  return `${INVESTIGATIONS_PATH}?${params.toString()}`;
 };
