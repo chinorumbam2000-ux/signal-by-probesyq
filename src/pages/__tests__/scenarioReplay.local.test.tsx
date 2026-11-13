@@ -62,7 +62,8 @@ describe('Scenario Replay routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' })).toBeTruthy();
     const overview = within(screen.getAllByRole('navigation', { name: 'Primary' })[0]).getByRole('group', { name: 'Overview' });
     expect(within(overview).getByRole('link', { name: 'Scenario Replay' }).getAttribute('href')).toBe('/replay');
-    expect(within(topBar()).getByText('Replay Day')).toBeTruthy();
+    expect(within(topBar()).getByText('Scenario Replay')).toBeTruthy();
+    expect(within(topBar()).getByTestId('replay-day').textContent).toMatch(/^Day 1 of 5/);
   });
 
   it('redirects /simulation to /replay, keeping the query string and hash', async () => {

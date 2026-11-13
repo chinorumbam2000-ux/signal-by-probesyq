@@ -12,21 +12,20 @@ import type { AreaPrivacy } from '../../lib/profiles/privacy';
 interface HighestRiskAreaProps {
   zipMetrics: ZipMetrics[];
   currentDay: number;
-  onOpenMap: () => void;
   /** The selected profile's suppression; defaults to the narrated scenario's. */
   privacy?: AreaPrivacy;
 }
 
 /**
- * Section 3's text half: which area is currently carrying the most risk, and
- * what the privacy rule is withholding today.
+ * The geographic summary's text half: which area is currently carrying the
+ * most risk, and what the privacy rule is withholding today. The way to the
+ * Outbreak Map is the map card's one link beside it.
  *
  * Ranking reads the existing area scores — it does not compute a new one.
  */
 export default function HighestRiskArea({
   zipMetrics,
   currentDay,
-  onOpenMap,
   privacy,
 }: HighestRiskAreaProps) {
   const affected = zipMetrics.filter((area) => area.isAffected);
@@ -38,9 +37,6 @@ export default function HighestRiskArea({
     <div className="ls-card flex flex-col">
       <header className="ls-card-header">
         <h3 className="ls-card-title">Highest-risk surveillance area</h3>
-        <button type="button" onClick={onOpenMap} className="ls-btn px-3 py-1.5 text-xs">
-          Open map →
-        </button>
       </header>
 
       <div className="flex-1 p-5">

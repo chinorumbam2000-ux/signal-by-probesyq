@@ -13,7 +13,8 @@ import { clock } from '../../lib/live/sources';
  *
  * Shows the two clocks separately and labels them, so the simulation calendar
  * (which stamps observations and alerts) is never mistaken for the real
- * session clock (which only says when this tab last recalculated).
+ * session clock (which only says when this tab last recalculated). The top
+ * bar already says the Live feeds are simulated, so this does not repeat it.
  *
  * The stage ("Regional Early-Warning Signal") is the narrated replay's, so it
  * is shown on Scenario Replay and while Respiratory Viral Activity is the
@@ -30,8 +31,7 @@ export default function PageMeta() {
       <div className="text-left sm:ml-auto sm:text-right">
         <p className="ls-label">Live Surveillance · signals for {period.currentLabel} (latest closed day)</p>
         <p className="mt-0.5 text-xs text-muted">
-          <span className="font-medium text-ink">Live surveillance date:</span> {liveDayLabel(now.dayIndex)} · {clock(now.minute)}{' '}
-          simulated time
+          <span className="font-medium text-ink">Live surveillance date:</span> {liveDayLabel(now.dayIndex)} · {clock(now.minute)}
         </p>
       </div>
     );

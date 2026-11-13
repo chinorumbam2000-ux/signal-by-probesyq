@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import KpiCard, { type KpiChange } from '../components/dashboard/KpiCard';
 import TrendChart from '../components/dashboard/TrendChart';
@@ -51,7 +50,6 @@ export default function DashboardPage() {
   const profileParam = encodeURIComponent(view.profile.id);
   const mapPath = `/map?profile=${profileParam}`;
   const navigate = useNavigate();
-  const [resetToken, setResetToken] = useState(0);
 
   if (error) {
     return (
@@ -222,7 +220,7 @@ export default function DashboardPage() {
                     zipMetrics={zipMetrics}
                     selectedZip={null}
                     onSelectZip={() => navigate(mapPath)}
-                    resetToken={resetToken}
+                    resetToken={0}
                     interactive={false}
                     showLabels={false}
                     privacy={view.privacy}
@@ -231,33 +229,18 @@ export default function DashboardPage() {
                     <MapLegend compact />
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-hairline px-4 py-3">
-                  <p className="text-[11px] leading-snug text-muted">
-                    Synthetic geographic visualization — demonstration only.
-                  </p>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setResetToken((token) => token + 1)}
-                      className="ls-btn px-2.5 py-1 text-[11px]"
-                    >
-                      Reset view
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate(mapPath)}
-                      className="ls-btn px-2.5 py-1 text-[11px]"
-                    >
-                      View details →
-                    </button>
-                  </div>
+                {/* A fixed summary (no pan or zoom, so nothing to reset); the Outbreak Map is the place to explore.
+                    The map's own attribution already says it is a synthetic, demonstration-only overlay. */}
+                <div className="flex justify-end border-t border-hairline px-4 py-3">
+                  <Link to={mapPath} className="ls-btn shrink-0 px-2.5 py-1 text-[11px]" data-testid="open-map-link">
+                    Open Outbreak Map <span aria-hidden="true">→</span>
+                  </Link>
                 </div>
               </Card>
 
               <HighestRiskArea
                 zipMetrics={zipMetrics}
                 currentDay={currentDay}
-                onOpenMap={() => navigate(mapPath)}
                 privacy={view.privacy}
               />
             </div>

@@ -72,8 +72,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Signals',
     title: 'Signals & Alerts',
     shows:
-      'the alert table with acknowledgement, the signal investigation breakdown ("Why this signal"), and the human-in-the-loop investigation workflow.',
-    use: 'Acknowledge new alerts, then open Investigate to see the detection-time evidence and record review steps.',
+      'the alert queue: every alert with its profile, severity, score at detection, detection date and review state, with counts of alerts awaiting acknowledgement and detected on this day; then the signal investigation breakdown ("Why this signal") and the human-in-the-loop investigation workflow. Current figures for a profile are on the Dashboard.',
+    use: 'Acknowledge new alerts here (the notification bell lists them and links here), then open Investigate to see the detection-time evidence and record review steps.',
   },
   hospitals: {
     nav: 'Facilities',

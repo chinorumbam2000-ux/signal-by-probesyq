@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
@@ -6,17 +6,16 @@ import SignalTable from '../components/signals/SignalTable';
 import SignalInvestigation, {
   type InvestigationMode,
 } from '../components/signals/SignalInvestigation';
-import SeverityBadge from '../components/signals/SeverityBadge';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
 import { SIGNAL_DISCLAIMER } from '../lib/signalScore';
 import { SCORE_DISCLAIMER_TEXT } from '../lib/brand';
-import { formatPercent, formatSimulationDateTime } from '../lib/format';
+import { formatSimulationDateTime } from '../lib/format';
 import { findDetection } from '../lib/alerts';
 import { useNavigate } from 'react-router-dom';
 import MethodNote from '../components/common/MethodNote';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
-import { PROFILE_BY_ID, PROFILE_TYPE_LABEL, RVS_PROFILE_ID } from '../lib/profiles/registry';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 import { SEVERITY_RANK, findProfileDetection, type ProfileAlert } from '../lib/profiles/portfolio';
 import { isScope } from '../lib/profiles/selection';
 import ProfileInvestigationShell from '../components/profiles/ProfileInvestigationShell';
@@ -39,7 +38,6 @@ const VIEW_PARAM = 'view';
 export default function SignalsPage() {
   const {
     currentDay,
-    currentScenario,
     alerts,
     dataConfidence,
     feedHealth,
@@ -289,8 +287,6 @@ export default function SignalsPage() {
   const unacknowledgedCount = listAlerts.filter((alert) => alert.status !== 'Acknowledged').length;
   const newTodayCount = listAlerts.filter((alert) => alert.detectedDay === period.day).length;
   const acknowledged = listAlerts.filter((alert) => alert.status === 'Acknowledged');
-  const focusScore = view.score;
-  const focusScenario = view.isNarrated ? currentScenario : view.scenario;
   const nameOf = (alert: { id: string; title: string }) =>
     profileNames?.[alert.id] ? `${profileNames[alert.id]} — ${alert.title}` : alert.title;
 
@@ -302,8 +298,8 @@ export default function SignalsPage() {
             Signals &amp; Alerts
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Each alert reports the values recorded when it was detected. Those values{' '}
-            {wording.frozenValues} — current regional figures are shown separately below.
+            The alert queue: review, acknowledge and investigate alerts here. Each alert reports the values recorded
+            when it was detected; those values {wording.frozenValues}.
           </p>
         </div>
         <PageMeta />
@@ -327,14 +323,15 @@ export default function SignalsPage() {
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Queue-level counts only: the selected profile's score and scope are on the Dashboard. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2" data-testid="queue-counts">
         <div className="ls-card p-5">
           <p className="ls-label">Alerts awaiting acknowledgement</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-ink">
             {unacknowledgedCount}
           </p>
           <p className="mt-1 text-xs text-muted">
-            of {listAlerts.length} detected through {period.currentLabel}
+            of {listAlerts.length} {listAlerts.length === 1 ? 'alert' : 'alerts'} detected so far
           </p>
         </div>
         <div className="ls-card p-5">
@@ -344,26 +341,6 @@ export default function SignalsPage() {
           </p>
           <p className="mt-1 text-xs text-muted">
             {acknowledged.length} acknowledged so far
-          </p>
-        </div>
-        <div className="ls-card p-5">
-          <p className="ls-label">Current composite score</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-ink">
-            {focusScore ? focusScore.composite : '—'}
-            {focusScore ? <span className="text-base font-medium text-muted"> / 100</span> : null}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            {`${view.profile.displayName} (${PROFILE_TYPE_LABEL[view.profile.type].toLowerCase()}) · `}
-            {focusScore ? `Severity: ${focusScore.severity}` : view.statusReason}
-          </p>
-        </div>
-        <div className="ls-card p-5">
-          <p className="ls-label">Current scope</p>
-          <p className="mt-2 text-2xl font-semibold tabular-nums text-ink">
-            {focusScenario.affectedHospitals.length} / 3
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            facilities · {focusScenario.affectedZipCodes.length} surveillance areas
           </p>
         </div>
       </div>
@@ -392,55 +369,25 @@ export default function SignalsPage() {
         )}
       </Card>
 
-      {/* Current values kept explicitly separate from the frozen detection values. */}
-      <Card
-        title={`Current regional figures — ${view.isNarrated ? '' : `${view.profile.displayName}, `}${period.currentLabel}`}
-        subtitle={`${wording.currentFigures}, shown separately from the detection-time values above`}
-        action={
-          view.isNarrated ? (
+      {/* The queue holds detection-time values; the current figures belong to the Dashboard. */}
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-xs text-muted" data-testid="current-figures-link">
+        <span>Current figures for {view.profile.displayName} are on the Dashboard.</span>
+        <Link
+          to={`/dashboard?profile=${encodeURIComponent(view.profile.id)}`}
+          className="font-semibold text-brand hover:underline"
+        >
+          View profile on Dashboard <span aria-hidden="true">→</span>
+        </Link>
+        {view.isNarrated ? (
           <button
             type="button"
             onClick={() => setSearchParams({ ...keepProfile(), [VIEW_PARAM]: 'current' })}
-            className="ls-btn px-3 py-1.5 text-xs"
+            className="font-semibold text-brand hover:underline"
           >
             Investigate current conditions →
           </button>
-          ) : undefined
-        }
-      >
-        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Tests</dt>
-            <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {focusScenario.totalTests}
-            </dd>
-          </div>
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Positives</dt>
-            <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {view.display.positives}
-            </dd>
-          </div>
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Positivity</dt>
-            <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {view.display.regional.suppressed ? view.display.positivity : formatPercent(focusScenario.positivityRate)}
-            </dd>
-          </div>
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Composite score</dt>
-            <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-              {focusScore ? `${focusScore.composite} / 100` : 'No score'}
-            </dd>
-          </div>
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Severity</dt>
-            <dd className="mt-1.5">
-              {focusScore ? <SeverityBadge severity={focusScore.severity} /> : <span className="text-sm text-muted">—</span>}
-            </dd>
-          </div>
-        </dl>
-      </Card>
+        ) : null}
+      </p>
 
       {acknowledged.length > 0 ? (
         <Card title="Acknowledgement log" bodyClassName="p-0">
@@ -452,11 +399,11 @@ export default function SignalsPage() {
               >
                 <span className="text-sm text-ink">{nameOf(alert)}</span>
                 <span className="text-xs text-muted">
-                  Acknowledged on Day {alert.acknowledgement?.day} ·{' '}
-                  {alert.acknowledgement
-                    ? formatSimulationDateTime(alert.acknowledgement.simulationTime)
-                    : ''}{' '}
-                  (scenario time)
+                  {/* Live's timeline is its own: the day label is the date; replay adds its scenario timestamp. */}
+                  Acknowledged on {alert.acknowledgement ? wording.day(alert.acknowledgement.day) : ''}
+                  {!isLive && alert.acknowledgement
+                    ? ` · ${formatSimulationDateTime(alert.acknowledgement.simulationTime)} (scenario time)`
+                    : ''}
                 </span>
               </li>
             ))}

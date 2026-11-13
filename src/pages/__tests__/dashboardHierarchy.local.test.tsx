@@ -198,7 +198,7 @@ describe('Dashboard hierarchy (Scenario Replay, Day 5)', () => {
     await replayDashboard(5);
     expect(screen.getByTestId('outbreak-map')).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Highest-risk surveillance area' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Open map →' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Open Outbreak Map' }).getAttribute('href')).toBe('/map?profile=respiratory-viral-syndrome');
     expect(screen.getByText('Test Volume & Positivity Trend')).toBeTruthy();
     expect((screen.getByLabelText('Surveillance profile') as HTMLSelectElement).value).toBe('respiratory-viral-syndrome');
   });

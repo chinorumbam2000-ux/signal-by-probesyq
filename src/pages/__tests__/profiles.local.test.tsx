@@ -143,7 +143,8 @@ describe('Dashboard — Active Surveillance', () => {
     expect(selector().value).toBe('rsv');
     // Options carry the status in words.
     const option = within(selector()).getByRole('option', { name: /^Cholera/ });
-    expect(option.textContent).toBe('Cholera — Insufficient baseline');
+    // Options name the profile; its status is shown beside the selector, not repeated in every option.
+    expect(option.textContent).toBe('Cholera');
   });
 });
 

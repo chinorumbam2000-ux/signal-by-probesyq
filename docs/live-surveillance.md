@@ -64,6 +64,16 @@ indicators with their change since the previous day and the engine's own
 summary, and one line naming the highest-priority alert awaiting review with
 a link to Signals, where alerts are acknowledged and investigated.
 
+**Where each thing lives.** The top bar carries the global context: the mode
+with its one simulated-data disclosure, the Live clock and run status (or the
+replay day and its controls), the selected profile's reading on wider
+screens, the alerts bell (a list linking to Signals — acknowledgement happens
+on Signals), and the analyst. The sidebar holds the mode switch and the
+navigation, not a second copy of the date. Signals is the alert queue: queue
+counts and the alert table, with no copy of the Dashboard's score, scope or
+current figures. The profile selector names profiles; Active Surveillance
+compares their scores.
+
 **Mode-correct wording.** Each mode names its own days and data: Scenario
 Replay's "Day 4", "Scenario Replay data" and replay rules; Live Surveillance's
 "Feb 12", "Live Surveillance data", rolling-baseline settings and closed-day

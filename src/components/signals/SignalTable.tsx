@@ -23,6 +23,9 @@ interface SignalTableProps {
   canReview?: (alert: OutbreakAlert) => boolean;
 }
 
+/** A detection detail that is nothing but the composite score ("Composite Score: 66"). */
+const SCORE_ONLY_DETAIL = /^Composite Score: \d+$/;
+
 const STATUS_STYLES: Record<OutbreakAlert['status'], string> = {
   New: 'bg-brand-light text-brand ring-1 ring-inset ring-brand/20',
   Active: 'bg-severity-high/10 text-[#9A3412] ring-1 ring-inset ring-severity-high/25',
@@ -52,6 +55,9 @@ export default function SignalTable({
     );
   }
   const profileOf = (alert: OutbreakAlert) => profileNames?.[alert.id];
+  // With a Score column, a description that only restates the score adds nothing.
+  const descriptionOf = (alert: OutbreakAlert) =>
+    profileNames && SCORE_ONLY_DETAIL.test(alert.detection.detail) ? null : alert.detection.detail;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -91,7 +97,7 @@ export default function SignalTable({
               ) : null}
               <td className="px-4 py-3">
                 <p className="text-sm font-medium text-ink">{alert.title}</p>
-                <p className="text-xs text-muted">{alert.detection.detail}</p>
+                {descriptionOf(alert) ? <p className="text-xs text-muted">{descriptionOf(alert)}</p> : null}
               </td>
               {profileNames ? (
                 <td className="ls-td text-right tabular-nums text-ink">

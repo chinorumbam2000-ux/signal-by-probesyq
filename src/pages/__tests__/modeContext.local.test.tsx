@@ -110,7 +110,9 @@ describe('Live Surveillance: no Scenario Replay wording', () => {
     await liveDuringOutage();
     await go(/^Signals/, /Signals/);
     expect(main().textContent).toContain('do not change as later live days close');
-    expect(main().textContent).toContain('Values for the latest closed day');
+    // The queue only: current figures are on the Dashboard, linked once.
+    expect(main().textContent).not.toMatch(/Current regional figures|Current composite score|Current scope/);
+    expect(screen.getByTestId('current-figures-link').textContent).toContain('View profile on Dashboard');
     const acks = screen.getAllByRole('button', { name: /^Acknowledge alert:/ });
     expect(acks.length).toBeGreaterThan(0);
     for (const ack of acks) expect(ack.getAttribute('aria-label')).toMatch(/, detected on Feb \d+$/);
@@ -149,7 +151,7 @@ describe('Scenario Replay keeps its own wording', () => {
     expect(screen.getByTestId('score-movement').textContent).toMatch(/^Why the score moved · \+13 since Day 4/);
     await go(/^Signals/, /Signals/);
     expect(main().textContent).toContain('do not change as the replay advances');
-    expect(main().textContent).toContain('Values for the selected replay day');
+    expect(main().textContent).not.toMatch(/Current regional figures|Current composite score|Current scope/);
     expect(screen.getAllByRole('button', { name: /^Acknowledge alert:/ })[0].getAttribute('aria-label')).toMatch(/, detected on replay day \d$/);
     await go(/^Facilities/, /Facilities/);
     expect(screen.getAllByText('Day 1 → current')).toHaveLength(2);

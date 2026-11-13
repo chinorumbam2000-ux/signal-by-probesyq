@@ -1,14 +1,17 @@
 import { PROFILES } from '../../lib/profiles/registry';
-import { STATUS_LABEL } from '../../lib/profiles/derive';
 import { SCOPE_LABEL, isScope, type ProfileSelection } from '../../lib/profiles/selection';
 import { DEFAULT_PROFILE_ID, PROFILE_BY_ID } from '../../lib/profiles/registry';
 import type { Portfolio } from '../../lib/profiles/usePortfolio';
 
 /**
  * The compact surveillance-profile selector. A native <select>, so it is
- * keyboard- and screen-reader-operable as is. Each option carries the
- * profile's status in words; options are grouped as aggregate or
- * pathogen-specific profiles. The choice is kept in the URL (?profile=).
+ * keyboard- and screen-reader-operable as is. It is for choosing a profile:
+ * each option is the profile's name, grouped as aggregate or
+ * pathogen-specific. Scores and severities are compared across profiles in
+ * Active Surveillance, and the selected profile's own reading is shown beside
+ * the selector (the page's profile heading, and the top bar on wider
+ * screens), so the options do not repeat them. The choice is kept in the URL
+ * (?profile=).
  */
 export default function ProfileSelector({
   portfolio,
@@ -18,14 +21,6 @@ export default function ProfileSelector({
   className?: string;
 }) {
   const { selection, setSelection, summaries, focusId, invalidSelection } = portfolio;
-  const optionText = (id: (typeof PROFILES)[number]['id']) => {
-    const summary = summaries.find((s) => s.profile.id === id);
-    if (!summary) return PROFILE_BY_ID[id].displayName;
-    const reading = summary.score
-      ? `${summary.score.severity} ${summary.score.composite}`
-      : STATUS_LABEL[summary.status];
-    return `${PROFILE_BY_ID[id].displayName} — ${reading}`;
-  };
 
   return (
     <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${className}`}>
@@ -46,14 +41,14 @@ export default function ProfileSelector({
         <optgroup label="Aggregate profiles">
           {PROFILES.filter((profile) => profile.type === 'Aggregate').map((profile) => (
             <option key={profile.id} value={profile.id}>
-              {optionText(profile.id)}
+              {profile.displayName}
             </option>
           ))}
         </optgroup>
         <optgroup label="Pathogen-specific profiles">
           {PROFILES.filter((profile) => profile.type === 'Pathogen').map((profile) => (
             <option key={profile.id} value={profile.id}>
-              {optionText(profile.id)}
+              {profile.displayName}
             </option>
           ))}
         </optgroup>

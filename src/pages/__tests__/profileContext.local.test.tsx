@@ -135,7 +135,12 @@ describe('global alert counts', () => {
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByLabelText('15 alerts awaiting acknowledgement across all profiles')).toBeTruthy();
     fireEvent.click(bell);
-    fireEvent.click(screen.getByRole('button', { name: 'Acknowledge alert: COVID-19 — Regional outbreak signal detected' }));
+    // The bell lists and links; it does not acknowledge. Acknowledgement is on Signals.
+    const menu = screen.getByTestId('alerts-menu');
+    expect(within(menu).queryByRole('button', { name: /Acknowledge/ })).toBeNull();
+    fireEvent.click(within(menu).getByRole('link', { name: /^Critical COVID-19 — Regional outbreak signal detected/ }));
+    await screen.findByRole('heading', { level: 1, name: 'Signals & Alerts' }, WAIT);
+    fireEvent.click(screen.getByRole('button', { name: /^Acknowledge alert: Regional outbreak signal detected,/ }));
     expect(screen.getByRole('button', { name: /^Notifications:/ }).getAttribute('aria-label')).toContain('14 alerts');
     // The replay tile names no score: scores belong to profiles.
     expect(nav.textContent).not.toContain('Score 87');

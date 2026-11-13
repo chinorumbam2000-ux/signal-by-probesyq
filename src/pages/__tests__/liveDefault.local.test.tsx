@@ -120,7 +120,8 @@ describe('Live Surveillance first', () => {
     const buttons = within(modeGroup()).getAllByRole('button').map((b) => b.textContent);
     expect(buttons).toEqual(['Live Surveillance', 'Scenario Replay']);
     // The selected mode is said in words, not by colour alone.
-    expect(screen.getAllByTestId('mode-caption')[0].textContent).toBe('Live Surveillance · Simulated source feeds');
+    // It does not repeat the top bar's "Simulated source feeds" disclosure.
+    expect(screen.getAllByTestId('mode-caption')[0].textContent).toBe('Live Surveillance · Primary mode');
 
     const overview = ANALYST_SECTIONS[0].items.map((item) => item.to);
     expect(overview.indexOf('/live')).toBeLessThan(overview.indexOf('/replay'));

@@ -6,6 +6,7 @@ import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor } from '../../
 import type { AppMode } from '../../lib/appModes';
 import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
+import { SIGNALS_QUEUE_PATH } from '../dashboard/AlertSummary';
 import DataSourceIndicator from './DataSourceIndicator';
 import ModeChip from './ModeChip';
 import { usePortfolio } from '../../lib/profiles/usePortfolio';
@@ -15,12 +16,15 @@ import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
 import { LiveRunStatus, useLiveClock } from '../live/LiveParts';
 
 /**
- * The top bar. On analyst pages it carries the replay day controls (the
- * replay calendar is shared by every profile), the SELECTED profile's reading
- * and the "Simulated surveillance data" indicator. On Scenario Replay itself
+ * The top bar: global context and global actions only. On analyst pages it
+ * names the mode once, with its one simulated-data disclosure, then the Live
+ * clock and run status, or the replay day and its controls (the calendar is
+ * shared by every profile); the SELECTED profile's reading on wider screens;
+ * the alerts bell; and the analyst. On Scenario Replay itself
  * the reading is the replay's own profile, Respiratory Viral Activity, named
  * as such. A profile without a score shows its status in words, never
- * another profile's score. The bell counts alerts across all profiles.
+ * another profile's score. The bell counts and lists alerts across all
+ * profiles and links to Signals; alerts are acknowledged on Signals, not here.
  * On System pages it names the page's mode instead, so a replay score is
  * never read as, say, a dynamic signal.
  */
@@ -36,7 +40,6 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
     resetSimulation,
     refresh,
     lastUpdated,
-    acknowledgeAlert: acknowledgeReplayAlert,
     isFirstDay,
     isLastDay,
   } = useSimulation();
@@ -49,7 +52,6 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   // The bell is global: every profile's alerts, in the active mode.
   const alerts = portfolio.alerts;
   const unacknowledgedCount = alerts.filter((a) => a.status !== 'Acknowledged').length;
-  const acknowledgeAlert = isLive ? live.acknowledge : acknowledgeReplayAlert;
   // Scenario Replay narrates Respiratory Viral Activity; elsewhere the reading follows ?profile=.
   const onReplay = !isLive && (pathname === '/replay' || pathname === '/simulation');
   const readingId = onReplay ? RVS_PROFILE_ID : portfolio.focusId;
@@ -90,7 +92,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         <>
           <div className="min-w-0">
             {/* The one statement that the live feeds are simulated; the link leads to the full limitations. */}
-            <p className="text-[11px] font-semibold text-muted">
+            <p className="text-[11px] font-semibold text-muted" data-testid="mode-disclosure">
               Live Surveillance ·{' '}
               <Link
                 to="/overview#about-the-data"
@@ -110,20 +112,29 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
         </>
       ) : classroom ? (
         <>
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="min-w-0">
-              <p className="ls-label">Replay Day</p>
-              {/* The stage belongs to the narrated replay: shown on Scenario Replay only. */}
-              <p
-                className="truncate text-sm font-semibold text-ink"
-                title={`Day ${currentDay} of 5 · ${onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}`}
+          <div className="min-w-0">
+            {/* The mode and the one statement that its data is simulated, in one line; the link leads to the full limitations. */}
+            <p className="text-[11px] font-semibold text-muted" data-mode="classroom" data-testid="mode-disclosure">
+              <span className="text-brand">Scenario Replay</span> ·{' '}
+              <Link
+                to="/overview#about-the-data"
+                title="About replay data"
+                className="underline decoration-dotted underline-offset-2 hover:text-brand"
               >
-                Day {currentDay} of 5
-                <span className="ml-2 font-normal text-muted">
-                  {onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}
-                </span>
-              </p>
-            </div>
+                Simulated surveillance data<span className="sr-only"> — about replay data</span>
+              </Link>
+            </p>
+            {/* The stage belongs to the narrated replay: shown on Scenario Replay only. */}
+            <p
+              className="truncate text-sm font-semibold text-ink"
+              title={`Day ${currentDay} of 5 · ${onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}`}
+              data-testid="replay-day"
+            >
+              Day {currentDay} of 5
+              <span className="ml-2 font-normal text-muted">
+                {onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}
+              </span>
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -150,19 +161,6 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             <button type="button" onClick={resetSimulation} className="ls-btn px-3 py-1.5">
               Reset
             </button>
-          </div>
-
-          {/* The one statement, on every analyst page, that the replay's data is simulated. */}
-          {/* The disclosure is also the way to the full limitations: one compact item, not two. */}
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <ModeChip mode="classroom" />
-            <Link
-              to="/overview#about-the-data"
-              title="About replay data"
-              className="text-xs text-muted underline decoration-dotted underline-offset-2 hover:text-brand"
-            >
-              Simulated surveillance data<span className="sr-only"> — about replay data</span>
-            </Link>
           </div>
         </>
       ) : (
@@ -223,7 +221,13 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
           </div>
         ) : null}
 
-        <div className="relative">
+        {/* On phones the list spans the top bar's width (anchored to the header), so it never runs off screen. */}
+        <div
+          className="sm:relative"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setShowAlerts(false);
+          }}
+        >
           <button
             type="button"
             onClick={() => setShowAlerts((open) => !open)}
@@ -249,9 +253,13 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                 className="fixed inset-0 z-40 cursor-default"
                 onClick={() => setShowAlerts(false)}
               />
-              <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-hairline bg-white p-2 shadow-panel">
+              {/* A notification list, not an action surface: alerts are acknowledged on Signals. */}
+              <div
+                className="absolute inset-x-4 top-full z-50 mt-1 rounded-xl border border-hairline bg-white p-2 shadow-panel sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80"
+                data-testid="alerts-menu"
+              >
                 <p className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                  {unacknowledgedCount} awaiting acknowledgement · all profiles · {portfolio.period.currentLabel}
+                  {unacknowledgedCount} awaiting acknowledgement · all profiles
                 </p>
                 {alerts.length === 0 ? (
                   <p className="px-2 py-3 text-sm text-muted">
@@ -260,45 +268,38 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                 ) : (
                   <ul className="max-h-80 space-y-1 overflow-y-auto">
                     {alerts.map((alert) => (
-                      <li key={alert.id} className="rounded-lg px-2 py-2 hover:bg-canvas">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowAlerts(false);
-                            navigate(`/signals?profile=${encodeURIComponent(alert.profileId)}`);
-                          }}
-                          className="flex w-full items-start gap-2 text-left"
+                      <li key={alert.id}>
+                        <Link
+                          to={`/signals?profile=${encodeURIComponent(alert.profileId)}`}
+                          onClick={() => setShowAlerts(false)}
+                          className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-canvas"
                         >
                           <span className="mt-0.5">
                             <SeverityBadge severity={alert.detection.severity} />
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium text-ink">
+                            <span className="block text-sm font-medium leading-snug text-ink">
                               {PROFILE_BY_ID[alert.profileId].displayName} — {alert.title}
                             </span>
-                            <span className="block truncate text-xs text-muted">
-                              {alert.detection.detail} · detected {portfolio.period.label(alert.detectedDay)}
+                            <span className="block text-xs text-muted">
+                              detected {portfolio.period.label(alert.detectedDay)} ·{' '}
+                              {alert.status === 'Acknowledged' ? 'acknowledged' : 'awaiting acknowledgement'}
                             </span>
                           </span>
-                        </button>
-                        {alert.status !== 'Acknowledged' ? (
-                          <button
-                            type="button"
-                            onClick={() => acknowledgeAlert(alert.id)}
-                            className="ls-btn mt-1.5 w-full px-2 py-1 text-[11px]"
-                            aria-label={`Acknowledge alert: ${PROFILE_BY_ID[alert.profileId].displayName} — ${alert.title}`}
-                          >
-                            Acknowledge
-                          </button>
-                        ) : (
-                          <p className="mt-1 text-[11px] text-muted">
-                            Acknowledged on Day {alert.acknowledgement?.day}
-                          </p>
-                        )}
+                        </Link>
                       </li>
                     ))}
                   </ul>
                 )}
+                <div className="mt-1 border-t border-hairline px-2 pb-1 pt-2">
+                  <Link
+                    to={SIGNALS_QUEUE_PATH}
+                    onClick={() => setShowAlerts(false)}
+                    className="text-xs font-semibold text-brand hover:underline"
+                  >
+                    Review alerts in Signals <span aria-hidden="true">→</span>
+                  </Link>
+                </div>
               </div>
             </>
           ) : null}

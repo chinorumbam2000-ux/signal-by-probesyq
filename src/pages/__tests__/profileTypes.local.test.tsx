@@ -112,7 +112,7 @@ describe('profile types on the Dashboard', () => {
       { label: 'Aggregate profiles', options: ['respiratory-viral-syndrome', 'gastrointestinal-syndrome'] },
       { label: 'Pathogen-specific profiles', options: ['influenza-a', 'covid-19', 'rsv', 'cholera'] },
     ]);
-    expect(select.querySelector('option[value="respiratory-viral-syndrome"]')?.textContent).toMatch(/^Respiratory Viral Activity — /);
+    expect(select.querySelector('option[value="respiratory-viral-syndrome"]')?.textContent).toBe('Respiratory Viral Activity');
   });
 });
 

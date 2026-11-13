@@ -19,10 +19,19 @@ export function useLiveClock(): string {
   return `${liveDayLabel(dayIndex)} · ${clock(minute)}`;
 }
 
-/** What each mode is, said under the switch and as each button's description. */
+/** What each mode is: each switch button's description (and the Replay caption). */
 export const MODE_DESCRIPTION: Record<SurveillanceMode, string> = {
   live: 'Simulated source feeds',
   replay: 'Historical training scenario',
+};
+
+/**
+ * The switch's caption: the selected mode in words. It does not repeat the
+ * top bar's simulated-data disclosure, which sits beside it on every page.
+ */
+const MODE_CAPTION: Record<SurveillanceMode, string> = {
+  live: 'Primary mode',
+  replay: MODE_DESCRIPTION.replay,
 };
 
 /**
@@ -66,7 +75,7 @@ export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
         ))}
       </div>
       <p className={`mt-1.5 text-[11px] leading-tight ${onDark ? 'text-white/60' : 'text-muted'}`} data-testid="mode-caption">
-        {mode === 'live' ? 'Live Surveillance' : 'Scenario Replay'} · {MODE_DESCRIPTION[mode]}
+        {mode === 'live' ? 'Live Surveillance' : 'Scenario Replay'} · {MODE_CAPTION[mode]}
       </p>
     </div>
   );

@@ -300,7 +300,7 @@ banner.
 | `/dashboard` | Public Health Dashboard | A concise overview: Active Surveillance, the selected profile, its outbreak score beside Data Confidence, key indicators with the change since the previous day and why the score moved, one small trend, a geographic summary, and the highest-priority alert (reviewed on Signals) |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
-| `/signals` | Signals & Alerts | Alert table, acknowledgement, Signal Investigation breakdown, Why This Signal, human-in-the-loop investigation workflow |
+| `/signals` | Signals & Alerts | The alert queue: counts awaiting acknowledgement and detected on this day, the alert table with acknowledgement, Signal Investigation breakdown, Why This Signal, human-in-the-loop investigation workflow (current figures are on the Dashboard) |
 | `/facilities` | Facilities | Facility status (reporting, freshness, completeness, LOINC mapping, signal contribution), the selected facility's dashboard, data confidence and feed health, the clinician sidecar demonstration, and collapsed integration details. `/hospitals` (its former address) redirects here |
 | `/investigations` | Investigations | Every detected signal with its review and report status; each opens its investigation on Signals |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
@@ -401,7 +401,8 @@ once towards Influenza A and once towards Respiratory Viral Activity). The Dashb
 opens with **Active Surveillance**; `?profile=<id>` selects the profile the
 Dashboard, Map, Signals, Facilities, Laboratory Data and Analytics show, and the
 top bar reads that profile's score (or its status in words); the notification
-bell and Signals badge count alerts across all profiles. Positive counts under 5
+bell and Signals badge count alerts across all profiles (the bell lists them and
+links to Signals, where they are acknowledged). Positive counts under 5
 — and the rates that would reveal them — are withheld at facility, area and
 county level for every profile, on screen, in reports and in Roella's answers.
 The registry is `backend/app/profiles/registry.json`, stored by migrations 0008
