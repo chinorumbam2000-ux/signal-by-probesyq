@@ -3,7 +3,7 @@
   "/api/surveillance/dynamic/summary": {
    "mode": "dynamic",
    "syndrome": "Respiratory Viral Syndrome",
-   "disclaimer": "The Dynamic Surveillance Engine is a capstone prototype model and is not epidemiologically validated for production public-health decision-making.",
+   "disclaimer": "The Dynamic Surveillance Engine is a prototype model and is not epidemiologically validated for production public-health decision-making.",
    "method": {
     "engine_version": "1",
     "config": {
@@ -40,7 +40,7 @@
   "/api/surveillance/dynamic/summary": {
    "mode": "dynamic",
    "syndrome": "Respiratory Viral Syndrome",
-   "disclaimer": "The Dynamic Surveillance Engine is a capstone prototype model and is not epidemiologically validated for production public-health decision-making.",
+   "disclaimer": "The Dynamic Surveillance Engine is a prototype model and is not epidemiologically validated for production public-health decision-making.",
    "method": {
     "engine_version": "1",
     "config": {

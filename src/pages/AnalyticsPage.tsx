@@ -34,7 +34,7 @@ type TabKey = 'volume' | 'positivity' | 'score' | 'geography';
 const TABS: Array<{ key: TabKey; label: string }> = [
   { key: 'volume', label: 'Test Volume' },
   { key: 'positivity', label: 'Positivity' },
-  { key: 'score', label: 'Signal Score' },
+  { key: 'score', label: 'Outbreak Score' },
   { key: 'geography', label: 'Geographic Spread' },
 ];
 
@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
       })),
     },
     score: {
-      title: 'Signal Score',
+      title: 'Outbreak Score',
       subtitle: 'Composite outbreak signal score, calculated from five weighted components',
       unit: '/ 100',
       rows: trendSeries.map((point) => ({

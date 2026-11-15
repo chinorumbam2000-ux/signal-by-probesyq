@@ -1,7 +1,7 @@
 """
 Shared types and configuration of the dynamic surveillance engine.
 
-The Dynamic Surveillance Engine is a capstone prototype model and is not
+The Dynamic Surveillance Engine is a prototype model and is not
 epidemiologically validated for production public-health decision-making.
 """
 

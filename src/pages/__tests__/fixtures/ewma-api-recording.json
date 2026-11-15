@@ -4,7 +4,7 @@
    "mode": "dynamic",
    "method": "EWMA",
    "label": "Experimental Statistical Surveillance",
-   "disclaimer": "EWMA is an experimental statistical surveillance method in this capstone and has not been validated for production epidemiological decision-making.",
+   "disclaimer": "EWMA is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been validated for production epidemiological decision-making.",
    "detector_note": "Prototype statistical detector — not clinically or epidemiologically validated.",
    "syndrome": "Respiratory Viral Syndrome",
    "config": {
@@ -38,7 +38,7 @@
    "mode": "dynamic",
    "method": "EWMA",
    "label": "Experimental Statistical Surveillance",
-   "disclaimer": "EWMA is an experimental statistical surveillance method in this capstone and has not been validated for production epidemiological decision-making.",
+   "disclaimer": "EWMA is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been validated for production epidemiological decision-making.",
    "detector_note": "Prototype statistical detector — not clinically or epidemiologically validated.",
    "syndrome": "Respiratory Viral Syndrome",
    "config": {

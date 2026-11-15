@@ -7,7 +7,7 @@ import type { EwmaMetric, EwmaStatus } from '../data-access/ewma';
 import { STATE_LABEL as EWMA_STATE_LABEL, metricValue } from './ewma';
 
 export const CUSUM_DISCLAIMER =
-  'CUSUM is an experimental statistical surveillance method in this capstone and has not been epidemiologically validated for production decision-making.';
+  'CUSUM is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been epidemiologically validated for production decision-making.';
 export const APPROACHING_NOTE =
   '"Approaching the limit" is an informational display note (the sum is at least 75% of h). It is not a statistical alarm: the formal state stays Normal until the sum reaches h.';
 

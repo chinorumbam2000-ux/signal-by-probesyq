@@ -11,11 +11,11 @@ Dynamic surveillance engine (capstone prototype).
 Dynamic signals are stored with mode='dynamic' and never mixed with the
 frozen five-day classroom demonstration (mode='demo').
 
-The Dynamic Surveillance Engine is a capstone prototype model and is not
+The Dynamic Surveillance Engine is a prototype model and is not
 epidemiologically validated for production public-health decision-making.
 """
 
 DISCLAIMER = (
-    "The Dynamic Surveillance Engine is a capstone prototype model and is not "
+    "The Dynamic Surveillance Engine is a prototype model and is not "
     "epidemiologically validated for production public-health decision-making."
 )

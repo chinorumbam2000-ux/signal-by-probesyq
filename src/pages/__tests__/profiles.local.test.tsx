@@ -201,7 +201,7 @@ describe('profile-aware pages', () => {
     atDay(5);
     renderAt('/analytics?profile=cholera');
     await screen.findByRole('heading', { level: 1 }, WAIT);
-    fireEvent.click(screen.getByRole('tab', { name: 'Signal Score' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Outbreak Score' }));
     expect(screen.getAllByText('No score').length).toBeGreaterThanOrEqual(5);
   });
 

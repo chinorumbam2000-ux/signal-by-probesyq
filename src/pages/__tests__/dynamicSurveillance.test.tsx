@@ -197,7 +197,7 @@ describe('Statistical Surveillance (EWMA) — API Capstone Mode', () => {
     const stats = await section();
     expect(within(stats).getByText('Experimental Statistical Surveillance')).toBeTruthy();
     expect(within(stats).getByText(/Prototype statistical detector — not clinically or epidemiologically validated\./)).toBeTruthy();
-    expect(screen.getByText(/EWMA is an experimental statistical surveillance method in this capstone/)).toBeTruthy();
+    expect(screen.getByText(/EWMA is an experimental statistical surveillance method in Signal by ProbeSyQ/)).toBeTruthy();
 
     const positivity = await within(stats).findByRole('region', { name: 'Positivity EWMA' });
     expect(within(positivity).getByText('Statistical Alert')).toBeTruthy();
@@ -294,7 +294,7 @@ describe('CUSUM and the three-method comparison — API Capstone Mode', () => {
   it('explains each CUSUM metric for the selected date', async () => {
     renderPage();
     const cusum = await cusumSection();
-    expect(within(cusum).getByText(/CUSUM is an experimental statistical surveillance method in this capstone/)).toBeTruthy();
+    expect(within(cusum).getByText(/CUSUM is an experimental statistical surveillance method in Signal by ProbeSyQ/)).toBeTruthy();
     const positivity = await within(cusum).findByRole('region', { name: 'Positivity CUSUM' });
     expect(within(positivity).getByText('Statistical Alert')).toBeTruthy();
     expect(fact(positivity, 'Observed today')).toBe('37.7%');

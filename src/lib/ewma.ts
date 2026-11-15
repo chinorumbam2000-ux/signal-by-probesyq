@@ -7,7 +7,7 @@ import type { Agreement, CompositeBand, EwmaMetric, EwmaPoint, EwmaState, EwmaSt
 export const EWMA_LABEL = 'Experimental Statistical Surveillance';
 export const EWMA_NOTE = 'Prototype statistical detector — not clinically or epidemiologically validated.';
 export const EWMA_DISCLAIMER =
-  'EWMA is an experimental statistical surveillance method in this capstone and has not been validated for production epidemiological decision-making.';
+  'EWMA is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been validated for production epidemiological decision-making.';
 export const NOT_AN_OUTBREAK = 'A statistical alert is not a confirmed outbreak.';
 
 export const STATE_LABEL: Record<EwmaState, string> = {

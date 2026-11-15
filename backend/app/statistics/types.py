@@ -2,7 +2,7 @@
 Types and configuration of the EWMA statistical detector.
 
 EXPERIMENTAL STATISTICAL SURVEILLANCE. EWMA is an experimental statistical
-surveillance method in this capstone and has not been validated for
+surveillance method in Signal by ProbeSyQ and has not been validated for
 production epidemiological decision-making.
 """
 
@@ -12,7 +12,7 @@ from typing import Literal
 
 LABEL = "Experimental Statistical Surveillance"
 DISCLAIMER = (
-    "EWMA is an experimental statistical surveillance method in this capstone and has not been "
+    "EWMA is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been "
     "validated for production epidemiological decision-making."
 )
 DETECTOR_NOTE = "Prototype statistical detector — not clinically or epidemiologically validated."

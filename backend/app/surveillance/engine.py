@@ -32,7 +32,7 @@ persistence of the persisted dynamic signal for D-1 when that signal was
 also abnormal, else 1 (it resets). It is read from the dynamic signal
 history, never from the classroom demonstration.
 
-The Dynamic Surveillance Engine is a capstone prototype model and is not
+The Dynamic Surveillance Engine is a prototype model and is not
 epidemiologically validated for production public-health decision-making.
 """
 

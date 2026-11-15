@@ -4,7 +4,7 @@
    "mode": "dynamic",
    "method": "CUSUM",
    "label": "Experimental Statistical Surveillance",
-   "disclaimer": "CUSUM is an experimental statistical surveillance method in this capstone and has not been epidemiologically validated for production decision-making.",
+   "disclaimer": "CUSUM is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been epidemiologically validated for production decision-making.",
    "syndrome": "Respiratory Viral Syndrome",
    "config": {
     "k": 0.5,
@@ -39,7 +39,7 @@
    "mode": "dynamic",
    "method": "CUSUM",
    "label": "Experimental Statistical Surveillance",
-   "disclaimer": "CUSUM is an experimental statistical surveillance method in this capstone and has not been epidemiologically validated for production decision-making.",
+   "disclaimer": "CUSUM is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been epidemiologically validated for production decision-making.",
    "syndrome": "Respiratory Viral Syndrome",
    "config": {
     "k": 0.5,

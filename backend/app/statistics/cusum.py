@@ -37,7 +37,7 @@ CusumState = Literal["NORMAL", "STATISTICAL_ALERT"]
 
 LABEL = "Experimental Statistical Surveillance"
 DISCLAIMER = (
-    "CUSUM is an experimental statistical surveillance method in this capstone and has not been "
+    "CUSUM is an experimental statistical surveillance method in Signal by ProbeSyQ and has not been "
     "epidemiologically validated for production decision-making."
 )
 
