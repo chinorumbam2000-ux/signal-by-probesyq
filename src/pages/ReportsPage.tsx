@@ -51,8 +51,7 @@ export default function ReportsPage() {
             Public Health Reports
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Structured report previews prepared from reviewed signals. This is a workflow
-            demonstration only.
+            Structured report previews prepared from reviewed signals.
           </p>
         </div>
         <PageMeta />

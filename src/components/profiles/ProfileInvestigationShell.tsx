@@ -5,7 +5,7 @@ import ProfileTypeTag from './ProfileTypeTag';
 import InvestigationWorkflowPanel from '../signals/InvestigationWorkflowPanel';
 import { SIGNAL_DISCLAIMER } from '../../lib/signalScore';
 import { formatSimulationDateTime } from '../../lib/format';
-import { PROFILE_BY_ID, type ProfileId } from '../../lib/profiles/registry';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, type ProfileId } from '../../lib/profiles/registry';
 import { rateDisplay, regionalPositivePrivacy } from '../../lib/profiles/privacy';
 import type { ProfileAlert } from '../../lib/profiles/portfolio';
 import { useModeWording } from '../../lib/modeWording';
@@ -84,8 +84,7 @@ export default function ProfileInvestigationShell({
 
       <p role="note" className="ls-card border-l-4 border-l-brand px-4 py-3 text-sm text-ink" data-testid="evidence-unavailable">
         Detailed evidence review for {profile.displayName} is not yet available. The step-by-step evidence view
-        (the score breakdown at detection and the facility, area and data-quality trace) covers Respiratory Viral
-        Syndrome in this release. The review steps below work for every profile.
+        (the score breakdown at detection and the facility, area and data-quality trace) covers {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} in this release. The review steps below work for every profile.
       </p>
 
       {investigation ? (

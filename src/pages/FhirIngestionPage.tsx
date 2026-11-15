@@ -53,7 +53,8 @@ export default function FhirIngestionPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-ink">FHIR Laboratory Ingestion</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Validate, normalize and persist synthetic FHIR laboratory resources into Signal by ProbeSyQ.
+            Validate, normalize and persist FHIR laboratory resources into Signal by ProbeSyQ: source formats,
+            validation, normalization and storage.
           </p>
         </div>
       </header>
@@ -306,7 +307,7 @@ function IngestionWorkspace() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
           <Card
             title="Synthetic FHIR input"
-            subtitle="Load a synthetic example or paste synthetic FHIR R4 JSON."
+            subtitle="Load an example or paste FHIR R4 JSON."
             bodyClassName="p-0"
           >
             <div className="space-y-3 p-4">

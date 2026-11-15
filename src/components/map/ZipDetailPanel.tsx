@@ -43,7 +43,7 @@ export default function ZipDetailPanel({
         <EmptyState
           icon="◎"
           title="No surveillance area selected"
-          message="Select an area on the map to see its synthetic testing volume, positivity, trend and current severity."
+          message="Select an area on the map to see its testing volume, positivity, trend and current severity."
         />
       </div>
     );

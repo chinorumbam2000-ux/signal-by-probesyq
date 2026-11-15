@@ -102,12 +102,13 @@ describe('Live Surveillance', () => {
     expect(screen.getByText(/No activity yet/)).toBeTruthy();
     const sources = () => screen.getByTestId('source-status');
     expect(sources().getAttribute('data-run-state')).toBe('idle');
-    expect(sources().textContent).toContain('Simulated sources · not started');
+    // The page and top bar say the sources are simulated; the panel does not repeat it.
+    expect(sources().textContent).toContain('Sources · not started');
     expect(sources().textContent).not.toContain('Active');
     fireEvent.click(button('Start Live Surveillance'));
     expect(vi.getTimerCount()).toBe(1);
     play(120);
-    expect(sources().textContent).toContain('3 / 3 simulated sources active');
+    expect(sources().textContent).toContain('3 / 3 sources active');
     const stream = screen.getByTestId('activity-stream');
     expect(within(stream).getAllByText(/Observation received/).length).toBeGreaterThan(0);
     fireEvent.click(button('❚❚ Pause'));

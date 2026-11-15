@@ -9,6 +9,7 @@
  *
  * Local demo mode (and the GitHub Pages build) renders only an explanation.
  */
+import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/common/Card';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States';
@@ -203,7 +204,13 @@ function EvaluationResults({ summary, client }: { summary: EvaluationSummary; cl
             <li key={threat}>{threat}</li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-muted">{EVALUATION_DISCLAIMER}</p>
+        <p className="mt-3 text-xs text-muted">
+          What would be required before real use, and the full limitations of the data:{' '}
+          <Link to="/overview#about-the-data" className="font-semibold text-brand hover:underline">
+            About this data
+          </Link>
+          .
+        </p>
       </Card>
     </>
   );

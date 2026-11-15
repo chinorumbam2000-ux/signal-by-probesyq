@@ -9,7 +9,6 @@ import {
   EWMA_LABEL,
   EWMA_NOTE,
   METRIC_TITLE,
-  NOT_AN_OUTBREAK,
   OVERALL_LABEL,
   STATE_ICON,
   STATE_LABEL,
@@ -230,7 +229,7 @@ export default function StatisticalSurveillance({
             <p className="mt-1 max-w-3xl text-sm text-muted">
               An EWMA (exponentially weighted moving average) control chart for test volume and positivity, run beside
               the Composite Outbreak Signal Score to ask whether a time-series method independently detects a sustained
-              shift. {EWMA_NOTE} {NOT_AN_OUTBREAK}
+              shift. {EWMA_NOTE}
             </p>
           </div>
           {onRecalculate ? (

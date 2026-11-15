@@ -190,7 +190,7 @@ export default function MapPage() {
 
       <Card
         title="Surveillance areas"
-        subtitle={`Synthetic values for ${period.currentLabel}. Selecting a ZIP here opens the same detail panel as clicking the map, so the map is not the only way in.`}
+        subtitle={`Values for ${period.currentLabel}. Selecting a ZIP here opens the same detail panel as clicking the map, so the map is not the only way in.`}
         bodyClassName="p-0"
       >
         <div className="w-full overflow-x-auto">

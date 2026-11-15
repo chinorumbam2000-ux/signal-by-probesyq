@@ -9,12 +9,11 @@ import { Link, useLocation } from 'react-router-dom';
 import Card from '../components/common/Card';
 import OwnershipNotice from '../components/common/OwnershipNotice';
 import StatusBadge from '../components/architecture/StatusBadge';
-import ModeChip from '../components/layout/ModeChip';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import { isAbortError } from '../data-access/apiClient';
 import { describeDataError } from '../data-access/hooks';
 import { createReadinessClient, type CheckStatus, type ReadinessResult } from '../data-access/readiness';
-import { KEY_DISCLAIMERS, type AppMode } from '../lib/appModes';
+import { KEY_DISCLAIMERS } from '../lib/appModes';
 import { SMART_BUILD_CONFIG } from '../smart/config';
 import type { ArchitectureStatus } from '../types';
 
@@ -84,20 +83,24 @@ const SMART_ENABLED = SMART_BUILD_CONFIG.ok && SMART_BUILD_CONFIG.config.enabled
 
 interface Destination {
   to: string;
+  /** The page's name, as in the sidebar. */
   title: string;
-  mode: AppMode;
+  /** Where it sits: an analyst page or a technical System page. */
+  group: 'Analyst' | 'System';
   detail: string;
   requires?: 'api' | 'smart';
 }
 
+// Plain-language summaries; each page carries its own detail.
 const DESTINATIONS: Destination[] = [
-  { to: '/live', title: 'Live Surveillance', mode: 'classroom', detail: 'The primary experience: three simulated source feeds deliver synthetic observations, and every profile is scored as they arrive.' },
-  { to: '/replay', title: 'Scenario Replay', mode: 'classroom', detail: 'The historical training scenario — the frozen five-day outbreak story: Composite score 0 / 24 / 50 / 74 / 87, map, signals, vendor sidecar and reporting.' },
-  { to: '/fhir-ingestion', title: 'FHIR Ingestion', mode: 'api', detail: 'Send a synthetic FHIR Observation through validation and normalization into PostgreSQL.', requires: 'api' },
-  { to: '/dynamic-surveillance', title: 'Dynamic Surveillance', mode: 'dynamic', detail: 'Signals recalculated from stored observations, with EWMA and CUSUM beside the composite.', requires: 'api' },
-  { to: '/smart-demo', title: 'SMART Sandbox', mode: 'smart', detail: 'SMART App Launch against the public SMART Health IT sandbox; read-only, PKCE, synthetic patients.', requires: 'smart' },
-  { to: '/evaluation', title: 'Validation', mode: 'evaluation', detail: '15 synthetic scenarios × 100 runs: sensitivity, timeliness and false alerts, with tradeoffs.', requires: 'api' },
-  { to: '/architecture', title: 'Architecture', mode: 'overview', detail: 'What is implemented, what is a prototype and what is planned, plus future work.' },
+  { to: '/live', title: 'Live Surveillance', group: 'Analyst', detail: 'The primary mode: observations arrive through three source feeds, and every profile is scored as they arrive.' },
+  { to: '/replay', title: 'Scenario Replay', group: 'Analyst', detail: 'The historical training scenario: a known five-day outbreak story, stepped day by day (scores 0 / 24 / 50 / 74 / 87).' },
+  { to: '/fhir-ingestion', title: 'Data Ingestion', group: 'System', detail: 'Send a FHIR Observation through validation and normalization into PostgreSQL.', requires: 'api' },
+  { to: '/dynamic-surveillance', title: 'Detection Methods', group: 'System', detail: 'The composite score, EWMA and CUSUM, calculated from stored observations and compared side by side.', requires: 'api' },
+  { to: '/smart-demo', title: 'Integration Testing', group: 'System', detail: 'SMART App Launch against the public SMART Health IT sandbox: read-only, PKCE, sandbox patients.', requires: 'smart' },
+  { to: '/integration-demo', title: 'Integration Demo', group: 'System', detail: 'One clinician sidecar inside three simulated EHR environments.' },
+  { to: '/evaluation', title: 'Validation', group: 'System', detail: '15 scenarios × 100 runs: sensitivity, timeliness and false alerts, with tradeoffs and limitations.', requires: 'api' },
+  { to: '/architecture', title: 'Architecture', group: 'System', detail: 'The technical components, how observations flow, and what is implemented, prototyped or planned.' },
 ];
 
 export default function OverviewPage() {
@@ -173,7 +176,7 @@ export default function OverviewPage() {
                   to={d.to}
                   className="ls-card flex h-full flex-col gap-2 p-4 transition-shadow hover:shadow-panel focus-visible:ring-2 focus-visible:ring-brand"
                 >
-                  <ModeChip mode={d.mode} />
+                  <span className="ls-label">{d.group === 'Analyst' ? 'Analyst page' : 'System page'}</span>
                   <span className="text-base font-semibold text-ink">{d.title} →</span>
                   <span className="text-sm leading-relaxed text-muted">{d.detail}</span>
                   {note ? <span className="mt-auto text-xs font-medium text-[#92400E]">{note}</span> : null}

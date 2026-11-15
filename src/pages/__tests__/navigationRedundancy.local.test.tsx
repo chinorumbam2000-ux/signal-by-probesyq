@@ -125,7 +125,9 @@ describe('top bar', () => {
     );
     expect(bar.textContent?.match(/simulated/gi)).toHaveLength(1);
     expect(main().querySelector('header')?.textContent).not.toMatch(/simulated (time|clock)/i);
-    expect(main().querySelector('header')?.textContent).toContain('Live surveillance date: Feb 13 · 10:30');
+    // The clock is the top bar's alone.
+    expect(main().querySelector('header')?.textContent).not.toContain('Feb 13 · 10:30');
+    expect(within(bar).getByTestId('live-clock').textContent).toContain('Feb 13 · 10:30');
   });
 
   it('keeps the selected profile’s reading', async () => {

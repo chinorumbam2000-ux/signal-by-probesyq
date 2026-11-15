@@ -169,11 +169,12 @@ describe('analyst pages use product language', () => {
     expect(calls).toEqual([]);
   });
 
-  it('shows the replay date, not a session clock, in the page header', async () => {
+  it('shows the replay day in the page header and the replay date in the top bar, never a session clock', async () => {
     renderAt('/signals');
     await screen.findByRole('heading', { level: 1 });
-    expect(screen.getAllByText('Replay date:').length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Replay Day 1 of 5/).length).toBeGreaterThan(0);
+    expect(screen.getByTestId('page-meta').textContent).toMatch(/^Replay Day 1 of 5/);
+    expect(within(topBar()).getByTestId('replay-day').textContent).toMatch(/^Day 1 of 5\s*\w{3}, \w{3} \d+, \d{4}$/);
+    expect(document.body.textContent).not.toContain('Replay date:');
   });
 });
 

@@ -6,7 +6,7 @@ import type { Detector, Distribution, Proportion, ScenarioSummary, TimelineDay }
 
 export const EVALUATION_DISCLAIMER =
   'These evaluations use synthetic scenarios and demonstrate technical behavior only. They do not establish clinical or epidemiological validation.';
-export const EVALUATION_LABEL = 'Experimental capstone evaluation using synthetic scenarios.';
+export const EVALUATION_LABEL = 'Experimental evaluation using synthetic scenarios.';
 export const NO_WINNER =
   'No method is declared best. Earlier detection that comes with more false alerts is a tradeoff, not a win.';
 

@@ -83,9 +83,8 @@ export default function FeedHealthCard({
                   {/* Deliberately identified by facility, not by vendor: these
                       figures are fictional facility characteristics and must not
                       read as a comparison between real products. */}
-                  <p className="text-[11px] text-muted">
-                    {feed.hospitalId} · Simulated EHR environment
-                  </p>
+                  {/* The card's own note says the telemetry is simulated; each row does not repeat it. */}
+                  <p className="text-[11px] text-muted">{feed.hospitalId}</p>
                 </div>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.05em] ${styles.badge}`}

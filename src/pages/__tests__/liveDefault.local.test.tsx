@@ -150,12 +150,15 @@ describe('Live Surveillance first', () => {
 });
 
 describe('page headers and dates', () => {
-  it('Live Surveillance says so, with the live surveillance date and no replay terms', async () => {
+  it('Live Surveillance says so, with the live surveillance date (top bar) and no replay terms', async () => {
     renderAt('/live');
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
     expect(screen.getByTestId('live-subtitle').textContent).toBe('Current simulated feed');
     const header = screen.getByRole('heading', { level: 1, name: 'Live Surveillance' }).closest('header') as HTMLElement;
-    expect(header.textContent).toContain('Live surveillance date:');
+    // The period is the page's; the live clock is the top bar's.
+    expect(header.textContent).toMatch(/Live Surveillance · signals for (Feb \d+|—)/);
+    expect(header.textContent).not.toContain('Live surveillance date:');
+    expect(within(topBar()).getByTestId('live-clock').textContent).toMatch(/live surveillance date$/);
     expect(header.textContent).not.toMatch(/Replay Day|Replay date|Day \d of 5/);
     expect(topBar().textContent).not.toMatch(/Replay Day|Day \d of 5/);
   });

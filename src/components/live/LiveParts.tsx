@@ -203,12 +203,12 @@ export function SourceStatusPanel() {
   const { simulator, feeds, active, run } = useLiveRun();
   const heading =
     run === 'idle'
-      ? 'Simulated sources · not started'
+      ? 'Sources · not started'
       : run === 'complete'
-        ? 'Simulated sources · live period complete'
+        ? 'Sources · live period complete'
         : run === 'paused'
-          ? `Simulated sources · paused (${active} / ${feeds.length} active when paused)`
-          : `${active} / ${feeds.length} simulated sources active`;
+          ? `Sources · paused (${active} / ${feeds.length} active when paused)`
+          : `${active} / ${feeds.length} sources active`;
   const chip = (status: string) => {
     if (run === 'idle') return { text: 'Not started', style: 'border-hairline bg-canvas text-muted' };
     if (run === 'complete') return { text: 'Completed', style: 'border-hairline bg-canvas text-ink' };
@@ -217,7 +217,7 @@ export function SourceStatusPanel() {
     return { text: label, style: STATUS_STYLE[status] };
   };
   return (
-    <section aria-label="Simulated source feeds" className="ls-card px-4 py-3" data-testid="source-status" data-run-state={run}>
+    <section aria-label="Source feeds" className="ls-card px-4 py-3" data-testid="source-status" data-run-state={run}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-ink">{heading}</h2>
       </div>
@@ -274,7 +274,7 @@ export function ActivityStream({ limit = 40, kinds }: { limit?: number; kinds?: 
         <span className="text-[11px] text-muted">Newest first</span>
       </header>
       <p className="sr-only" aria-live="polite">
-        {announce ? announce.text : ''}
+        {announce ? announce.text.replace(' from the simulated ', ' from the ') : ''}
       </p>
       {entries.length === 0 ? (
         <p className="px-4 py-3 text-sm text-muted">No activity yet. Start the live simulation to see observations arrive.</p>
@@ -286,7 +286,8 @@ export function ActivityStream({ limit = 40, kinds }: { limit?: number; kinds?: 
                 <span className="font-mono tabular-nums">{liveDayLabel(e.dayIndex)} {clock(e.minute)}</span>
                 <span className="font-semibold uppercase tracking-[0.05em]">{KIND_LABEL[e.kind]}</span>
               </p>
-              <p className="mt-0.5 text-ink">{e.text}</p>
+              {/* The page and top bar already say the sources are simulated. */}
+              <p className="mt-0.5 text-ink">{e.text.replace(' from the simulated ', ' from the ')}</p>
               {e.drivers && e.drivers.length ? (
                 <p className="mt-0.5 text-muted">
                   Drivers: {e.drivers.map((d) => `${d.label} ${d.before} → ${d.after} points`).join('; ')}
@@ -360,7 +361,7 @@ export function InjectObservation() {
     <details className="ls-card px-4 py-3" data-testid="inject">
       <summary className="cursor-pointer text-sm font-semibold text-ink">Inject a synthetic test observation</summary>
       <p className="mt-1 text-xs text-muted">
-        A test observation, not a patient result. It is sent in the facility&apos;s simulated format and processed
+        A test observation, not a patient result. It is sent in the facility&apos;s source format and processed
         exactly like any other observation; scores change only through the data.
       </p>
       <form

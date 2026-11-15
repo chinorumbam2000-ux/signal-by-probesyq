@@ -81,6 +81,20 @@ counts and the alert table, with no copy of the Dashboard's score, scope or
 current figures. The profile selector names profiles; Active Surveillance
 compares their scores.
 
+**One disclosure per area.** The top bar says once that the data is simulated
+("Live Surveillance · Simulated source feeds" or "Scenario Replay · Simulated
+surveillance data"); a page states it once more only where its own area needs it
+(the Live page's "Current simulated feed", the Dashboard's "Start here", the
+map's attribution, the reporting and telemetry notes). Cards and rows do not
+repeat it. The page header shows the period its figures represent (the latest
+closed day, or the replay day); the current date and clock are the top bar's
+alone. System pages carry the full simulated-data banner. The complete
+explanation of what is and is not real — synthetic data, no hospital or patient
+connection, illustrative thresholds, unvalidated methods, privacy, Data
+Confidence, EWMA/CUSUM history and what production would require — is
+Project Overview → About this data; other pages link there instead of repeating
+it.
+
 **Mode-correct wording.** Each mode names its own days and data: Scenario
 Replay's "Day 4", "Scenario Replay data" and replay rules; Live Surveillance's
 "Feb 12", "Live Surveillance data", rolling-baseline settings and closed-day
@@ -192,8 +206,11 @@ produces.
 ## EWMA and CUSUM
 
 Not shown in Live Surveillance: the simulation holds seven days of history,
-and EWMA and CUSUM need a 28-day reference period. The page says "Insufficient
-reference history"; nothing is invented. The parity test confirms the backend
+and EWMA and CUSUM need a 28-day reference period. The Live page's collapsed
+"How this works" says so in one line (with the short pipeline: observation →
+normalization → profile routing → surveillance calculation → signal update) and
+links to System → Detection Methods, the technical home of the composite score,
+severity bands, EWMA, CUSUM and reference requirements; nothing is invented. The parity test confirms the backend
 produces no statistical result from the same 17 days.
 
 ## Data Confidence

@@ -223,7 +223,7 @@ describe('Dashboard / Live Surveillance overlap', () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
     renderAt('/live');
     const panel = await screen.findByTestId('source-status', undefined, WAIT);
-    expect(within(panel).getByRole('heading', { level: 2 }).textContent).toBe('Simulated sources · not started');
+    expect(within(panel).getByRole('heading', { level: 2 }).textContent).toBe('Sources · not started');
     for (const [id, type] of [['HOSP-A', 'FHIR R4'], ['HOSP-B', 'HL7 v2'], ['HOSP-C', 'LIS/API']]) {
       const card = within(panel).getByTestId(`source-${id}`);
       expect(within(card).getByText(type)).toBeTruthy();

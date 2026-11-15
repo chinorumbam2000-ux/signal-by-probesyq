@@ -34,8 +34,8 @@ export default function LiveSurveillancePage() {
             Current simulated feed
           </p>
           <p className="mt-1 max-w-3xl text-sm text-muted">
-            Synthetic laboratory observations arrive through three simulated source feeds and are validated,
-            normalized, routed to every applicable profile and scored as they arrive.
+            Laboratory observations arrive through three source feeds and are validated, normalized, routed to every
+            applicable profile and scored as they arrive.
           </p>
         </div>
         <PageMeta />
@@ -54,37 +54,30 @@ export default function LiveSurveillancePage() {
         <div className="space-y-5 xl:col-span-3">
           <SourceStatusPanel />
           <InjectObservation />
-          <section aria-labelledby="pipeline-heading" className="ls-card px-4 py-3">
-            <h2 id="pipeline-heading" className="text-sm font-semibold text-ink">
-              How an observation becomes a signal
-            </h2>
-            <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs text-ink">
-              <li>A simulated source sends a result in its own format: FHIR R4, HL7 v2, or a LIS/API JSON record.</li>
-              <li>The source&apos;s adapter parses and validates it (facility, LOINC check digit, result, collection time).</li>
-              <li>It is normalized: LOINC test, Positive or Negative.</li>
-              <li>It is routed to every profile its test belongs to — an Influenza A result counts towards Influenza A and the Respiratory Viral Activity aggregate, once each.</li>
-              <li>The profile&apos;s counts for the day change, and the engine recalculates: rolling 7-day baseline, affected facilities, areas, persistence, the five components and the score.</li>
-              <li>At the end of the day the result becomes the profile&apos;s current signal on every page.</li>
+          {/* How it works, briefly; the technical detail lives under System. */}
+          <details className="ls-card px-4 py-3" data-testid="live-how-it-works">
+            <summary className="cursor-pointer text-sm font-semibold text-ink">How this works</summary>
+            <ol className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink" aria-label="From observation to signal">
+              {['Observation', 'Normalization', 'Profile routing', 'Surveillance calculation', 'Signal update'].map((step, index) => (
+                <li key={step} className="flex items-center gap-1.5">
+                  {index > 0 ? <span aria-hidden="true" className="text-muted">→</span> : null}
+                  <span className="rounded-full bg-canvas px-2 py-0.5 font-medium">{step}</span>
+                </li>
+              ))}
             </ol>
-            <p className="mt-2 text-[11px] text-muted">
-              The engine follows the backend&apos;s rules exactly; a parity test runs the backend on the same
-              observations and checks it gets the same signals.
+            <p className="mt-2 text-xs text-muted" data-testid="live-statistics">
+              Statistical confirmation (EWMA, CUSUM) needs a {reference}-day reference history; this feed holds{' '}
+              {HISTORY_DATES.length} days, so none is shown or invented.
             </p>
-          </section>
-          <section aria-labelledby="stats-heading" className="ls-card px-4 py-3" data-testid="live-statistics">
-            <h2 id="stats-heading" className="text-sm font-semibold text-ink">
-              Statistical confirmation (EWMA, CUSUM)
-            </h2>
-            <p className="mt-1 text-sm text-ink">
-              Insufficient reference history: the live simulation holds {HISTORY_DATES.length} days of history before
-              the live period, and EWMA and CUSUM need a {reference}-day reference period. No statistical result is
-              shown, and none is invented.
+            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              <Link to="/dynamic-surveillance" className="font-semibold text-brand hover:underline">
+                View Detection Methods <span aria-hidden="true">→</span>
+              </Link>
+              <Link to="/architecture" className="font-semibold text-brand hover:underline">
+                Architecture <span aria-hidden="true">→</span>
+              </Link>
             </p>
-            <p className="mt-1 text-[11px] text-muted">
-              The history exists to establish the 7-day rolling baseline. The backend runs EWMA and CUSUM on its own
-              stored history (Detection Methods, full-stack mode).
-            </p>
-          </section>
+          </details>
         </div>
         <div className="xl:col-span-2">
           <ActivityStream />

@@ -178,7 +178,7 @@ export default function CusumSurveillance({
             <h2 id="cusum-surveillance" className="text-lg font-semibold text-ink">CUSUM Surveillance</h2>
             <p className="mt-1 max-w-3xl text-sm text-muted">
               A cumulative-sum detector for test volume and positivity: it raises a statistical alert when small daily
-              rises above the historical mean add up to a sustained shift. A statistical alert is not a confirmed outbreak.
+              rises above the historical mean add up to a sustained shift.
             </p>
             <MethodDetails className="mt-2">
               <p className="max-w-3xl text-xs leading-relaxed text-muted">

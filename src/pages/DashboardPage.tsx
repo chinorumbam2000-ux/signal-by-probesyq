@@ -11,7 +11,6 @@ import OutbreakMap from '../components/map/OutbreakMap';
 import MapLegend from '../components/map/MapLegend';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
-import { PrivacyNote } from '../components/common/PrivacyValue';
 import { ErrorState, LoadingState } from '../components/common/States';
 import { formatPercent, formatPercentagePoints, formatSignedPercent } from '../lib/format';
 import { usePortfolio } from '../lib/profiles/usePortfolio';
@@ -197,7 +196,7 @@ export default function DashboardPage() {
             <Card
               title="Test Volume &amp; Positivity Trend"
               subtitle={
-                isLive ? 'Closed days · synthetic aggregate data' : `Day 1 to Day ${currentDay} · synthetic aggregate data`
+                isLive ? 'Closed days · aggregate data' : `Day 1 to Day ${currentDay} · aggregate data`
               }
               bodyClassName="p-4"
             >
@@ -258,7 +257,6 @@ export default function DashboardPage() {
             <AlertSummary alerts={portfolio.alerts} />
           </section>
 
-          <PrivacyNote className="px-1 pb-2" />
         </>
       )}
     </div>

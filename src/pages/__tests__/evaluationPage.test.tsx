@@ -80,7 +80,9 @@ describe('Capstone Evaluation — API Capstone Mode', () => {
     await screen.findByRole('heading', { name: 'Overall comparison' });
     expect(screen.getByText(EVALUATION_LABEL)).toBeTruthy();
     expect(screen.getByText('SYNTHETIC EVALUATION')).toBeTruthy();
-    expect(screen.getAllByText(EVALUATION_DISCLAIMER).length).toBeGreaterThanOrEqual(2);
+    // The disclaimer once, prominently; the rest of the limitations are linked, not repeated.
+    expect(screen.getAllByText(EVALUATION_DISCLAIMER)).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'About this data' }).getAttribute('href')).toBe('/overview#about-the-data');
     expect(screen.getByText('python -m app.evaluation.run --all --repetitions 100 --seed 20260930')).toBeTruthy();
   });
 

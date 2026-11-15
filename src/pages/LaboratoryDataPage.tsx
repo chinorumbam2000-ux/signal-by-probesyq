@@ -404,8 +404,8 @@ export default function LaboratoryDataPage() {
                 'en-US',
               )} received on ${dayName(currentDay)} · ${cumulativeCount.toLocaleString(
                 'en-US',
-              )} cumulative through ${dayName(currentDay)}. Synthetic FHIR Observation resources — scroll the table horizontally to see every column.`
-            : 'Synthetic FHIR Observation resources.'
+              )} cumulative through ${dayName(currentDay)}. FHIR Observation resources — scroll the table horizontally to see every column.`
+            : 'FHIR Observation resources.'
         }
         bodyClassName="p-0"
       >

@@ -81,8 +81,9 @@ export default function IntegrationDemoPage() {
                 Clinician sidecar
               </h2>
               <p className="mt-1 max-w-3xl text-sm text-muted">
-                The simulated EHR shell changes for every vendor. The Signal sidecar inside it does not — it is the
-                same component rendered in all three.
+                The EHR shell changes for every vendor. The Signal sidecar inside it does not — it is the same
+                component rendered in all three. The standards-based SMART launch against a public sandbox is separate
+                (System → Integration Testing, when enabled).
               </p>
               <p className="mt-1 max-w-3xl text-sm text-ink" data-testid="sidecar-scope">
                 This sidecar is a {PROFILE_BY_ID[RVS_PROFILE_ID].displayName} example: it shows Scenario Replay&apos;s
@@ -196,7 +197,7 @@ export default function IntegrationDemoPage() {
                     />
                     <p className="mt-2 px-1 text-[11px] leading-snug text-muted">
                       Rendered from a single shared <code className="font-mono">VendorSidecar</code> component —
-                      identical in all three simulated environments.
+                      identical in all three environments.
                     </p>
                   </>
                 )}
