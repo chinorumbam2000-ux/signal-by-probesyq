@@ -255,7 +255,10 @@ describe('profile-aware pages', () => {
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     expect(within(nav).getByRole('link', { name: /Outbreak Map/ }).getAttribute('href')).toBe('/map?profile=rsv');
     expect(within(nav).getByRole('link', { name: /Reports/ }).getAttribute('href')).toBe('/reports?profile=rsv');
-    expect(within(nav).getByRole('link', { name: /Scenario Replay/ }).getAttribute('href')).toBe('/replay?profile=rsv');
+    expect(within(nav).getByRole('link', { name: /Signals/ }).getAttribute('href')).toBe('/signals?profile=rsv');
+    // The Dashboard's way into the scenario timeline carries it too.
+    fireEvent.click(within(screen.getByRole('group', { name: 'Surveillance context' })).getByRole('button', { name: 'Scenario Replay' }));
+    expect(screen.getByTestId('replay-timeline-link').getAttribute('href')).toBe('/replay?profile=rsv');
   });
 
   it('Scenario Replay still narrates the five-day respiratory scenario', async () => {

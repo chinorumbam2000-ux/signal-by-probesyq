@@ -52,10 +52,10 @@ const play = (minutes: number, speed = 1) =>
 const button = (name: string | RegExp) => screen.getAllByRole('button', { name })[0];
 
 describe('Live Surveillance', () => {
-  it('opens in Live Surveillance by default, and the mode switch persists for the session', async () => {
+  it('opens in Live Surveillance by default, and the Dashboard\'s context selector persists for the session', async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', {}, WAIT);
-    const group = screen.getAllByRole('group', { name: 'Surveillance mode' })[0];
+    const group = screen.getByRole('group', { name: 'Surveillance context' });
     expect(within(group).getByRole('button', { name: 'Live Surveillance' }).getAttribute('aria-pressed')).toBe('true');
     expect(within(group).getByRole('button', { name: 'Scenario Replay' }).getAttribute('aria-pressed')).toBe('false');
     expect(screen.getByTestId('dashboard-live')).toBeTruthy();
@@ -70,16 +70,15 @@ describe('Live Surveillance', () => {
     expect(document.body.textContent).not.toMatch(/Demo Environment|Classroom Demo/);
   });
 
-  it('offers a first-time visitor the two experiences, and can be dismissed', async () => {
+  it('explains the product to a first-time visitor beside the one Start control, and can be dismissed', async () => {
     const view = renderAt('/dashboard');
     const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    expect(within(strip).getByRole('link', { name: 'View Scenario Replay' }).getAttribute('href')).toBe('/replay');
-    fireEvent.click(within(strip).getByRole('link', { name: 'Open Live Surveillance' }));
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
-    // It only navigates: the simulation is ready on its page, not started.
+    expect(within(strip).queryByRole('link', { name: /Live Surveillance|Scenario Replay/ })).toBeNull();
+    // The one Start control is the Dashboard's Live strip; starting it retires the introduction.
     expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' })).toHaveLength(1);
-    expect(screen.queryByRole('button', { name: '❚❚ Pause' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Start Live Surveillance' }));
     expect(screen.queryByTestId('start-here')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '❚❚ Pause' }));
     view.unmount();
     window.sessionStorage.removeItem('labsentinel.surveillanceMode.v1');
     renderAt('/dashboard');
@@ -96,8 +95,8 @@ describe('Live Surveillance', () => {
   });
 
   it('starts, pauses, resumes and resets — with exactly one timer', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     expect(screen.getByText(/No activity yet/)).toBeTruthy();
     const sources = () => screen.getByTestId('source-status');
@@ -130,8 +129,8 @@ describe('Live Surveillance', () => {
   });
 
   it('updates every analyst view as observations arrive, and COVID-19 rises to the top', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
     fireEvent.click(button('Start Live Surveillance'));
@@ -168,8 +167,8 @@ describe('Live Surveillance', () => {
   });
 
   it('sends a synthetic test observation through the same pipeline (no way to set a score)', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     const inject = screen.getByTestId('inject');
     expect(within(inject).queryByLabelText(/score/i)).toBeNull();
     fireEvent.click(within(inject).getByRole('button', { name: 'Send test observation' }));

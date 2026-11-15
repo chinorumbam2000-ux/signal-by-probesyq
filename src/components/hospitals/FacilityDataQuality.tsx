@@ -19,7 +19,7 @@ export default function FacilityDataQuality({
 }: {
   facility: Hospital;
   feed: FacilityFeedHealth | undefined;
-  /** Live Surveillance, where the feed itself is operated (Live mode only). */
+  /** The Dashboard, where Live Surveillance and its feeds are operated (Live mode only). */
   liveFeedsPath?: string;
 }) {
   const rows: Array<[string, string]> = feed?.isReporting
@@ -59,7 +59,7 @@ export default function FacilityDataQuality({
       {liveFeedsPath ? (
         <p className="border-t border-hairline px-5 py-3 text-xs">
           <Link to={liveFeedsPath} className="font-semibold text-brand hover:underline">
-            Feed operations on Live Surveillance <span aria-hidden="true">→</span>
+            Live feed operations on the Dashboard <span aria-hidden="true">→</span>
           </Link>
         </p>
       ) : null}

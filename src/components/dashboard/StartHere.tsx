@@ -13,11 +13,10 @@ const readDismissed = () => {
 };
 
 /**
- * One line for a first-time visitor: what the product does, and the two ways
- * to see it — Live Surveillance first and recommended, Scenario Replay as the
- * secondary training walkthrough. Dismissible for the browser session;
- * changes no data. Its links only navigate: the live simulation is started
- * on the Live Surveillance page, with its one Start control.
+ * One line for a first-time visitor: what the product does, and that
+ * everything is synthetic. Dismissible for the browser session; changes no
+ * data. It holds no action of its own: Live Surveillance is started from the
+ * Dashboard's Live Surveillance strip, its one Start control.
  */
 export default function StartHere() {
   const { mode, started } = useLiveSurveillance();
@@ -39,24 +38,14 @@ export default function StartHere() {
       data-testid="start-here"
     >
       <p className="min-w-0 flex-1 text-sm text-ink">
-        <span className="font-semibold">Start here.</span> Signal by ProbeSyQ turns laboratory results into an
-        early-warning outbreak signal for each surveillance profile. Everything is synthetic —{' '}
+        <span className="font-semibold">Start here.</span> Signal by ProbeSyQ turns laboratory results into
+        early-warning outbreak signals for each surveillance profile. Everything is synthetic —{' '}
         <Link to="/overview#about-the-data" className="text-brand underline-offset-2 hover:underline">
           what that means
         </Link>
         .
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <Link to="/live" className="ls-btn-primary px-3 py-1.5 text-xs">
-          Open Live Surveillance
-        </Link>
-        <Link
-          to="/replay"
-          className="rounded-md px-2 py-1.5 text-xs font-medium text-brand underline-offset-2 hover:underline"
-          title="Historical training scenario — the controlled five-day outbreak sequence"
-        >
-          View Scenario Replay
-        </Link>
         <button
           type="button"
           className="rounded-md px-2 py-1 text-sm text-muted hover:bg-canvas hover:text-ink"

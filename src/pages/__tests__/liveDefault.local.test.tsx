@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 /**
  * Live Surveillance is the primary, default experience; Scenario Replay is
- * the secondary training mode. Presentation and default-mode behaviour only:
- * the replay, the live dataset and the scores are unchanged.
+ * the secondary training scenario. Both are chosen on the Dashboard — the
+ * operational home — with its surveillance context selector, not in the
+ * sidebar. Presentation and default-mode behaviour only: the replay, the live
+ * dataset and the scores are unchanged.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
@@ -55,7 +57,7 @@ const renderAt = (path: string) =>
     </MemoryRouter>,
   );
 const WAIT = { timeout: 5000 };
-const modeGroup = () => screen.getAllByRole('group', { name: 'Surveillance mode' })[0];
+const modeGroup = () => screen.getByRole('group', { name: 'Surveillance context' });
 const pressed = (name: string) => within(modeGroup()).getByRole('button', { name }).getAttribute('aria-pressed');
 const topBar = () => screen.getAllByRole('banner').find((el) => el.tagName === 'HEADER') as HTMLElement;
 
@@ -114,47 +116,38 @@ describe('default mode', () => {
 });
 
 describe('Live Surveillance first', () => {
-  it('lists Live Surveillance before Scenario Replay in the mode switch, the sidebar and Explore', { timeout: 20000 }, async () => {
+  it('the Dashboard\'s context selector lists Live Surveillance first; the sidebar lists neither', { timeout: 20000 }, async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     const buttons = within(modeGroup()).getAllByRole('button').map((b) => b.textContent);
     expect(buttons).toEqual(['Live Surveillance', 'Scenario Replay']);
-    // The selected mode is said in words, not by colour alone.
-    // It does not repeat the top bar's "Simulated source feeds" disclosure.
-    expect(screen.getAllByTestId('mode-caption')[0].textContent).toBe('Live Surveillance · Primary mode');
+    // The selected context is also said in words, by the strip below it.
+    expect(screen.getByTestId('dashboard-live-status').textContent).toMatch(/^Live Surveillance/);
 
-    const overview = ANALYST_SECTIONS[0].items.map((item) => item.to);
-    expect(overview.indexOf('/live')).toBeLessThan(overview.indexOf('/replay'));
+    expect(ANALYST_SECTIONS.flatMap((section) => section.items.map((item) => item.to))).not.toEqual(expect.arrayContaining(['/live']));
     const nav = screen.getAllByRole('navigation', { name: 'Primary' })[0];
     const hrefs = within(nav).getAllByRole('link').map((a) => a.getAttribute('href'));
-    expect(hrefs.indexOf('/live')).toBeLessThan(hrefs.indexOf('/replay'));
-    // Scenario Replay keeps its exact link name, with a smaller explanatory line beneath it.
-    const replayLink = within(nav).getByRole('link', { name: 'Scenario Replay' });
-    expect(replayLink.textContent).toContain('Historical training scenario');
-    expect(replayLink.getAttribute('title')).toMatch(/^Historical training scenario/);
-    expect(within(nav).getByRole('link', { name: 'Live Surveillance' }).getAttribute('title')).toMatch(/^Primary mode/);
+    expect(hrefs).not.toContain('/live');
+    expect(hrefs).not.toContain('/replay');
+    expect(within(nav).queryByRole('group', { name: /Surveillance (mode|context)/ })).toBeNull();
   });
 
-  it('Start Here recommends Live Surveillance, with Scenario Replay as the secondary path', async () => {
+  it('Start Here explains the product and holds no action of its own: the one Start is the Live strip\'s', async () => {
     renderAt('/dashboard');
     const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    const live = within(strip).getByRole('link', { name: 'Open Live Surveillance' });
-    expect(live.getAttribute('href')).toBe('/live');
-    const replay = within(strip).getByRole('link', { name: 'View Scenario Replay' });
-    expect(live.className).toContain('ls-btn-primary');
-    expect(replay.className).not.toMatch(/ls-btn-primary|\bls-btn\b/);
-    expect(replay.getAttribute('href')).toBe('/replay');
-    // Live comes first.
-    expect(live.compareDocumentPosition(replay) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(strip.textContent).toMatch(/turns laboratory results into\s+early-warning outbreak signals/);
+    expect(within(strip).getAllByRole('link').map((a) => a.textContent)).toEqual(['what that means']);
+    expect(within(strip).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Dismiss the introduction']);
+    expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' })).toHaveLength(1);
   });
 });
 
 describe('page headers and dates', () => {
   it('Live Surveillance says so, with the live surveillance date (top bar) and no replay terms', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
-    expect(screen.getByTestId('live-subtitle').textContent).toBe('Current simulated feed');
-    const header = screen.getByRole('heading', { level: 1, name: 'Live Surveillance' }).closest('header') as HTMLElement;
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
+    expect(pressed('Live Surveillance')).toBe('true');
+    const header = screen.getByRole('heading', { level: 1, name: 'Regional Outbreak Status' }).closest('header') as HTMLElement;
     // The period is the page's; the live clock is the top bar's.
     expect(header.textContent).toMatch(/Live Surveillance · signals for (Feb \d+|—)/);
     expect(header.textContent).not.toContain('Live surveillance date:');
@@ -167,22 +160,24 @@ describe('page headers and dates', () => {
     renderAt('/replay');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
     expect(screen.getByTestId('replay-subtitle').textContent).toBe('Historical training scenario');
-    expect(pressed('Scenario Replay')).toBe('true');
+    expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('replay');
     const header = screen.getByRole('heading', { level: 1, name: 'Scenario Replay' }).closest('header') as HTMLElement;
     // The replay day and date are in the top bar; the page carries the day's story.
     expect(within(topBar()).getByTestId('replay-day').textContent).toMatch(/^Day 1 of 5/);
     expect(screen.getByTestId('replay-story').textContent).toContain('Day 1 of 5');
     expect(header.textContent).not.toMatch(/Live surveillance date|simulated clock|Simulated source feeds/i);
     expect(topBar().textContent).not.toMatch(/Live surveillance date|Simulated source feeds/);
-    expect(screen.getAllByTestId('mode-caption')[0].textContent).toBe('Scenario Replay · Historical training scenario');
+    expect(within(topBar()).getByTestId('mode-disclosure').textContent).toMatch(/^Scenario Replay · Simulated surveillance data/);
   });
 
-  it('Scenario Replay, reached from the live default, still scores 0 / 24 / 50 / 74 / 87', { timeout: 20000 }, async () => {
+  it('Scenario Replay, reached from the live default through the Dashboard, still scores 0 / 24 / 50 / 74 / 87', { timeout: 20000 }, async () => {
     renderAt('/dashboard');
-    const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    fireEvent.click(within(strip).getByRole('link', { name: 'View Scenario Replay' }));
-    await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
+    await screen.findByTestId('active-surveillance', undefined, WAIT);
+    fireEvent.click(within(modeGroup()).getByRole('button', { name: 'Scenario Replay' }));
     expect(pressed('Scenario Replay')).toBe('true');
+    fireEvent.click(within(screen.getByTestId('dashboard-replay')).getByRole('link', { name: 'Open the scenario timeline' }));
+    await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
+    expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('replay');
     for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     await within(topBar()).findByText(/Day 5 of 5/);
     expect([1, 2, 3, 4, 5].map((day) => getScoreForDay(day).composite)).toEqual([0, 24, 50, 74, 87]);

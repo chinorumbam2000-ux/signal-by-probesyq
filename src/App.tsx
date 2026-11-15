@@ -1,7 +1,7 @@
-import { Suspense, lazy, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { Link, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { SimulationProvider } from './context/SimulationContext';
-import { LiveSurveillanceProvider } from './context/LiveSurveillanceContext';
+import { LiveSurveillanceProvider, useLiveSurveillance } from './context/LiveSurveillanceContext';
 import { DemoSessionProvider, useDemoSession } from './context/DemoSessionContext';
 import { DataSourceProvider } from './data-access/DataSourceProvider';
 import AppShell from './components/layout/AppShell';
@@ -17,7 +17,6 @@ import SignalsPage from './pages/SignalsPage';
 import HospitalsPage from './pages/HospitalsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SimulationPage from './pages/SimulationPage';
-import LiveSurveillancePage from './pages/LiveSurveillancePage';
 import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import OverviewPage from './pages/OverviewPage';
@@ -67,6 +66,18 @@ function SimulationLayout() {
 }
 
 /** Sends an old address to its new one, keeping the query string and hash. */
+/**
+ * The former Live Surveillance page: Live Surveillance now runs from the
+ * Dashboard. Old links open the Dashboard in Live Surveillance context (query
+ * and hash kept), replacing the old history entry.
+ */
+function LiveRoute() {
+  const { setMode } = useLiveSurveillance();
+  const { search, hash } = useLocation();
+  useEffect(() => setMode('live'), [setMode]);
+  return <Navigate to={`/dashboard${search}${hash}`} replace />;
+}
+
 function RenamedRoute({ to }: { to: string }) {
   const { search, hash } = useLocation();
   return <Navigate to={`${to}${search}${hash}`} replace />;
@@ -127,7 +138,7 @@ export default function App() {
               <Route path="/investigations" element={<InvestigationsPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/replay" element={<SimulationPage />} />
-              <Route path="/live" element={<LiveSurveillancePage />} />
+              <Route path="/live" element={<LiveRoute />} />
               {/* Scenario Replay's former address; old links and bookmarks keep working. */}
               <Route path="/simulation" element={<RenamedRoute to="/replay" />} />
               <Route path="/reports" element={<ReportsPage />} />

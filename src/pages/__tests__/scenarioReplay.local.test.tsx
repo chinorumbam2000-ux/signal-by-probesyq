@@ -57,11 +57,11 @@ const topBar = () => screen.getAllByRole('banner').find((el) => el.tagName === '
 const ANALYST_ROUTES = ['/replay', '/signals', '/facilities', '/laboratory-data', '/analytics', '/investigations', '/reports'];
 
 describe('Scenario Replay routes', () => {
-  it('serves Scenario Replay at /replay, listed under Overview', async () => {
+  it('serves Scenario Replay at /replay, reached from the Dashboard rather than the sidebar', async () => {
     renderAt('/replay');
     expect(await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' })).toBeTruthy();
     const overview = within(screen.getAllByRole('navigation', { name: 'Primary' })[0]).getByRole('group', { name: 'Overview' });
-    expect(within(overview).getByRole('link', { name: 'Scenario Replay' }).getAttribute('href')).toBe('/replay');
+    expect(within(overview).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/dashboard']);
     expect(within(topBar()).getByText('Scenario Replay')).toBeTruthy();
     expect(within(topBar()).getByTestId('replay-day').textContent).toMatch(/^Day 1 of 5/);
   });
@@ -191,7 +191,7 @@ describe('Roella knows Scenario Replay', () => {
   });
 
   it('describes Scenario Replay and its page', () => {
-    expect(ask('Where can I find the scenario replay?')).toContain('Open Scenario Replay in the sidebar');
+    expect(ask('Where can I find the scenario replay?')).toContain("Switch the Dashboard's context selector to Scenario Replay");
     expect(ask('What does this page show?', 'simulation')).toContain('This page (Scenario Replay)');
     const help = ask('How do I use the replay?', 'dashboard', 3);
     expect(help).toContain('currently on Replay Day 3 of 5');

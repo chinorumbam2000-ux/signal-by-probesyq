@@ -61,8 +61,8 @@ const dayIndex = (iso: string) => ALL_DATES.indexOf(iso) + 1;
 
 /** Live at 4×, paused at Feb 13 10:30 — during the Shrewsbury Community outage. */
 async function liveDuringOutage() {
-  renderAt('/live');
-  await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+  renderAt('/dashboard');
+  await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
   vi.useFakeTimers();
   fireEvent.click(button('4×'));
   fireEvent.click(button('Start Live Surveillance'));
@@ -164,22 +164,19 @@ describe('Scenario Replay keeps its own wording', () => {
 });
 
 describe('Dashboard / Live Surveillance overlap', () => {
-  it('the Dashboard has one read-only Live status line and no source cards', async () => {
+  it('the Dashboard has one Live strip: the status line and the controls, the sources collapsed', async () => {
     renderAt('/dashboard');
     const live = await screen.findByTestId('dashboard-live', undefined, WAIT);
     const line = within(live).getByTestId('dashboard-live-status');
     expect(line.textContent?.replace(/·, /g, ' · ')).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
     expect(line.getAttribute('role')).toBe('status');
-    expect(within(live).queryAllByRole('button')).toEqual([]);
-    expect(within(live).queryAllByRole('link')).toEqual([]);
-    expect(screen.queryByTestId('source-status')).toBeNull();
-    expect(screen.queryByTestId('source-HOSP-A')).toBeNull();
-    expect(main().textContent).not.toMatch(/FHIR R4|HL7 v2|LIS\/API|Last observation/);
-    // The Start here strip keeps the one Dashboard link to the page.
-    const strip = screen.getByTestId('start-here');
-    expect(within(strip).getByRole('link', { name: 'Open Live Surveillance' }).getAttribute('href')).toBe('/live');
-    expect(within(strip).getByRole('link', { name: 'View Scenario Replay' }).getAttribute('href')).toBe('/replay');
-    expect(within(main()).getAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/live'))).toHaveLength(1);
+    expect(within(live).getByRole('group', { name: 'Live simulation controls' })).toBeTruthy();
+    // The source cards are there, collapsed under "Source activity".
+    const sources = within(live).getByTestId('live-sources') as HTMLDetailsElement;
+    expect(sources.open).toBe(false);
+    expect(within(sources).getByTestId('source-HOSP-A')).toBeTruthy();
+    // No link to a separate Live page anywhere.
+    expect(within(main()).queryAllByRole('link').filter((a) => a.getAttribute('href')?.startsWith('/live'))).toHaveLength(0);
   });
 
   it('the line follows the actual state: the outage, pause, completion', { timeout: 30000 }, async () => {
@@ -189,24 +186,21 @@ describe('Dashboard / Live Surveillance overlap', () => {
     const text = () => line().textContent?.replace(/·, /g, ' · ');
     expect(text()).toBe('Live Surveillance · Paused · 2 / 3 sources active · Shrewsbury Community delayed');
     expect(line().getAttribute('data-run-state')).toBe('paused');
-    // No Start here once the feed has started, and still no link in the line.
+    // No Start here once the feed has started.
     expect(screen.queryByTestId('start-here')).toBeNull();
-    expect(within(screen.getByTestId('dashboard-live')).queryAllByRole('link')).toEqual([]);
-    // Run to the end on the Live page, then back.
-    await go(/^Live Surveillance/, /^Live Surveillance$/);
+    // Run to the end from the same strip.
     vi.useFakeTimers();
     fireEvent.click(button('▶ Resume'));
     act(() => {
       vi.advanceTimersByTime(Math.ceil(END_MINUTE / (MINUTES_PER_TICK * 4)) * TICK_MS);
     });
     vi.useRealTimers();
-    await go(/^Dashboard/, /Regional Outbreak Status/);
     expect(text()).toBe('Live Surveillance · Complete');
   });
 
   it('a running feed with all sources healthy', { timeout: 20000 }, async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     fireEvent.click(button('Start Live Surveillance'));
     act(() => {
@@ -214,12 +208,11 @@ describe('Dashboard / Live Surveillance overlap', () => {
     });
     fireEvent.click(screen.getAllByRole('link', { name: /^Dashboard/ })[0]);
     expect(screen.getByTestId('dashboard-live-status').textContent?.replace(/·, /g, ' · ')).toBe('Live Surveillance · Running · 3 / 3 sources active');
-    fireEvent.click(screen.getAllByRole('link', { name: /^Live Surveillance/ })[0]);
     fireEvent.click(button('❚❚ Pause'));
     vi.useRealTimers();
   });
 
-  it('the Live page keeps the detailed source cards, with one disclosure', async () => {
+  it('the Dashboard keeps the detailed source cards, with one disclosure', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
     renderAt('/live');
     const panel = await screen.findByTestId('source-status', undefined, WAIT);

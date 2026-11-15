@@ -43,6 +43,8 @@ export interface PageInfo {
   requires?: 'api' | 'smart';
   /** The sidebar section the page sits in, when it is not part of the analyst workflow. */
   section?: 'System';
+  /** How to reach a screen that is not in the sidebar (said instead of "Open … in the sidebar"). */
+  reachedBy?: string;
 }
 
 /** What each screen shows, in the words of its own headings. */
@@ -51,8 +53,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Dashboard',
     title: 'Regional Outbreak Status',
     shows:
-      'Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the Composite Outbreak Signal Score beside Data Confidence, the key indicators with their change since the previous day and why the score moved, a small trend, a geographic summary, and the highest-priority alert awaiting review across every profile.',
-    use: 'Start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, then review alerts in Signals. Facility data quality is on Facilities, trend detail on Analytics.',
+      'the operational home and surveillance overview. At the top, the surveillance context (Live Surveillance by default, or Scenario Replay) and, in Live Surveillance, the Live Surveillance controls with the sources, today so far and the activity stream collapsed beneath them; then Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the Composite Outbreak Signal Score beside Data Confidence, the key indicators with their change since the previous day and why the score moved, a small trend, a geographic summary, and the highest-priority alert awaiting review across every profile.',
+    use: 'Start Live Surveillance with the controls at the top (Pause, Resume, Reset and 1×, 2× or 4× are there too), or switch the context selector to Scenario Replay. Then start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, and review alerts in Signals. Facility data quality is on Facilities, trend detail on Analytics.',
   },
   map: {
     nav: 'Outbreak Map',
@@ -97,15 +99,17 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   simulation: {
     nav: 'Scenario Replay',
     title: 'Scenario Replay',
+    reachedBy: 'Switch the Dashboard' + "'" + 's context selector to Scenario Replay; the Dashboard then shows the replay day, and its Scenario Replay strip opens the scenario timeline',
     shows: 'the historical training scenario: the five-day simulated respiratory outbreak, the selected day' + "'" + 's stage and story, its Current State, what changed since the previous day, and the whole progression.',
-    use: 'Jump to any day on the five-day timeline or use Auto Play here; step back, forward or reset with the controls in the top bar. Every analyst page follows the same replay day.',
+    use: 'Jump to any day on the five-day timeline or use Auto Play; step back, forward or reset with the controls in the top bar. Every analyst page follows the same replay day.',
   },
   live: {
     nav: 'Live Surveillance',
     title: 'Live Surveillance',
+    reachedBy: 'Live Surveillance is the Dashboard' + "'" + 's default context: open Dashboard in the sidebar and use the Live Surveillance controls at the top',
     shows:
-      'synthetic observations arriving through three simulated source feeds (FHIR R4, HL7 v2 and LIS/API), each source’s operational status (state, last observation, messages), the open day’s scores so far, the live activity stream, and a form to send a synthetic test observation.',
-    use: 'Start, pause, resume or reset the simulation and choose its speed. Each day closes at 19:30 and becomes the current signal on every page.',
+      'the Dashboard' + "'" + 's Live Surveillance strip — the run state and the controls — and, collapsed beneath it, the three simulated source feeds (FHIR R4, HL7 v2 and LIS/API) with each source' + "'" + 's state, last observation and messages, today' + "'" + 's provisional readings, the live activity stream, a test tool to send a synthetic observation, and How this works.',
+    use: 'Start, pause, resume or reset the simulation and choose its speed there. Each day closes at 19:30 and becomes the current signal on every page.',
   },
   reports: {
     nav: 'Reports',
@@ -186,7 +190,7 @@ export const pageUnavailable = (page: PageInfo, mode: DataMode, smartEnabled: bo
 export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute, 'other'>; what: string }> = [
   { words: ['map', 'zip', 'area', 'geograph', 'where is the outbreak'], route: 'map', what: 'surveillance areas and ZIP-level detail' },
   { words: ['vendor', 'sidecar', 'ehr environment', 'integration demo'], route: 'integration-demo', what: 'the clinician sidecar inside simulated EHR environments' },
-  { words: ['source feed', 'feed status', 'feed operation', 'live feed'], route: 'live', what: 'the operational status of each simulated source feed' },
+  { words: ['start live', 'live surveillance', 'source feed', 'feed status', 'feed operation', 'live feed', 'live control'], route: 'live', what: 'the Live Surveillance controls and each simulated source' + "'" + 's operational status' },
   { words: ['hospital', 'facility', 'facilities', 'data quality', 'feed'], route: 'hospitals', what: 'facility contribution and data quality, including the Data Confidence breakdown' },
   { words: ['trend', 'chart', 'over time', 'history', 'analytics'], route: 'analytics', what: 'score, volume, positivity and spread trends across the simulated days' },
   { words: ['observation', 'lab data', 'laboratory', 'records', 'results', 'loinc'], route: 'laboratory-data', what: 'the synthetic laboratory Observation records' },
@@ -200,7 +204,7 @@ export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute,
   { words: ['smart sandbox', 'smart launch', 'launch smart'], route: 'smart-demo', what: 'the SMART on FHIR sandbox launch' },
   { words: ['architecture', 'design', 'roadmap', 'planned'], route: 'architecture', what: 'the architecture and status of each component' },
   { words: ['scenario replay', 'replay', 'simulation', 'change the day', 'next day', 'previous day', 'play', 'reset'], route: 'simulation', what: 'the five-day scenario and its replay controls' },
-  { words: ['dashboard', 'overview', 'home'], route: 'dashboard', what: 'the regional status overview' },
+  { words: ['dashboard', 'overview', 'home'], route: 'dashboard', what: 'the operational home and surveillance overview' },
 ];
 
 export const CONCEPTS = {

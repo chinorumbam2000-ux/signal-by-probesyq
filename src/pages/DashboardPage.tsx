@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import KpiCard, { type KpiChange } from '../components/dashboard/KpiCard';
 import TrendChart from '../components/dashboard/TrendChart';
@@ -17,8 +17,9 @@ import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
-import { LiveStatusLine } from '../components/live/LiveParts';
+import { LiveOperations, ModeSwitch } from '../components/live/LiveParts';
 import StartHere from '../components/dashboard/StartHere';
+import { withProfileParam } from '../lib/profiles/selection';
 
 /**
  * The Public Health Dashboard: a concise overview for deciding what needs
@@ -31,7 +32,9 @@ import StartHere from '../components/dashboard/StartHere';
  *
  * It summarises; the full pages own the detail. Signals owns the alert queue
  * and its actions, Facilities the five Data Confidence inputs and feed health,
- * Analytics the trend exploration, Live Surveillance its sources.
+ * Analytics the trend exploration. In Live Surveillance it is also the
+ * operational home: its Live strip holds the one set of playback controls and,
+ * collapsed, the source activity.
  *
  * The selected profile comes from ?profile= (Respiratory Viral Activity by
  * default). A profile with no data or no usable baseline shows why it has no
@@ -49,6 +52,7 @@ export default function DashboardPage() {
   const profileParam = encodeURIComponent(view.profile.id);
   const mapPath = `/map?profile=${profileParam}`;
   const navigate = useNavigate();
+  const { search } = useLocation();
 
   if (error) {
     return (
@@ -83,10 +87,33 @@ export default function DashboardPage() {
             {view.profile.displayName} | Worcester County, MA
           </p>
         </div>
-        <PageMeta />
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          {/* The surveillance context: Live Surveillance (default) or the Scenario Replay training scenario. */}
+          <ModeSwitch />
+          <PageMeta />
+        </div>
       </header>
 
       <StartHere />
+
+      {isLive ? (
+        // The one place Live Surveillance is operated; its detail is collapsed beneath the strip.
+        <LiveOperations />
+      ) : (
+        <section
+          aria-label="Scenario Replay"
+          className="ls-card flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3"
+          data-testid="dashboard-replay"
+        >
+          <p className="text-sm text-ink">
+            <span className="font-semibold">Scenario Replay</span> · Historical training scenario. Step through the
+            days with the top bar.
+          </p>
+          <Link to={withProfileParam('/replay', search)} className="text-sm font-semibold text-brand hover:underline" data-testid="replay-timeline-link">
+            Open the scenario timeline <span aria-hidden="true">→</span>
+          </Link>
+        </section>
+      )}
 
       <ProfileSelector portfolio={portfolio} />
 
@@ -96,13 +123,6 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <>
-          {isLive ? (
-            // Summary only: the feed is operated, and its sources detailed, on the Live Surveillance page.
-            <section aria-label="Live feeds" data-testid="dashboard-live">
-              <LiveStatusLine />
-            </section>
-          ) : null}
-
           <ActiveSurveillance portfolio={portfolio} day={currentDay} />
 
           {/* The score sentence and its breakdown are left to the score section below. */}

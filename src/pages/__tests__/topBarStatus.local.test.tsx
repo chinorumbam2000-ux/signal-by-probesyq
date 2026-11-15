@@ -104,8 +104,8 @@ describe('top bar: no run state, no numeric score', () => {
   });
 
   it('the Live page keeps its run state in its own content', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     expect(everything(topBar())).not.toMatch(RUN);
     expect(screen.getByTestId('source-status').textContent).toContain('Sources · not started');
     expect(screen.getByRole('button', { name: 'Start Live Surveillance' })).toBeTruthy();

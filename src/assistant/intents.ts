@@ -173,7 +173,7 @@ export const parseQuestion = (question: string, context: AssistantContext, state
   }
 
   // Navigation ("where can I see trends", "how do I view lab observations").
-  if (has(t, 'where can i', 'where do i', 'where is the', 'where are', 'how do i view', 'how do i see', 'how do i find', 'how do i get to', 'which page', 'where to see', 'how can i see', 'where can we') &&
+  if (has(t, 'where can i', 'where do i', 'where is the', 'where is live', 'where is scenario', 'where is replay', 'where are', 'how do i view', 'how do i see', 'how do i find', 'how do i get to', 'which page', 'where to see', 'how can i see', 'where can we') &&
       !has(t, 'outbreak', 'spread', 'happening', 'affected', 'cases')) {
     return result('navigation');
   }

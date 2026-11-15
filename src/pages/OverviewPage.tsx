@@ -93,8 +93,8 @@ interface Destination {
 
 // Plain-language summaries; each page carries its own detail.
 const DESTINATIONS: Destination[] = [
-  { to: '/live', title: 'Live Surveillance', group: 'Analyst', detail: 'The primary mode: observations arrive through three source feeds, and every profile is scored as they arrive.' },
-  { to: '/replay', title: 'Scenario Replay', group: 'Analyst', detail: 'The historical training scenario: a known five-day outbreak story, stepped day by day (scores 0 / 24 / 50 / 74 / 87).' },
+  { to: '/dashboard', title: 'Dashboard', group: 'Analyst', detail: 'The operational home: Live Surveillance (observations arriving through three source feeds, scored as they arrive) or, with its context selector, the Scenario Replay training scenario.' },
+  { to: '/replay', title: 'Scenario Replay timeline', group: 'Analyst', detail: 'The historical training scenario: a known five-day outbreak story, stepped day by day (scores 0 / 24 / 50 / 74 / 87).' },
   { to: '/fhir-ingestion', title: 'Data Ingestion', group: 'System', detail: 'Send a FHIR Observation through validation and normalization into PostgreSQL.', requires: 'api' },
   { to: '/dynamic-surveillance', title: 'Detection Methods', group: 'System', detail: 'The composite score, EWMA and CUSUM, calculated from stored observations and compared side by side.', requires: 'api' },
   { to: '/smart-demo', title: 'Integration Testing', group: 'System', detail: 'SMART App Launch against the public SMART Health IT sandbox: read-only, PKCE, sandbox patients.', requires: 'smart' },

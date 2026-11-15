@@ -111,10 +111,10 @@ const startLive = (ctx: AssistantContext): AssistantAnswer => {
           : 'It has not started yet.';
   return answer('mode_start', [
     text(
-      'Open the Live Surveillance page — in the sidebar under Overview — and press Start Live Surveillance. That one button starts the simulated source feeds.',
+      'On the Dashboard — Live Surveillance is its default context — press Start Live Surveillance in the Live Surveillance strip at the top. That one button starts the simulated source feeds.',
     ),
     text(
-      'The same controls then Pause, Resume and Reset the simulation, and 1×, 2× and 4× set its speed. The Dashboard and the top bar show the live state, but do not start or stop it.',
+      'The same controls then Pause, Resume and Reset the simulation, and 1×, 2× and 4× set its speed. They are the only ones: the rest of the app shows the live data but never starts or stops it.',
     ),
     text(now),
   ], live ? ['Are all sources active?', 'Is this real-time?'] : ['What is the main mode?', 'What is Scenario Replay?']);

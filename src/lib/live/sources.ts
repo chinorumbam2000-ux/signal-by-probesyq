@@ -201,7 +201,7 @@ export interface NormalizedObservation {
   result: 'Positive' | 'Negative';
   specimenType: string | null;
   patientRef: string;
-  /** A synthetic test observation entered by hand on the Live Surveillance page. */
+  /** A synthetic test observation entered by hand on the Dashboard's Live test tools. */
   manual?: boolean;
 }
 

@@ -102,7 +102,7 @@ describe('Capstone Overview', () => {
     const explore = screen.getByRole('heading', { name: 'Explore' }).closest('section') as HTMLElement;
     const links = within(explore).getAllByRole('link');
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      '/live', '/replay', '/fhir-ingestion', '/dynamic-surveillance', '/smart-demo', '/integration-demo', '/evaluation', '/architecture',
+      '/dashboard', '/replay', '/fhir-ingestion', '/dynamic-surveillance', '/smart-demo', '/integration-demo', '/evaluation', '/architecture',
     ]);
     expect(within(explore).getAllByText('Requires the full-stack build (this build shows a notice).')).toHaveLength(3);
     expect(within(explore).getByText('Not enabled in this build (VITE_SMART_ENABLED).')).toBeTruthy();

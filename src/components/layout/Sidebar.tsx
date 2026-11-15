@@ -2,7 +2,6 @@ import { useEffect, useId, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { withProfileParam } from '../../lib/profiles/selection';
 import { usePortfolio } from '../../lib/profiles/usePortfolio';
-import { ModeSwitch } from '../live/LiveParts';
 import BrandMark from '../common/BrandMark';
 import { useDataSourceContext } from '../../data-access/DataSourceProvider';
 import { ANALYST_SECTIONS, SYSTEM_HEADING, isSystemPath, systemItems, type NavItem } from '../../lib/navigation';
@@ -119,11 +118,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             Outbreak Intelligence
           </p>
         </div>
-      </div>
-
-      {/* The mode switch only: the date, day and run status are in the top bar, visible at every width. */}
-      <div className="mx-5 mb-2 rounded-lg bg-white/5 px-3 py-2.5" data-testid="sidebar-mode">
-        <ModeSwitch onDark />
       </div>
 
       <div className="ls-sidebar-scroll flex-1 overflow-y-auto px-3 pb-4" data-testid="sidebar-scroll">

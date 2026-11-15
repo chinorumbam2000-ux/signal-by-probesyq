@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 /**
- * One control starts Live Surveillance: "Start Live Surveillance", on the Live
- * Surveillance page. The top bar and the Dashboard show the live state only;
- * the Start here link and the sidebar's mode switch navigate, never start.
+ * One control starts Live Surveillance: "Start Live Surveillance", on the
+ * Dashboard's Live Surveillance strip. The top bar shows no run state; the
+ * Dashboard's context selector changes context but never starts playback;
+ * the former /live address opens the Dashboard.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
@@ -55,8 +56,8 @@ const topBar = () => screen.getAllByRole('banner').find((el) => el.tagName === '
 const button = (name: string | RegExp) => screen.getAllByRole('button', { name })[0];
 
 describe('one Start control for Live Surveillance', () => {
-  it('exists only on the Live Surveillance page, with a meaningful name', { timeout: 40000 }, async () => {
-    for (const route of ['/dashboard', '/map', '/facilities', '/laboratory-data', '/analytics', '/signals', '/investigations', '/reports', '/overview']) {
+  it('exists only on the Dashboard, with a meaningful name', { timeout: 40000 }, async () => {
+    for (const route of ['/map', '/facilities', '/laboratory-data', '/analytics', '/signals', '/investigations', '/reports', '/overview']) {
       window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
       const view = renderAt(route);
       await screen.findByRole('heading', { level: 1 }, WAIT);
@@ -64,8 +65,8 @@ describe('one Start control for Live Surveillance', () => {
       view.unmount();
     }
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     const starts = startButtons();
     expect(starts).toHaveLength(1);
     // The accessible name is the words alone; the ▶ glyph is decorative.
@@ -77,8 +78,8 @@ describe('one Start control for Live Surveillance', () => {
 
   it('the top bar shows neither playback controls nor the run state; the Live page keeps the run state', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     const bar = topBar();
     const RUN = /Not started|Running · \d×|Paused|Complete|Live simulation/;
@@ -97,42 +98,46 @@ describe('one Start control for Live Surveillance', () => {
     expect(within(topBar()).queryAllByRole('button').filter((b) => /start|pause|resume|reset/i.test(b.textContent ?? ''))).toEqual([]);
   });
 
-  it('the Dashboard has no playback controls: one read-only Live status line', async () => {
+  it('the Dashboard\'s Live strip: the run state and the one set of controls, the detail collapsed beneath', async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     const live = screen.getByTestId('dashboard-live');
-    expect(within(live).queryAllByRole('button')).toEqual([]);
     expect(screen.getByTestId('dashboard-live-status').textContent).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
-    // No second link to the page: the Start here strip has the one Dashboard link.
-    expect(within(live).queryAllByRole('link')).toEqual([]);
-    expect(startButtons()).toEqual([]);
+    expect(within(live).getByRole('group', { name: 'Live simulation controls' })).toBeTruthy();
+    expect(startButtons()).toHaveLength(1);
+    // The operational detail is there, collapsed.
+    for (const id of ['live-sources', 'live-today', 'live-activity', 'inject', 'live-how-it-works']) {
+      const section = within(live).getByTestId(id) as HTMLDetailsElement;
+      expect(section.tagName, id).toBe('DETAILS');
+      expect(section.open, id).toBe(false);
+    }
+    expect(within(live).getByTestId('source-status').textContent).toMatch(/FHIR R4/);
   });
 
-  it('the Start here link only navigates — the simulation does not start', async () => {
-    renderAt('/dashboard');
-    const strip = await screen.findByTestId('start-here', undefined, WAIT);
+  it('the former /live address opens the Dashboard in Live Surveillance, without starting it', async () => {
+    window.sessionStorage.setItem(MODE_STORAGE_KEY, 'replay');
+    renderAt('/live?profile=covid-19');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
-    const cta = within(strip).getByRole('link', { name: 'Open Live Surveillance' });
-    expect(within(strip).queryAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Dismiss the introduction']);
-    fireEvent.click(cta);
-    expect(screen.getByRole('heading', { level: 1, name: 'Live Surveillance' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Regional Outbreak Status' })).toBeTruthy();
+    expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('live');
+    expect((screen.getByLabelText('Surveillance profile') as HTMLSelectElement).value).toBe('covid-19');
     const clock = screen.getAllByTestId('live-clock')[0].textContent;
     act(() => {
       vi.advanceTimersByTime(TICK_MS * 10);
     });
     expect(screen.getAllByTestId('live-clock')[0].textContent).toBe(clock); // the simulated clock stands still
     expect(screen.getByTestId('source-status').getAttribute('data-run-state')).toBe('idle');
-    expect(screen.getByRole('button', { name: 'Start Live Surveillance' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: '❚❚ Pause' })).toBeNull();
-    expect(screen.getByText(/No activity yet/)).toBeTruthy();
   });
 
-  it('the sidebar mode switch changes mode but does not start playback', async () => {
+  it('the Dashboard\'s context selector changes context but does not start playback', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'replay');
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     vi.useFakeTimers();
-    const group = screen.getAllByRole('group', { name: 'Surveillance mode' })[0];
+    expect(screen.queryByTestId('dashboard-live')).toBeNull();
+    const group = screen.getByRole('group', { name: 'Surveillance context' });
     fireEvent.click(within(group).getByRole('button', { name: 'Live Surveillance' }));
     expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('live');
     expect(screen.getByTestId('dashboard-live-status').getAttribute('data-run-state')).toBe('idle');
@@ -146,8 +151,8 @@ describe('one Start control for Live Surveillance', () => {
 
   it('Start, then Pause / Resume / Reset and the speeds, all in the same place', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     const controls = () => screen.getByRole('group', { name: 'Live simulation controls' });
     const names = () => within(controls()).getAllByRole('button').map((b) => b.textContent);
@@ -186,13 +191,13 @@ describe('Roella: how to start Live Surveillance', () => {
     return { day: 5 as const, route: 'dashboard' as const, profiles: liveSummaries(sim), live: buildLiveAssistantContext(sim, state) };
   };
 
-  it('points to the one button on the Live Surveillance page', () => {
+  it('points to the one button, on the Dashboard', () => {
     for (const q of ['How do I start Live Surveillance?', 'How do I start the live simulation?', 'Where is the Start button?', 'How can I begin the live feeds?']) {
       const a = ask(q, liveCtx({ started: false, playing: false }));
       expect(a.intent, q).toBe('mode_start');
-      expect(a.text).toContain('Open the Live Surveillance page');
-      expect(a.text).toContain('press Start Live Surveillance');
-      expect(a.text).toContain('The Dashboard and the top bar show the live state, but do not start or stop it.');
+      expect(a.text).toContain('On the Dashboard');
+      expect(a.text).toContain('press Start Live Surveillance in the Live Surveillance strip at the top');
+      expect(a.text).toContain('They are the only ones: the rest of the app shows the live data but never starts or stops it.');
       expect(a.text).toContain('It has not started yet.');
     }
   });

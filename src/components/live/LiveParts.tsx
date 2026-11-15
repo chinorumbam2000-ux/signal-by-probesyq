@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { HospitalId } from '../../types';
 import { HOSPITALS } from '../../data/hospitals';
 import { SPEEDS, useLiveSurveillance, type SurveillanceMode } from '../../context/LiveSurveillanceContext';
@@ -7,7 +7,8 @@ import { ALL_DATES, SOURCE_TYPE, TEST_NAMES, type LiveTestCode } from '../../lib
 import { clock } from '../../lib/live/sources';
 import { END_MINUTE, LIVE_PROFILES, dayAndMinuteOf, shortFacilityName, type AuditEntry } from '../../lib/live/simulator';
 import { liveDayLabel, liveProvisional } from '../../lib/live/view';
-import { PROFILE_BY_ID } from '../../lib/profiles/registry';
+import { PROFILE_BY_ID, RVS_PROFILE_ID, settingsFor } from '../../lib/profiles/registry';
+import { HISTORY_DATES } from '../../lib/live/dataset';
 import SeverityBadge from '../signals/SeverityBadge';
 
 /* ------------------------------------------------------------------------ */
@@ -19,64 +20,50 @@ export function useLiveClock(): string {
   return `${liveDayLabel(dayIndex)} · ${clock(minute)}`;
 }
 
-/** What each mode is: each switch button's description (and the Replay caption). */
+/** What each context is: each selector button's description. */
 export const MODE_DESCRIPTION: Record<SurveillanceMode, string> = {
   live: 'Simulated source feeds',
   replay: 'Historical training scenario',
 };
 
-/**
- * The switch's caption: the selected mode in words. It does not repeat the
- * top bar's simulated-data disclosure, which sits beside it on every page.
- */
-const MODE_CAPTION: Record<SurveillanceMode, string> = {
-  live: 'Primary mode',
-  replay: MODE_DESCRIPTION.replay,
-};
 
 /**
- * Live Surveillance | Scenario Replay. Live Surveillance is the primary mode:
- * listed first, the default, and given the stronger label; Scenario Replay is
- * the secondary training mode. The selected mode is shown by aria-pressed, by
- * the filled button and by the caption in words — never by colour alone.
- * Switching keeps the page, except that Scenario Replay's own page belongs
- * to the replay and the Live Surveillance page to the live simulation.
+ * The Dashboard's surveillance context: Live Surveillance (the default) or
+ * Scenario Replay (the historical training scenario). The selected context is
+ * shown by aria-pressed and the filled button, and said in words by the
+ * Dashboard's context strip below it. Choosing a context never starts the
+ * live simulation. From the Scenario Replay page, choosing Live Surveillance
+ * returns to the Dashboard.
  */
-export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
+export function ModeSwitch() {
   const { mode, setMode } = useLiveSurveillance();
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const choose = (next: SurveillanceMode) => {
     setMode(next);
-    if (next === 'live' && (pathname === '/replay' || pathname === '/simulation')) navigate(`/live${search}`);
-    if (next === 'replay' && pathname === '/live') navigate(`/replay${search}`);
+    if (next === 'live' && (pathname === '/replay' || pathname === '/simulation')) navigate(`/dashboard${search}`);
   };
-  const base = onDark
-    ? 'flex-1 rounded-md px-2 py-1 text-[11px] transition-colors'
-    : 'rounded-md px-2.5 py-1 text-xs transition-colors';
-  const on = onDark ? 'bg-white font-semibold text-sidebar' : 'bg-brand font-semibold text-white';
-  const off = onDark ? 'font-semibold text-white/75 hover:text-white' : 'font-semibold text-ink hover:bg-canvas';
-  // The secondary mode reads a little quieter when it is not selected.
-  const offSecondary = onDark ? 'font-medium text-white/60 hover:text-white' : 'font-medium text-muted hover:bg-canvas hover:text-ink';
   return (
-    <div>
-      <div role="group" aria-label="Surveillance mode" className={`flex gap-1 rounded-lg p-0.5 ${onDark ? 'bg-white/10' : 'border border-hairline bg-white'}`}>
-        {(['live', 'replay'] as SurveillanceMode[]).map((m) => (
-          <button
-            key={m}
-            type="button"
-            aria-pressed={mode === m}
-            onClick={() => choose(m)}
-            title={m === 'live' ? `Primary mode — ${MODE_DESCRIPTION.live.toLowerCase()}` : `Secondary mode — ${MODE_DESCRIPTION.replay.toLowerCase()}`}
-            className={`${base} ${mode === m ? on : m === 'replay' ? offSecondary : off}`}
-          >
-            {m === 'live' ? 'Live Surveillance' : 'Scenario Replay'}
-          </button>
-        ))}
-      </div>
-      <p className={`mt-1.5 text-[11px] leading-tight ${onDark ? 'text-white/60' : 'text-muted'}`} data-testid="mode-caption">
-        {mode === 'live' ? 'Live Surveillance' : 'Scenario Replay'} · {MODE_CAPTION[mode]}
-      </p>
+    <div
+      role="group"
+      aria-label="Surveillance context"
+      className="inline-flex gap-0.5 rounded-lg border border-hairline bg-white p-0.5"
+      data-testid="context-selector"
+    >
+      {(['live', 'replay'] as SurveillanceMode[]).map((m) => (
+        <button
+          key={m}
+          type="button"
+          aria-pressed={mode === m}
+          onClick={() => choose(m)}
+          title={MODE_DESCRIPTION[m]}
+          className={`rounded-md px-2.5 py-1 text-xs transition-colors ${
+            mode === m ? 'bg-brand font-semibold text-white' : 'font-medium text-muted hover:bg-canvas hover:text-ink'
+          }`}
+        >
+          {m === 'live' ? 'Live Surveillance' : 'Scenario Replay'}
+        </button>
+      ))}
     </div>
   );
 }
@@ -84,9 +71,8 @@ export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
 /* ------------------------------------------------------------------------ */
 
 /**
- * The live simulation's controls — the one place that starts it. They live
- * on the Live Surveillance page only: the Dashboard's status line shows the
- * live state but never operates the simulator.
+ * The live simulation's controls — the one place that starts it, on the
+ * Dashboard's Live Surveillance strip.
  */
 export function LiveControls() {
   const { simulator, playing, started, speed, start, pause, resume, reset, setSpeed } = useLiveSurveillance();
@@ -155,11 +141,11 @@ const feedNote = (note: string) => note.replace(/ (?:from|through) the simulated
 const FEED_ISSUE: Record<string, string> = { DELAYED: 'delayed', DEGRADED: 'degraded', OFFLINE: 'offline' };
 
 /**
- * The Dashboard's one line about Live Surveillance: run state and an aggregate
- * of the sources, in words (never colour alone). Read-only — the feed is
- * operated, and its sources detailed, on the Live Surveillance page.
+ * One line about Live Surveillance: run state and an aggregate of the
+ * sources, in words (never colour alone). The status half of the Dashboard's
+ * Live Surveillance strip; its sources are detailed in "Source activity".
  */
-export function LiveStatusLine() {
+export function LiveStatusLine({ bare = false }: { bare?: boolean }) {
   const { feeds, active, run } = useLiveRun();
   const parts: string[] = [];
   if (run === 'complete') parts.push('Complete');
@@ -171,7 +157,7 @@ export function LiveStatusLine() {
     }
   }
   return (
-    <p role="status" className="ls-card px-4 py-2.5 text-sm text-ink" data-testid="dashboard-live-status" data-run-state={run}>
+    <p role="status" className={`${bare ? '' : 'ls-card px-4 py-2.5 '}text-sm text-ink`} data-testid="dashboard-live-status" data-run-state={run}>
       {/* The app's usual " · " separator, as plain text: it reads and copies cleanly. */}
       <span className="font-semibold">Live Surveillance</span>
       {parts.map((part) => ` · ${part}`).join('')}
@@ -179,8 +165,8 @@ export function LiveStatusLine() {
   );
 }
 
-/** The three simulated sources in detail: the Live Surveillance page. */
-export function SourceStatusPanel() {
+/** The three simulated sources in detail (the Dashboard's "Source activity"). */
+export function SourceStatusPanel({ embedded = false }: { embedded?: boolean }) {
   const { simulator, feeds, active, run } = useLiveRun();
   const heading =
     run === 'idle'
@@ -198,7 +184,7 @@ export function SourceStatusPanel() {
     return { text: label, style: STATUS_STYLE[status] };
   };
   return (
-    <section aria-label="Source feeds" className="ls-card px-4 py-3" data-testid="source-status" data-run-state={run}>
+    <section aria-label="Source feeds" className={embedded ? '' : 'ls-card px-4 py-3'} data-testid="source-status" data-run-state={run}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-ink">{heading}</h2>
       </div>
@@ -243,13 +229,13 @@ const KIND_LABEL: Record<AuditEntry['kind'], string> = {
  * a pseudonym or a result value: score changes are explained by the engine's
  * own component points.
  */
-export function ActivityStream({ limit = 40, kinds }: { limit?: number; kinds?: AuditEntry['kind'][] }) {
+export function ActivityStream({ limit = 40, kinds, embedded = false }: { limit?: number; kinds?: AuditEntry['kind'][]; embedded?: boolean }) {
   const { simulator } = useLiveSurveillance();
   const entries = simulator.audit.filter((e) => !kinds || kinds.includes(e.kind)).slice(-limit).reverse();
   // Only day closes and source changes are announced: each observation would be noise.
   const announce = [...simulator.audit].reverse().find((e) => e.kind === 'source' || (e.kind === 'close' && e.profileId === 'respiratory-viral-syndrome'));
   return (
-    <section aria-labelledby="activity-heading" className="ls-card flex min-h-0 flex-col" data-testid="activity-stream">
+    <section aria-labelledby="activity-heading" className={`flex min-h-0 flex-col ${embedded ? 'rounded-lg border border-hairline' : 'ls-card'}`} data-testid="activity-stream">
       <header className="ls-card-header">
         <h2 id="activity-heading" className="ls-card-title">Live activity</h2>
         <span className="text-[11px] text-muted">Newest first</span>
@@ -288,12 +274,12 @@ export function ActivityStream({ limit = 40, kinds }: { limit?: number; kinds?: 
 /* ------------------------------------------------------------------------ */
 
 /** The open day's calculation so far, per live profile — provisional until the day closes. */
-export function TodaySoFar() {
+export function TodaySoFar({ embedded = false }: { embedded?: boolean }) {
   const { simulator } = useLiveSurveillance();
   const provisional = liveProvisional(simulator);
   const { dayIndex } = dayAndMinuteOf(simulator.op);
   return (
-    <section aria-label="Today so far" className="ls-card px-4 py-3" data-testid="today-so-far">
+    <section aria-label="Today so far" className={embedded ? '' : 'ls-card px-4 py-3'} data-testid="today-so-far">
       <h2 className="text-sm font-semibold text-ink">
         {simulator.finished ? 'Live period complete' : `Today so far · ${liveDayLabel(dayIndex)} (provisional)`}
       </h2>
@@ -332,15 +318,18 @@ export function TodaySoFar() {
  * outcome: the observation goes through its facility's own adapter, routing
  * and recalculation like any other.
  */
-export function InjectObservation() {
+export function InjectObservation({ embedded = false }: { embedded?: boolean }) {
   const { inject, simulator } = useLiveSurveillance();
   const [hospitalId, setHospitalId] = useState<HospitalId>('HOSP-A');
   const [code, setCode] = useState<LiveTestCode>('94500-6');
   const [positive, setPositive] = useState(true);
   const [done, setDone] = useState<string | null>(null);
   return (
-    <details className="ls-card px-4 py-3" data-testid="inject">
-      <summary className="cursor-pointer text-sm font-semibold text-ink">Inject a synthetic test observation</summary>
+    <details className={embedded ? 'group' : 'ls-card px-4 py-3'} data-testid="inject">
+      <summary className={embedded ? DISCLOSURE_SUMMARY : 'cursor-pointer text-sm font-semibold text-ink'}>
+        Test tools: inject a synthetic test observation
+        {embedded ? <Chevron /> : null}
+      </summary>
       <p className="mt-1 text-xs text-muted">
         A test observation, not a patient result. It is sent in the facility&apos;s source format and processed
         exactly like any other observation; scores change only through the data.
@@ -395,5 +384,97 @@ export function InjectObservation() {
         </p>
       ) : null}
     </details>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+
+const DISCLOSURE_SUMMARY =
+  'flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-ink hover:bg-canvas [&::-webkit-details-marker]:hidden';
+
+function Chevron() {
+  return (
+    <span aria-hidden="true" className="text-muted transition-transform group-open:rotate-90">
+      ›
+    </span>
+  );
+}
+
+/** One collapsed section of the Dashboard's Live Surveillance operations. */
+function LiveDisclosure({ title, testId, children }: { title: string; testId: string; children: ReactNode }) {
+  return (
+    <details className="group" data-testid={testId}>
+      <summary className={DISCLOSURE_SUMMARY}>
+        {title}
+        <Chevron />
+      </summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
+  );
+}
+
+/** How an observation becomes a signal, briefly; the technical detail lives under System. */
+export function LiveHowItWorks() {
+  const reference = settingsFor(RVS_PROFILE_ID).ewma.referenceDays;
+  return (
+    <details className="group" data-testid="live-how-it-works">
+      <summary className={DISCLOSURE_SUMMARY}>
+        How this works
+        <Chevron />
+      </summary>
+      <div className="px-4 pb-4">
+        <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink" aria-label="From observation to signal">
+          {['Observation', 'Normalization', 'Profile routing', 'Surveillance calculation', 'Signal update'].map((step, index) => (
+            <li key={step} className="flex items-center gap-1.5">
+              {index > 0 ? <span aria-hidden="true" className="text-muted">→</span> : null}
+              <span className="rounded-full bg-canvas px-2 py-0.5 font-medium">{step}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-2 text-xs text-muted" data-testid="live-statistics">
+          Statistical confirmation (EWMA, CUSUM) needs a {reference}-day reference history; this feed holds{' '}
+          {HISTORY_DATES.length} days, so none is shown or invented.
+        </p>
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <Link to="/dynamic-surveillance" className="font-semibold text-brand hover:underline">
+            View Detection Methods <span aria-hidden="true">→</span>
+          </Link>
+          <Link to="/architecture" className="font-semibold text-brand hover:underline">
+            Architecture <span aria-hidden="true">→</span>
+          </Link>
+        </p>
+      </div>
+    </details>
+  );
+}
+
+/**
+ * Live Surveillance operations, on the Dashboard: one compact strip with the
+ * run state and the one set of controls (Start / Pause / Resume, Reset, 1x /
+ * 2x / 4x), and the operational detail collapsed beneath it — the sources,
+ * today's provisional readings, the activity stream, the test tools and how it
+ * works. Nothing here is expanded by default.
+ */
+export function LiveOperations() {
+  return (
+    <section aria-label="Live Surveillance" className="ls-card" data-testid="dashboard-live">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+        <LiveStatusLine bare />
+        <LiveControls />
+      </div>
+      <div className="divide-y divide-hairline border-t border-hairline">
+        <LiveDisclosure title="Source activity" testId="live-sources">
+          <SourceStatusPanel embedded />
+        </LiveDisclosure>
+        <LiveDisclosure title="Today so far" testId="live-today">
+          <TodaySoFar embedded />
+        </LiveDisclosure>
+        <LiveDisclosure title="Activity stream" testId="live-activity">
+          <ActivityStream embedded />
+        </LiveDisclosure>
+        <InjectObservation embedded />
+        <LiveHowItWorks />
+      </div>
+    </section>
   );
 }

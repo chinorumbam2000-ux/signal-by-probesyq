@@ -29,16 +29,8 @@ export const ANALYST_SECTIONS: NavSection[] = [
   {
     heading: 'Overview',
     items: [
+      // The operational home: Live Surveillance (default) or Scenario Replay, chosen on the Dashboard itself.
       { to: '/dashboard', label: 'Dashboard', icon: '▦' },
-      // Live Surveillance is the primary experience; Scenario Replay the secondary training mode.
-      { to: '/live', label: 'Live Surveillance', icon: '◉', hint: 'Primary mode — synthetic observations arriving through simulated source feeds' },
-      {
-        to: '/replay',
-        label: 'Scenario Replay',
-        icon: '▶',
-        hint: 'Historical training scenario — the controlled five-day outbreak sequence',
-        subtitle: 'Historical training scenario',
-      },
     ],
   },
   {

@@ -492,7 +492,8 @@ const navigation = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
     const system = available.filter((pg) => pg.section === 'System').map((pg) => pg.nav);
     return answer('navigation', [
       text('Use the sidebar on the left to move between screens:'),
-      list(available.filter((pg) => !pg.section).map((pg) => `${pg.nav} — ${pg.shows}`)),
+      list(available.filter((pg) => !pg.section && !pg.reachedBy).map((pg) => `${pg.nav} — ${pg.shows}`)),
+      text('Live Surveillance and Scenario Replay are chosen on the Dashboard, with its surveillance context selector.'),
       text(`Technical pages are under System, at the bottom of the sidebar: ${joinAnd(system)}.`),
     ], ['What does this page show?']);
   }
@@ -502,7 +503,7 @@ const navigation = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnswer =
   const renamed = target.route === 'simulation' && /simulation/.test(p.normalized);
   return answer('navigation', [
     ...(renamed ? [text(RENAMED)] : []),
-    text(`Open ${where} in the sidebar for ${target.what}. ${page.use}`),
+    text(page.reachedBy ? `${page.reachedBy}. ${page.use}` : `Open ${where} in the sidebar for ${target.what}. ${page.use}`),
     ...(unavailable ? [text(unavailable)] : []),
   ], [`What does the ${page.nav} page show?`]);
 };

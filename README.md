@@ -297,14 +297,14 @@ banner.
 | Route | Screen | What it contains |
 |-------|--------|------------------|
 | `/` | Sign in | Presentation sign-in (name, the fixed Public Health Analyst role, password; not authentication). Every other screen requires it and returns to the page originally requested; Sign Out in the top bar. `/smart/launch`, `/smart/callback` and `/smart/sidecar` are never behind it |
-| `/dashboard` | Public Health Dashboard | A concise overview: Active Surveillance, the selected profile, its outbreak score beside Data Confidence, key indicators with the change since the previous day and why the score moved, one small trend, a geographic summary, and the highest-priority alert (reviewed on Signals) |
+| `/dashboard` | Public Health Dashboard | The operational home, first after sign-in. A surveillance context selector (Live Surveillance by default, or Scenario Replay); in Live, the Live Surveillance strip — status, the one Start / Pause / Resume, Reset and 1× / 2× / 4× controls, and collapsed source activity, today so far, activity stream, test tools and how it works. `/live` (its former address) redirects here in Live context, keeping the query and hash. Then a concise overview: Active Surveillance, the selected profile, its outbreak score beside Data Confidence, key indicators with the change since the previous day and why the score moved, one small trend, a geographic summary, and the highest-priority alert (reviewed on Signals) |
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
 | `/signals` | Signals & Alerts | The alert queue: counts awaiting acknowledgement and detected on this day, and every alert with its profile, score and severity at detection, acknowledgement and review status. *Acknowledge*; *Investigate* starts the review and opens it on Investigations; an alert in review offers *Open Investigation* (current figures are on the Dashboard) |
-| `/facilities` | Facilities | Facility contribution and data quality for the selected profile: a concise table (reporting, contribution, positivity, a one-line quality summary), the selected facility's activity with two compact trends and a link to its records on Laboratory Data (`/laboratory-data?profile=…&facility=…`), its own data-quality evidence and the full Data Confidence breakdown. Feed operations are on Live Surveillance; the sidecar demonstration is under System → Integration Demo. `/hospitals` (its former address) redirects here |
+| `/facilities` | Facilities | Facility contribution and data quality for the selected profile: a concise table (reporting, contribution, positivity, a one-line quality summary), the selected facility's activity with two compact trends and a link to its records on Laboratory Data (`/laboratory-data?profile=…&facility=…`), its own data-quality evidence and the full Data Confidence breakdown. Feed operations are on the Dashboard (Live Surveillance); the sidecar demonstration is under System → Integration Demo. `/hospitals` (its former address) redirects here |
 | `/investigations` | Investigations | The signals that have entered review (new alerts stay on Signals): review status, assigned analyst and report. `?alert=<id>` opens one investigation: the score at detection with its one component breakdown, Why This Signal, the Data Confidence at detection, the human-in-the-loop review actions and *Prepare Public Health Report*. Old `/signals?alert=…` links are forwarded here |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
-| `/replay` | Scenario Replay | The five-day simulated respiratory outbreak: replay controls and the day-by-day progression. `/simulation` (its former address) redirects here |
+| `/replay` | Scenario Replay | The five-day simulated respiratory outbreak: replay controls and the day-by-day progression. Reached from the Dashboard's context selector (Scenario Replay → *Open the scenario timeline*), not the sidebar. `/simulation` (its former address) redirects here |
 | `/reports` | Reports | Simulated public-health reporting workflow and its audit timeline |
 | `/integration-demo` | System → Integration Demo | The clinician `VendorSidecar` inside three simulated EHR environments, with collapsed integration details (formerly on Facilities). A demonstration only — no vendor connection or partnership |
 | `/architecture` | System → Architecture | Current and future architecture, multi-source hooks, federated concept, status legend |
@@ -384,7 +384,8 @@ recalculates every profile's score from them as they arrive, in the browser.
 No backend, database or API key is needed, so the static GitHub Pages build
 runs it. The browser engine follows the backend engine's rules; a parity test
 runs the backend on the same observations and checks the results match. Start,
-pause, resume, reset and speed controls are on the Live Surveillance page; an
+pause, resume, reset and speed controls are on the Dashboard, the operational
+home, which opens in Live Surveillance (`/live` redirects there); an
 activity stream explains every score change from the engine's own components.
 Details: [docs/live-surveillance.md](docs/live-surveillance.md).
 

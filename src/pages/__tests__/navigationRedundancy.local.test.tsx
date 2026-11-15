@@ -63,8 +63,8 @@ async function replayAt(path: string, day: 1 | 2 | 3 | 4 | 5 = 5) {
 }
 /** Live at 4×, paused at Feb 13 10:30. */
 async function liveAt(link: RegExp, heading: RegExp) {
-  renderAt('/live');
-  await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+  renderAt('/dashboard');
+  await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
   vi.useFakeTimers();
   fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
   fireEvent.click(screen.getAllByRole('button', { name: 'Start Live Surveillance' })[0]);
@@ -79,12 +79,14 @@ async function liveAt(link: RegExp, heading: RegExp) {
 }
 
 describe('sidebar', () => {
-  it('has no date or status card in Scenario Replay; keeps the mode switch, navigation, System and About', async () => {
+  it('has no date, status card or mode switch in Scenario Replay; keeps navigation, System and About', async () => {
     await replayAt('/signals');
     const nav = sidebar();
     expect(nav.textContent).not.toMatch(/Replay Day|Replay date|5 of 5|Nov \d/);
-    expect(within(nav).getByRole('group', { name: 'Surveillance mode' })).toBeTruthy();
-    expect(within(nav).getByRole('button', { name: 'Scenario Replay' }).getAttribute('aria-pressed')).toBe('true');
+    // The context is chosen on the Dashboard, not in the sidebar.
+    expect(within(nav).queryByRole('group', { name: /Surveillance (mode|context)/ })).toBeNull();
+    expect(within(nav).queryByRole('button', { name: /Scenario Replay|Live Surveillance/ })).toBeNull();
+    expect(within(nav).queryByRole('link', { name: /^(Scenario Replay|Live Surveillance)/ })).toBeNull();
     for (const name of [/^Dashboard/, /^Signals/, /^Facilities/, /^Analytics/]) {
       expect(within(nav).getAllByRole('link', { name }).length).toBeGreaterThan(0);
     }
@@ -97,8 +99,8 @@ describe('sidebar', () => {
     await liveAt(/^Signals/, /Signals/);
     const nav = sidebar();
     expect(nav.textContent).not.toMatch(/Live surveillance date|Feb 13|Feeds running|Not started|Paused/i);
-    expect(within(nav).getByRole('button', { name: 'Live Surveillance' }).getAttribute('aria-pressed')).toBe('true');
-    // The top bar keeps the clock, at every width; the run state is the Live page's.
+    expect(within(nav).queryByRole('button', { name: 'Live Surveillance' })).toBeNull();
+    // The top bar keeps the clock, at every width; the run state is the Dashboard's.
     expect(within(topBar()).getByTestId('live-clock').textContent).toContain('Feb 13 · 10:30');
     expect(within(topBar()).queryByTestId('live-run-status')).toBeNull();
     expect(topBar().textContent).not.toMatch(/Paused|Not started|Running/);

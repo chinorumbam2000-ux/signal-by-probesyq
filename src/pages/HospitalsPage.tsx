@@ -138,7 +138,7 @@ export default function HospitalsPage() {
               <FacilityDataQuality
                 facility={activeHospital}
                 feed={activeFeed}
-                liveFeedsPath={isLive ? '/live' : undefined}
+                liveFeedsPath={isLive ? '/dashboard' : undefined}
               />
               <DataConfidenceCard confidence={period.dataConfidence} showFacts={false} breakdownOpen />
             </div>

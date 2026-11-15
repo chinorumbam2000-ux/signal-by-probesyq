@@ -214,8 +214,8 @@ describe('Dashboard hierarchy (Scenario Replay, Day 5)', () => {
 
 describe('Dashboard hierarchy (Live Surveillance)', () => {
   it('live dates on the indicators’ change and the alert summary; no replay wording', { timeout: 20000 }, async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
     fireEvent.click(screen.getAllByRole('button', { name: 'Start Live Surveillance' })[0]);

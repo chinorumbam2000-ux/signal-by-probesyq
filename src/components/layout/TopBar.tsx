@@ -106,7 +106,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               <span className="ml-2 font-normal text-muted">live surveillance date</span>
             </p>
           </div>
-          {/* The run state is the Live Surveillance page's (and the Dashboard's status line), not the top bar's. */}
+          {/* The run state is the Dashboard's Live strip's, not the top bar's. */}
         </>
       ) : classroom ? (
         <>

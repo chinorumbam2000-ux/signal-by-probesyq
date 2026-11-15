@@ -58,13 +58,13 @@ async function replayAt(path: string) {
 const count = (text: string, re: RegExp) => (text.match(re) ?? []).length;
 
 describe('one simulated-data disclosure per area', () => {
-  it('Live Surveillance: the top bar once, the page once, no card repeating it', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+  it('Live Surveillance: the top bar once, no card on the Dashboard repeating it', async () => {
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     expect(count(topBar().textContent ?? '', /simulated/gi)).toBe(1);
-    expect(screen.getByTestId('live-subtitle').textContent).toBe('Current simulated feed');
-    // The subtitle is the page's disclosure; the synthetic test observation names itself.
-    expect(count(main().textContent ?? '', /simulated/gi)).toBe(1);
+    // The top bar is the disclosure; the Dashboard's Live strip does not repeat it (the
+    // synthetic test observation names itself).
+    expect(count(screen.getByTestId('dashboard-live').textContent ?? '', /simulated/gi)).toBe(0);
     expect(screen.getByTestId('source-status').textContent).not.toMatch(/simulated/i);
     expect(screen.getByTestId('source-status').textContent).toMatch(/FHIR R4/);
   });
@@ -121,8 +121,8 @@ describe('About this data is the authoritative home', () => {
 
 describe('Live: "How this works" is short and points to System', () => {
   it('one collapsed disclosure with the pipeline, the reference-history line and the Detection Methods link', async () => {
-    renderAt('/live');
-    await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
+    renderAt('/dashboard');
+    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     const how = screen.getByTestId('live-how-it-works') as HTMLDetailsElement;
     expect(how.tagName).toBe('DETAILS');
     expect(how.open).toBe(false);
@@ -144,7 +144,7 @@ describe('System pages each have one purpose', () => {
     expect(explore.textContent).not.toMatch(/Current mode/i);
     const titles = within(explore).getAllByRole('link').map((a) => a.querySelector('.text-base')?.textContent?.replace(' →', ''));
     expect(titles).toEqual([
-      'Live Surveillance', 'Scenario Replay', 'Data Ingestion', 'Detection Methods', 'Integration Testing', 'Integration Demo', 'Validation', 'Architecture',
+      'Dashboard', 'Scenario Replay timeline', 'Data Ingestion', 'Detection Methods', 'Integration Testing', 'Integration Demo', 'Validation', 'Architecture',
     ]);
     expect(within(explore).getAllByText('Analyst page')).toHaveLength(2);
     expect(within(explore).getAllByText('System page')).toHaveLength(6);
@@ -176,7 +176,7 @@ describe('terminology', () => {
 
   it('the sidebar uses the final page names', () => {
     const labels = ANALYST_SECTIONS.flatMap((section) => section.items.map((item) => item.label));
-    expect(labels).toEqual(expect.arrayContaining(['Dashboard', 'Live Surveillance', 'Scenario Replay', 'Outbreak Map', 'Signals', 'Facilities', 'Laboratory Data', 'Analytics', 'Investigations', 'Reports']));
+    expect(labels).toEqual(['Dashboard', 'Outbreak Map', 'Signals', 'Facilities', 'Laboratory Data', 'Analytics', 'Investigations', 'Reports']);
   });
 });
 

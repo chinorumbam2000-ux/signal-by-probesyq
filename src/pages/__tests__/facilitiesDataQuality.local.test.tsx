@@ -183,7 +183,7 @@ describe('Live Surveillance keeps the feed operations', () => {
     await screen.findByRole('heading', { level: 1, name: 'Facilities' }, WAIT);
     expect(main().textContent).not.toMatch(/FHIR R4|HL7 v2|Last observation/);
     // In Live, the facility's quality points to where its feed is operated.
-    expect(screen.getByRole('link', { name: 'Feed operations on Live Surveillance' }).getAttribute('href')).toBe('/live');
+    expect(screen.getByRole('link', { name: 'Live feed operations on the Dashboard' }).getAttribute('href')).toBe('/dashboard');
   });
 });
 
@@ -191,7 +191,7 @@ describe('Roella', () => {
   const ask = (question: string) => answerText(answerQuestion(question, { day: 5, route: 'dashboard' }, {}).answer);
   it('tells Facilities, Live Surveillance, Laboratory Data and the Integration Demo apart', () => {
     expect(ask('What does the Facilities page show?')).toContain('facility contribution and data quality');
-    expect(ask('Where do I see the source feeds?')).toContain('Open Live Surveillance in the sidebar');
+    expect(ask('Where do I see the source feeds?')).toContain("Live Surveillance is the Dashboard's default context: open Dashboard in the sidebar");
     expect(ask('Where are the laboratory records?')).toContain('Open Laboratory Data in the sidebar');
     expect(ask('Where is the vendor sidecar?')).toContain('Open System → Integration Demo in the sidebar');
     expect(ask('Where can I see data quality?')).toContain('Open Facilities in the sidebar');

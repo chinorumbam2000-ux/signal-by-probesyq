@@ -81,5 +81,5 @@ After deploy:
 
 - [ ] https://chinorumbam2000-ux.github.io/signal-by-probesyq/ loads the sign-in screen with the PSQ mark and favicon
 - [ ] Sign in → Dashboard; "Start here" → Live Surveillance runs
-- [ ] Reload on `/signal-by-probesyq/live` and `/signal-by-probesyq/map?profile=covid-19` works
+- [ ] Reload on `/signal-by-probesyq/live` (opens the Dashboard in Live) and `/signal-by-probesyq/map?profile=covid-19` works
 - [ ] Browser devtools: no failed requests, no console errors

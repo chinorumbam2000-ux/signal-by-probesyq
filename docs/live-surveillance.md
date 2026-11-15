@@ -38,23 +38,35 @@ is the secondary, training mode.
 The two are separate synthetic scenarios, so their dates are intentionally
 independent; neither is out of step with the other.
 
-The switch sits at the top of the sidebar, Live Surveillance first. It
-changes the mode; it never starts the simulation.
+The choice is the Dashboard's compact surveillance context selector, at the
+top right of the Dashboard, Live Surveillance first. It changes the context;
+it never starts the simulation. The sidebar lists pages only — it has no Live
+Surveillance or Scenario Replay item and no mode switch.
 
 **One Start control.** The simulation is started in one place: the
-**Start Live Surveillance** button on the Live Surveillance page. The same
-controls then Pause, Resume and Reset it and set the speed. The top bar shows
-the live surveillance date and the run state ("Not started", "Running · 1×",
-"Paused", "Complete") as status only.
+**Start Live Surveillance** button in the Dashboard's Live Surveillance
+strip. The same controls then Pause, Resume and Reset it and set the speed
+(1× / 2× / 4×). The top bar shows the live surveillance date and clock only —
+no run state and no numeric score.
 
-**Dashboard and Live Surveillance.** The Dashboard is the surveillance
-overview; the Live Surveillance page operates the feed and details its
-sources. The Dashboard has one read-only line, from the live state —
-"Live Surveillance · Not started · 3 / 3 sources ready", "… · Running ·
-2 / 3 sources active · Shrewsbury Community delayed", "… · Paused · …",
-"… · Complete" — and no source cards, playback controls or second link. Its
-"Start here" strip offers **Open Live Surveillance** (navigation only) while it
-is shown; afterwards the sidebar (the menu on a phone) leads there.
+**The Dashboard is the operational home.** It is the first page after
+sign-in and opens in Live Surveillance. Its Live Surveillance strip holds the
+status line, from the live state — "Live Surveillance · Not started · 3 / 3
+sources ready", "… · Running · 2 / 3 sources active · Shrewsbury Community
+delayed", "… · Paused · …", "… · Complete" — beside the one control group.
+Beneath it, collapsed: **Source activity** (each source's type, state, last
+observation, messages and outage notes), **Today so far**, **Activity
+stream**, **Test tools** (the synthetic test observation) and **How this
+works**. The "Start here" strip only explains the product; it has no action of
+its own. The former `/live` address opens the Dashboard in Live Surveillance,
+keeping any query string and hash.
+
+**Scenario Replay from the Dashboard.** Choosing Scenario Replay with the
+context selector shows the Dashboard on the replay day, with the top bar's
+‹ › and Reset controls, and a compact strip linking to the scenario timeline
+at `/replay` (timeline, Auto Play, current state, change since the previous
+day, progression). `/replay` still opens directly; `/simulation` redirects to
+it.
 
 **What the Dashboard keeps.** The Dashboard summarises and links; the full
 pages own the detail. It shows the selected profile's outbreak score beside
@@ -64,19 +76,19 @@ indicators with their change since the previous day and the engine's own
 summary, and one line naming the highest-priority alert awaiting review with
 a link to Signals, where alerts are acknowledged and investigated.
 
-**Live Surveillance and Facilities.** Live Surveillance is the home of feed
-operations: each source's type (FHIR R4, HL7 v2, LIS/API), state, last
+**Live Surveillance and Facilities.** The Dashboard's Live Surveillance strip
+is the home of feed operations: each source's type (FHIR R4, HL7 v2, LIS/API), state, last
 observation, message counts and delay or outage notes. Facilities shows each
 facility's contribution and data quality (freshness, completeness, terminology
-mapping, integrity) and the Data Confidence breakdown; in Live it links back
-here for the feed itself.
+mapping, integrity) and the Data Confidence breakdown; in Live it links to
+the Dashboard for the feed itself.
 
 **Where each thing lives.** The top bar carries the global context: the mode
-with its one simulated-data disclosure, the Live clock and run status (or the
-replay day and its controls), the selected profile's reading on wider
-screens, the alerts bell (a list linking to Signals — acknowledgement happens
-on Signals), and the analyst. The sidebar holds the mode switch and the
-navigation, not a second copy of the date. Signals is the alert queue: queue
+with its one simulated-data disclosure, the Live clock (or the replay day
+and its controls), the alerts bell (a list linking to Signals — acknowledgement happens
+on Signals), and the analyst. The sidebar holds the navigation only
+(Overview: Dashboard; Surveillance; Action; System, collapsed; About this
+data), not a mode switch or a second copy of the date. Signals is the alert queue: queue
 counts and the alert table, with no copy of the Dashboard's score, scope or
 current figures. The profile selector names profiles; Active Surveillance
 compares their scores.
@@ -180,7 +192,7 @@ The stream never shows a patient reference, a pseudonym or a result value.
 
 ## Synthetic test observation
 
-The Live Surveillance page can send one synthetic TEST observation (facility,
+The Dashboard's Test tools (in Live Surveillance) can send one synthetic TEST observation (facility,
 test, positive or negative). It is encoded in the facility's own simulated
 format and processed exactly like any other. There is no way to set a score:
 the person changes data, never an outcome.
