@@ -13,13 +13,13 @@ import { usePortfolio } from '../../lib/profiles/usePortfolio';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../../lib/profiles/registry';
 import { STATUS_LABEL } from '../../lib/profiles/derive';
 import { useLiveSurveillance } from '../../context/LiveSurveillanceContext';
-import { LiveRunStatus, useLiveClock } from '../live/LiveParts';
+import { useLiveClock } from '../live/LiveParts';
 
 /**
  * The top bar: global context and global actions only. On analyst pages it
  * names the mode once, with its one simulated-data disclosure, then the Live
- * clock and run status, or the replay day and its controls (the calendar is
- * shared by every profile); the SELECTED profile's reading on wider screens;
+ * clock, or the replay day and its controls (the calendar is shared by every
+ * profile); the SELECTED profile's name and severity on wider screens;
  * the alerts bell; and the analyst. On Scenario Replay itself
  * the reading is the replay's own profile, Respiratory Viral Activity, named
  * as such. A profile without a score shows its status in words, never
@@ -61,7 +61,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   const readingStatusText = readingStatus === 'NO_DATA' ? 'No current data' : STATUS_LABEL[readingStatus ?? 'NO_DATA'];
   const readingAlerts = alerts.filter((a) => a.profileId === readingId && a.status !== 'Acknowledged').length;
   const readingLabel = `${onReplay ? 'Replay profile' : 'Selected profile'}: ${readingProfile.displayName}, ${
-    readingScore ? `${readingScore.severity}, score ${readingScore.composite} out of 100` : readingStatusText.toLowerCase()
+    readingScore ? readingScore.severity : readingStatusText.toLowerCase()
   }; ${readingAlerts} ${readingAlerts === 1 ? 'alert' : 'alerts'} awaiting acknowledgement`;
   const [showAlerts, setShowAlerts] = useState(false);
   const { session, signOut } = useDemoSession();
@@ -106,8 +106,7 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
               <span className="ml-2 font-normal text-muted">live surveillance date</span>
             </p>
           </div>
-          {/* Status only: the simulation is started and paused on the Live Surveillance page. */}
-          <LiveRunStatus />
+          {/* The run state is the Live Surveillance page's (and the Dashboard's status line), not the top bar's. */}
         </>
       ) : classroom ? (
         <>
@@ -205,16 +204,11 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             <span aria-hidden="true" className="max-w-[9rem] truncate text-sm font-semibold text-ink">
               {readingProfile.shortName}
             </span>
+            {/* Severity only: the score itself is on the page (Dashboard, Current State, alerts). */}
             {readingScore ? (
-              <>
-                <span aria-hidden="true">
-                  <SeverityBadge severity={readingScore.severity} />
-                </span>
-                <span aria-hidden="true" className="text-sm font-semibold tabular-nums text-ink">
-                  {readingScore.composite}
-                  <span className="text-muted">/100</span>
-                </span>
-              </>
+              <span aria-hidden="true">
+                <SeverityBadge severity={readingScore.severity} />
+              </span>
             ) : (
               <span
                 aria-hidden="true"

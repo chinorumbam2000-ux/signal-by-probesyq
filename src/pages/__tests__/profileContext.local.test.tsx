@@ -68,15 +68,16 @@ const reading = () => screen.getByTestId('profile-reading');
 const topBar = () => document.querySelector('header') as HTMLElement;
 
 describe('top bar follows the selected profile', () => {
-  it('shows the selected profile’s own score, never the replay’s', async () => {
+  it('shows the selected profile’s own severity, never the replay’s, and no score', async () => {
     atDay(5);
     renderAt('/map?profile=covid-19');
     await screen.findByRole('heading', { level: 1, name: 'Outbreak Map' }, WAIT);
     expect(reading().getAttribute('aria-label')).toBe(
-      'Selected profile: COVID-19, Critical, score 93 out of 100; 4 alerts awaiting acknowledgement',
+      'Selected profile: COVID-19, Critical; 4 alerts awaiting acknowledgement',
     );
-    expect(reading().textContent).toContain('93');
-    expect(reading().textContent).not.toContain('87');
+    expect(reading().getAttribute('title')).toBe(reading().getAttribute('aria-label'));
+    expect(reading().textContent).toBe('COVID-19Critical');
+    expect(topBar().textContent).not.toMatch(/\d+\s*\/\s*100|out of 100/);
     // The narrated stage is the replay's: not shown on a profile page.
     expect(topBar().textContent).not.toContain('Regional Early-Warning Signal');
   });
@@ -99,7 +100,7 @@ describe('top bar follows the selected profile', () => {
     atDay(5);
     renderAt('/replay?profile=covid-19');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
-    expect(reading().getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Activity, Critical, score 87/);
+    expect(reading().getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Activity, Critical;/);
     // The top bar carries the day and date; the stage is the page's story.
     expect(topBar().textContent).toContain('Day 5 of 5');
     expect(screen.getByTestId('replay-story').textContent).toContain('Regional Early-Warning Signal');
@@ -123,7 +124,7 @@ describe('top bar follows the selected profile', () => {
     atDay(5);
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', {}, WAIT);
-    expect(reading().getAttribute('aria-label')).toMatch(/^Selected profile: Respiratory Viral Activity, Critical, score 87/);
+    expect(reading().getAttribute('aria-label')).toMatch(/^Selected profile: Respiratory Viral Activity, Critical;/);
   });
 });
 

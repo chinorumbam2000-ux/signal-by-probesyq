@@ -75,19 +75,25 @@ describe('one Start control for Live Surveillance', () => {
     expect(starts[0].closest('[role=group]')?.getAttribute('aria-label')).toBe('Live simulation controls');
   });
 
-  it('the top bar shows the live state only — no playback control', async () => {
+  it('the top bar shows neither playback controls nor the run state; the Live page keeps the run state', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
     renderAt('/live');
     await screen.findByRole('heading', { level: 1, name: 'Live Surveillance' }, WAIT);
     vi.useFakeTimers();
     const bar = topBar();
-    const status = () => within(topBar()).getByTestId('live-run-status').textContent;
+    const RUN = /Not started|Running · \d×|Paused|Complete|Live simulation/;
+    const sources = () => screen.getByTestId('source-status').textContent;
     expect(within(bar).queryAllByRole('button').filter((b) => /start|pause|resume|reset|×$/i.test(b.textContent ?? ''))).toEqual([]);
-    expect(status()).toBe('Live simulation: Not started');
+    expect(within(bar).queryByTestId('live-run-status')).toBeNull();
+    expect(bar.textContent).not.toMatch(RUN);
+    expect(sources()).toContain('Sources · not started');
     fireEvent.click(button('Start Live Surveillance'));
-    expect(status()).toBe('Live simulation: Running · 1×');
+    expect(topBar().textContent).not.toMatch(RUN);
+    expect(sources()).toContain('3 / 3 sources active');
     fireEvent.click(button('❚❚ Pause'));
-    expect(status()).toBe('Live simulation: Paused');
+    expect(topBar().textContent).not.toMatch(RUN);
+    expect(sources()).toContain('Sources · paused');
+    expect(screen.getByRole('button', { name: '▶ Resume' })).toBeTruthy();
     expect(within(topBar()).queryAllByRole('button').filter((b) => /start|pause|resume|reset/i.test(b.textContent ?? ''))).toEqual([]);
   });
 
@@ -115,7 +121,7 @@ describe('one Start control for Live Surveillance', () => {
       vi.advanceTimersByTime(TICK_MS * 10);
     });
     expect(screen.getAllByTestId('live-clock')[0].textContent).toBe(clock); // the simulated clock stands still
-    expect(within(topBar()).getByTestId('live-run-status').textContent).toBe('Live simulation: Not started');
+    expect(screen.getByTestId('source-status').getAttribute('data-run-state')).toBe('idle');
     expect(screen.getByRole('button', { name: 'Start Live Surveillance' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: '❚❚ Pause' })).toBeNull();
     expect(screen.getByText(/No activity yet/)).toBeTruthy();
@@ -135,7 +141,7 @@ describe('one Start control for Live Surveillance', () => {
       vi.advanceTimersByTime(TICK_MS * 10);
     });
     expect(screen.getAllByTestId('live-clock')[0].textContent).toBe(clock); // the simulated clock stands still
-    expect(within(topBar()).getByTestId('live-run-status').textContent).toBe('Live simulation: Not started');
+    expect(screen.getByTestId('dashboard-live-status').textContent).toContain('Not started');
   });
 
   it('Start, then Pause / Resume / Reset and the speeds, all in the same place', async () => {

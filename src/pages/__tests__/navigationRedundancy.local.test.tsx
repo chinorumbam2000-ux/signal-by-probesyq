@@ -98,9 +98,10 @@ describe('sidebar', () => {
     const nav = sidebar();
     expect(nav.textContent).not.toMatch(/Live surveillance date|Feb 13|Feeds running|Not started|Paused/i);
     expect(within(nav).getByRole('button', { name: 'Live Surveillance' }).getAttribute('aria-pressed')).toBe('true');
-    // The top bar keeps them, at every width.
+    // The top bar keeps the clock, at every width; the run state is the Live page's.
     expect(within(topBar()).getByTestId('live-clock').textContent).toContain('Feb 13 · 10:30');
-    expect(within(topBar()).getByTestId('live-run-status').textContent).toContain('Paused');
+    expect(within(topBar()).queryByTestId('live-run-status')).toBeNull();
+    expect(topBar().textContent).not.toMatch(/Paused|Not started|Running/);
   });
 });
 
@@ -133,7 +134,7 @@ describe('top bar', () => {
   it('keeps the selected profile’s reading', async () => {
     await replayAt('/signals?profile=covid-19');
     const reading = within(topBar()).getByTestId('profile-reading');
-    expect(reading.getAttribute('aria-label')).toMatch(/^Selected profile: COVID-19, Critical, score 93 out of 100;/);
+    expect(reading.getAttribute('aria-label')).toMatch(/^Selected profile: COVID-19, Critical;/);
   });
 
   it('the bell lists alerts as links to Signals, with no Acknowledge control', async () => {

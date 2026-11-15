@@ -83,29 +83,10 @@ export function ModeSwitch({ onDark = false }: { onDark?: boolean }) {
 
 /* ------------------------------------------------------------------------ */
 
-/** The live simulation's state in words: "Not started", "Running · 2×", "Paused", "Complete". */
-export function useLiveRunLabel(): string {
-  const { simulator, playing, started, speed } = useLiveSurveillance();
-  if (simulator.finished) return 'Complete';
-  if (playing) return `Running · ${speed}×`;
-  return started ? 'Paused' : 'Not started';
-}
-
-/** The live simulation's state, for the top bar and the Dashboard: status only, never a control. */
-export function LiveRunStatus({ className = '' }: { className?: string }) {
-  const label = useLiveRunLabel();
-  return (
-    <span className={`shrink-0 rounded-full border border-hairline px-2 py-0.5 text-[11px] font-medium text-muted ${className}`} data-testid="live-run-status">
-      <span className="sr-only">Live simulation: </span>
-      {label}
-    </span>
-  );
-}
-
 /**
  * The live simulation's controls — the one place that starts it. They live
- * on the Live Surveillance page only: the Dashboard and the top bar show the
- * live state but never operate the simulator.
+ * on the Live Surveillance page only: the Dashboard's status line shows the
+ * live state but never operates the simulator.
  */
 export function LiveControls() {
   const { simulator, playing, started, speed, start, pause, resume, reset, setSpeed } = useLiveSurveillance();

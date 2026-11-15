@@ -184,6 +184,7 @@ describe('Live Surveillance', () => {
     // Visiting the replay switches back to it; its controls and data are the replay's.
     expect(window.sessionStorage.getItem(MODE_STORAGE_KEY)).toBe('replay');
     for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getAllByRole('button', { name: 'Next replay day' })[0]);
-    expect(screen.getByTestId('profile-reading').getAttribute('aria-label')).toMatch(/score 87 out of 100/);
+    expect(screen.getByTestId('profile-reading').getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Activity, Critical;/);
+    expect(screen.getByTestId('replay-current-state').textContent).toContain('87 / 100');
   });
 });
