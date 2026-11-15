@@ -242,8 +242,13 @@ statistical threshold and changes no score.
 - A report drafted from a COVID-19 alert describes COVID-19: its own figures,
   baseline, area disclosure and profile name. A profile without a score on the
   day cannot be reported, and the analyst is told why.
-- The clinician sidecar is a Respiratory Viral Activity example and is labelled
-  as such.
+- The clinician sidecar (System → Integration Demo) is a Respiratory Viral
+  Activity example and is labelled as such.
+- Facilities follows the selected profile: each facility's contribution (its
+  tests and whether it is part of the signal) and positivity are the profile's;
+  its data quality and the Data Confidence breakdown are source-wide and never
+  change the score. Its records link opens Laboratory Data filtered to the same
+  profile and facility.
 
 ## Backend: one engine, once per profile
 

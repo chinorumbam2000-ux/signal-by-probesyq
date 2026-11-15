@@ -69,6 +69,7 @@ const SYSTEM_ITEMS: SystemItem[] = [
   { to: '/fhir-ingestion', label: 'Data Ingestion', icon: '⇄', hint: 'FHIR R4 laboratory ingestion (development)', requires: 'api' },
   { to: '/dynamic-surveillance', label: 'Detection Methods', icon: '∿', hint: 'Dynamic surveillance, EWMA and CUSUM in detail', requires: 'api' },
   { to: '/smart-demo', label: 'Integration Testing', icon: '⚿', hint: 'SMART on FHIR sandbox launch', requires: 'smart' },
+  { to: '/integration-demo', label: 'Integration Demo', icon: '⧉', hint: 'The clinician sidecar inside simulated EHR environments' },
   { to: '/evaluation', label: 'Validation', icon: '⚖', hint: 'Method evaluation on synthetic scenarios', requires: 'api' },
   { to: '/architecture', label: 'Architecture', icon: '⊞', hint: 'How Signal by ProbeSyQ is built, and what is planned' },
   { to: '/overview', label: 'Project Overview', icon: '◈', hint: 'Workflow, routes and build status' },

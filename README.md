@@ -301,11 +301,12 @@ banner.
 | `/map` | Outbreak Map | Synthetic surveillance areas with zoom, pan, reset, legend, hover, click-to-detail, privacy-aware area panel |
 | `/laboratory-data` | Laboratory Data (FHIR observations) | Search, filters, sorting and pagination over the 699 synthetic `Observation` records |
 | `/signals` | Signals & Alerts | The alert queue: counts awaiting acknowledgement and detected on this day, and every alert with its profile, score and severity at detection, acknowledgement and review status. *Acknowledge*; *Investigate* starts the review and opens it on Investigations; an alert in review offers *Open Investigation* (current figures are on the Dashboard) |
-| `/facilities` | Facilities | Facility status (reporting, freshness, completeness, LOINC mapping, signal contribution), the selected facility's dashboard, data confidence and feed health, the clinician sidecar demonstration, and collapsed integration details. `/hospitals` (its former address) redirects here |
+| `/facilities` | Facilities | Facility contribution and data quality for the selected profile: a concise table (reporting, contribution, positivity, a one-line quality summary), the selected facility's activity with two compact trends and a link to its records on Laboratory Data (`/laboratory-data?profile=…&facility=…`), its own data-quality evidence and the full Data Confidence breakdown. Feed operations are on Live Surveillance; the sidecar demonstration is under System → Integration Demo. `/hospitals` (its former address) redirects here |
 | `/investigations` | Investigations | The signals that have entered review (new alerts stay on Signals): review status, assigned analyst and report. `?alert=<id>` opens one investigation: the score at detection with its one component breakdown, Why This Signal, the Data Confidence at detection, the human-in-the-loop review actions and *Prepare Public Health Report*. Old `/signals?alert=…` links are forwarded here |
 | `/analytics` | Analytics | Trends — test volume, positivity, signal score, geographic spread, each on its own scale |
 | `/replay` | Scenario Replay | The five-day simulated respiratory outbreak: replay controls and the day-by-day progression. `/simulation` (its former address) redirects here |
 | `/reports` | Reports | Simulated public-health reporting workflow and its audit timeline |
+| `/integration-demo` | System → Integration Demo | The clinician `VendorSidecar` inside three simulated EHR environments, with collapsed integration details (formerly on Facilities). A demonstration only — no vendor connection or partnership |
 | `/architecture` | System → Architecture | Current and future architecture, multi-source hooks, federated concept, status legend |
 | `/overview` | System → Project Overview | Workflow, links to every mode, key disclaimers, Presentation Mode, and (API mode, development) the readiness checklist |
 | `/fhir-ingestion` | System → Data Ingestion (API mode) | Synthetic FHIR ingestion, pipeline steps, source vs normalized record |
@@ -804,7 +805,9 @@ The point the prototype is making: **the EHR shell changes, LabSentinel does
 not.**
 
 One reusable `VendorSidecar` component is rendered, unchanged, inside all three
-simulated environments:
+simulated environments, on System → Integration Demo (`/integration-demo`; it
+was on Facilities until the Facilities page became purely facility
+contribution and data quality):
 
 - **Simulated Epic Environment** — Worcester Central Medical Center
 - **Simulated Oracle Health Environment** — Central Massachusetts Regional Hospital
@@ -1132,7 +1135,8 @@ src/
 │   │                  PrivacyValue
 │   ├── dashboard/     SectionHeading, CurrentSituationCard, KpiCard, TrendChart,
 │   │                  HighestRiskArea, AlertSummary, ScoreMovement, StartHere
-│   ├── hospitals/     HospitalDashboard, VendorSidecar, FhirStatusPanel
+│   ├── hospitals/     FacilityStatusOverview, FacilityDataQuality,
+│   │                  HospitalDashboard, VendorSidecar, IntegrationDetails
 │   ├── layout/        AppShell, Sidebar, TopBar
 │   ├── map/           OutbreakMap, ZipDetailPanel, MapLegend
 │   └── signals/       SignalTable, SignalInvestigation, SeverityBadge,

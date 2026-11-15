@@ -125,12 +125,12 @@ describe('Presentation Mode', () => {
   });
 
   it('moves between steps, following the real routes and noting what needs API mode', async () => {
-    // Step 3 (Hospitals). The Step 2 dashboard's Leaflet map cannot render in jsdom.
-    renderAt('/hospitals?presentation=true');
+    // Step 3 (the sidecar, now System → Integration Demo). The Step 2 dashboard's Leaflet map cannot render in jsdom.
+    renderAt('/integration-demo?presentation=true');
     const bar = await screen.findByRole('region', { name: 'Presentation mode' });
     expect(bar.textContent).toContain('Step 3 of 10');
     expect(bar.textContent).toContain('Vendor-agnostic sidecar');
-    await screen.findByRole('button', { name: 'Next replay day' });
+    await screen.findByRole('heading', { level: 1, name: 'Integration Demo' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Next ›' }));
     await screen.findByText('Data Ingestion needs the full-stack build (FastAPI and PostgreSQL).', {}, { timeout: 5000 }); // lazy route, cold
@@ -144,7 +144,7 @@ describe('Presentation Mode', () => {
     fireEvent.click(within(bar).getByRole('button', { name: '‹ Previous' }));
     fireEvent.click(within(bar).getByRole('button', { name: '‹ Previous' }));
     expect(bar.textContent).toContain('Step 3 of 10');
-    await screen.findByRole('button', { name: 'Next replay day' });
+    await screen.findByRole('heading', { level: 1, name: 'Integration Demo' });
 
     fireEvent.click(within(bar).getByRole('button', { name: 'Exit presentation' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Presentation mode' })).toBeNull());

@@ -1,5 +1,4 @@
 import type { FacilityFeedHealth, Hospital } from '../../types';
-import { formatMinutesAgo } from '../../lib/dataConfidence';
 
 /**
  * How a facility's laboratory data reaches Signal by ProbeSyQ, for the reader who
@@ -7,25 +6,22 @@ import { formatMinutesAgo } from '../../lib/dataConfidence';
  * routine work.
  *
  * Every row is either a fixed fact about the synthetic data model or a value
- * the app actually holds (the simulated feed telemetry, today's observation
- * count). Nothing here claims a live interface, a sync or an engine run that
- * the app has not performed.
+ * the app actually holds (the simulated feed's terminology mapping). Feed
+ * operations (last event, message counts) are on Live Surveillance. Nothing
+ * here claims a live interface, a sync or an engine run that the app has not
+ * performed.
  */
 export default function IntegrationDetails({
   facility,
   feed,
-  observationsToday,
 }: {
   facility: Hospital;
   feed: FacilityFeedHealth | undefined;
-  observationsToday: number;
 }) {
   const rows: Array<{ label: string; value: string }> = [
     { label: 'Source environment', value: facility.environmentLabel },
     { label: 'Record format', value: 'FHIR-style laboratory Observation (synthetic)' },
     { label: 'Test coding', value: feed?.isReporting ? `LOINC · ${feed.terminologyMappedPercent.toFixed(1)}% of results mapped` : 'LOINC' },
-    { label: 'Observations received today', value: String(observationsToday) },
-    { label: 'Last event received', value: feed?.isReporting ? formatMinutesAgo(feed.minutesSinceLastEvent) : 'No data currently available' },
   ];
 
   return (

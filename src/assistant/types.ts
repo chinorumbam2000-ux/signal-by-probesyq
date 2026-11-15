@@ -28,6 +28,7 @@ export type AssistantRoute =
   | 'dynamic-surveillance'
   | 'evaluation'
   | 'smart-demo'
+  | 'integration-demo'
   | 'other';
 
 export type DataMode = 'local' | 'api';

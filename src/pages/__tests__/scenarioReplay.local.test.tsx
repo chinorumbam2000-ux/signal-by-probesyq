@@ -150,7 +150,8 @@ describe('simulated-data disclosure', () => {
   it('keeps the simulated feed telemetry label on Facilities', async () => {
     renderAt('/facilities');
     await screen.findByRole('heading', { level: 1, name: 'Facilities' });
-    expect(screen.getAllByText(/Simulated feed telemetry/).length).toBeGreaterThan(0);
+    // The top bar's "Simulated surveillance data" covers Facilities; the EHR demonstration says so itself.
+    expect(within(topBar()).getByText('Simulated surveillance data')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/live (hospital|laboratory) feed|connected to (a|the) (hospital|EHR)/i);
   });
 });

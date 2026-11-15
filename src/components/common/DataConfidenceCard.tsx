@@ -39,12 +39,21 @@ interface DataConfidenceCardProps {
   confidence: DataConfidenceResult;
   /** Compact hides the component breakdown. */
   compact?: boolean;
+  /**
+   * The summary facts (facilities reporting, mapping, last event, issues).
+   * Left out where the same evidence is shown beside the card.
+   */
+  showFacts?: boolean;
+  /** Opens the component breakdown, where this card is its main home. */
+  breakdownOpen?: boolean;
   className?: string;
 }
 
 export default function DataConfidenceCard({
   confidence,
   compact = false,
+  showFacts = true,
+  breakdownOpen = false,
   className = '',
 }: DataConfidenceCardProps) {
   const styles = LEVEL_STYLES[confidence.level];
@@ -94,19 +103,21 @@ export default function DataConfidenceCard({
         />
       </div>
 
-      <ul className="mt-3 space-y-1">
-        {facts.map((fact) => (
-          <li key={fact} className="text-xs text-muted">
-            {fact}
-          </li>
-        ))}
-      </ul>
+      {showFacts ? (
+        <ul className="mt-3 space-y-1">
+          {facts.map((fact) => (
+            <li key={fact} className="text-xs text-muted">
+              {fact}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {!compact ? (
         <>
           <p className="mt-3 text-xs leading-relaxed text-ink">{confidence.explanation}</p>
 
-          <details className="mt-3 rounded-lg bg-canvas p-3">
+          <details className="mt-3 rounded-lg bg-canvas p-3" open={breakdownOpen || undefined}>
             <summary className="cursor-pointer text-xs font-medium text-brand">
               How this score was calculated
             </summary>

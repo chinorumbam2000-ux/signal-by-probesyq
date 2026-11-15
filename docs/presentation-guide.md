@@ -45,7 +45,7 @@ Use **Next ›** in the step bar; **Show step** returns to the step's page.
 |---|---|---|---|---|
 | 1 | Problem / overview | `/overview` | Walk through the workflow and the mode cards. | Seven-stage workflow, six destinations, key disclaimers. |
 | 2 | Frozen classroom demo | `/dashboard` | Press **›** in the top bar four times. | Top bar shows **Classroom Demo**. Composite score 0 → 24 → 50 → 74 → 87 (Day 5 Critical). |
-| 3 | Vendor-agnostic sidecar | `/hospitals` | Switch between the three environments. | The same sidecar inside simulated Epic, Oracle Health and MEDITECH shells; "no live vendor connection". |
+| 3 | Vendor-agnostic sidecar | `/integration-demo` | Switch between the three environments. | The same sidecar inside simulated Epic, Oracle Health and MEDITECH shells; "no live vendor connection". |
 | 4 | FHIR ingestion | `/fhir-ingestion` | Example **Influenza A positive Observation** → **Load Example** → **Ingest Synthetic FHIR**. | Received 1, validated 1, **Created 1**, duplicates 0, rejected 0; pipeline all SUCCESS. |
 | 5 | Normalization | same page, result panel | Read the source FHIR vs the normalized record. | LOINC 92142-9 Influenza A RNA → Respiratory Viral Activity; SNOMED CT result → **Positive**; Worcester Central Medical Center (HOSP-A); effective Jan 12, 2026, 9:30 AM ET vs received now; pseudonymised patient. |
 | 6 | Dynamic surveillance | `/dynamic-surveillance` | **Recalculate Dynamic Surveillance**. | Latest date 2026-01-20: **90, Critical**, with Why this signal, Data Confidence and provenance. |

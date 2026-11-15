@@ -197,7 +197,9 @@ describe('the small-count rule at facility and county level', () => {
     expect(screen.queryByText('3 of 41 tests positive')).toBeNull();
     expect(screen.queryByText('7.3%')).toBeNull();
     expect(screen.queryByRole('columnheader', { name: 'Result' })).toBeNull();
-    expect(screen.getByText(/Results are not listed here/)).toBeTruthy();
+    // No record list on Facilities: the records are one link away on Laboratory Data.
+    expect(screen.queryByText(/Patient ID/)).toBeNull();
+    expect(screen.getByTestId('facility-records-link').getAttribute('href')).toMatch(/^\/laboratory-data\?profile=[a-z0-9-]+&facility=HOSP-[ABC]$/);
   });
 
   it('shows a facility’s count once it meets the threshold', async () => {

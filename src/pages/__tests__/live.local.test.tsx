@@ -90,7 +90,7 @@ describe('Live Surveillance', () => {
 
   it('never shows the replay-narrated EHR sidecar beside live figures', async () => {
     window.sessionStorage.setItem(MODE_STORAGE_KEY, 'live');
-    renderAt('/hospitals');
+    renderAt('/integration-demo');
     expect(await screen.findByTestId('sidecar-live-note', undefined, WAIT)).toBeTruthy();
     expect(document.body.textContent).not.toContain('Respiratory Viral Activity · regional activity');
   });

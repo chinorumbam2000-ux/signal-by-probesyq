@@ -145,6 +145,7 @@ const ROUTES: AssistantRoute[] = [
   'dynamic-surveillance',
   'evaluation',
   'smart-demo',
+  'integration-demo',
 ];
 
 /** Addresses that are another name for a known page. */

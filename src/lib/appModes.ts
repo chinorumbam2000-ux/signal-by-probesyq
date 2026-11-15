@@ -7,7 +7,7 @@
  * indicator appears only on the System (technical) pages.
  */
 
-export type AppMode = 'overview' | 'classroom' | 'api' | 'dynamic' | 'smart' | 'evaluation';
+export type AppMode = 'overview' | 'classroom' | 'api' | 'dynamic' | 'smart' | 'integration' | 'evaluation';
 
 export interface ModeDefinition {
   label: string;
@@ -43,6 +43,11 @@ export const MODES: Record<AppMode, ModeDefinition> = {
     description: 'SMART on FHIR synthetic sandbox context',
     chip: 'border-[#7C3AED]/30 bg-[#F5F3FF] text-[#5B21B6]',
   },
+  integration: {
+    label: 'Integration Demo',
+    description: 'Simulated EHR environments — no vendor connection',
+    chip: 'border-[#7C3AED]/30 bg-[#F5F3FF] text-[#5B21B6]',
+  },
   evaluation: {
     label: 'Validation',
     description: 'Synthetic evaluation scenarios',
@@ -62,6 +67,7 @@ export const modeForPath = (pathname: string): AppMode => {
   if (first === 'fhir-ingestion') return 'api';
   if (first === 'dynamic-surveillance') return 'dynamic';
   if (first === 'smart-demo' || first === 'smart') return 'smart';
+  if (first === 'integration-demo') return 'integration';
   if (first === 'evaluation') return 'evaluation';
   return 'overview';
 };

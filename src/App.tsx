@@ -22,6 +22,7 @@ import ReportsPage from './pages/ReportsPage';
 import ArchitecturePage from './pages/ArchitecturePage';
 import OverviewPage from './pages/OverviewPage';
 import InvestigationsPage from './pages/InvestigationsPage';
+import IntegrationDemoPage from './pages/IntegrationDemoPage';
 
 /*
  * The API-capstone and SMART pages are loaded on demand: the public GitHub
@@ -131,6 +132,8 @@ export default function App() {
               <Route path="/simulation" element={<RenamedRoute to="/replay" />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/architecture" element={<ArchitecturePage />} />
+              {/* The EHR sidecar demonstration (formerly on Facilities): System, not analyst work. */}
+              <Route path="/integration-demo" element={<IntegrationDemoPage />} />
               {/* Development FHIR ingestion demo. Local mode shows a notice only. */}
               <Route path="/fhir-ingestion" element={<Deferred><FhirIngestionPage /></Deferred>} />
               {/* Dynamic surveillance (API mode), kept apart from the classroom demonstration. */}

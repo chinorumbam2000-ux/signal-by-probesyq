@@ -79,8 +79,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Facilities',
     title: 'Facilities',
     shows:
-      'every participating facility\'s status (reporting, freshness, completeness, LOINC mapping, contribution to the signal), then a dashboard for the selected facility, its data confidence and feed health, and the clinician sidecar inside each simulated EHR environment.',
-    use: 'Choose a facility in the status table to see its details.',
+      'facility contribution and data quality for the selected profile: each participating facility' + "'" + 's reporting status, what it contributes (its tests and whether it is part of the signal), its positivity and a one-line data-quality summary; then the selected facility' + "'" + 's activity and trends, its own data-quality evidence (freshness, completeness, terminology mapping, integrity) and the full Data Confidence breakdown, which never changes the outbreak score.',
+    use: 'Choose a facility in the table to see its details; its laboratory records are one link away on Laboratory Data. Feed operations are on Live Surveillance, and the EHR sidecar demonstration is under System → Integration Demo.',
   },
   investigations: {
     nav: 'Investigations',
@@ -104,7 +104,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Live Surveillance',
     title: 'Live Surveillance',
     shows:
-      'synthetic observations arriving through three simulated source feeds (FHIR R4, HL7 v2 and LIS/API), the sources’ status, the open day’s scores so far, the live activity stream, and a form to send a synthetic test observation.',
+      'synthetic observations arriving through three simulated source feeds (FHIR R4, HL7 v2 and LIS/API), each source’s operational status (state, last observation, messages), the open day’s scores so far, the live activity stream, and a form to send a synthetic test observation.',
     use: 'Start, pause, resume or reset the simulation and choose its speed. Each day closes at 19:30 and becomes the current signal on every page.',
   },
   reports: {
@@ -162,6 +162,13 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     use: 'Launch from here to see the clinician-facing sidecar read synthetic Observations.',
     requires: 'smart',
   },
+  'integration-demo': {
+    nav: 'Integration Demo',
+    section: 'System',
+    title: 'Integration Demo',
+    shows: 'the clinician sidecar inside three simulated EHR environments (generic shells labelled Epic, Oracle Health and MEDITECH), and how each facility' + "'" + 's synthetic data reaches Signal by ProbeSyQ. A demonstration only: no vendor connection or partnership.',
+    use: 'Switch between the simulated environments to see the same sidecar in each. The sidecar shows Scenario Replay' + "'" + 's Respiratory Viral Activity figures.',
+  },
 };
 
 /** Why a page cannot show its content in this build, or null when it can. */
@@ -178,7 +185,9 @@ export const pageUnavailable = (page: PageInfo, mode: DataMode, smartEnabled: bo
 /** Navigation targets: words in a question, and the screen that answers them. */
 export const NAVIGATION: Array<{ words: string[]; route: Exclude<AssistantRoute, 'other'>; what: string }> = [
   { words: ['map', 'zip', 'area', 'geograph', 'where is the outbreak'], route: 'map', what: 'surveillance areas and ZIP-level detail' },
-  { words: ['hospital', 'facility', 'facilities', 'vendor', 'sidecar', 'feed'], route: 'hospitals', what: 'facility-level details, feed health and the vendor sidecar' },
+  { words: ['vendor', 'sidecar', 'ehr environment', 'integration demo'], route: 'integration-demo', what: 'the clinician sidecar inside simulated EHR environments' },
+  { words: ['source feed', 'feed status', 'feed operation', 'live feed'], route: 'live', what: 'the operational status of each simulated source feed' },
+  { words: ['hospital', 'facility', 'facilities', 'data quality', 'feed'], route: 'hospitals', what: 'facility contribution and data quality, including the Data Confidence breakdown' },
   { words: ['trend', 'chart', 'over time', 'history', 'analytics'], route: 'analytics', what: 'score, volume, positivity and spread trends across the simulated days' },
   { words: ['observation', 'lab data', 'laboratory', 'records', 'results', 'loinc'], route: 'laboratory-data', what: 'the synthetic laboratory Observation records' },
   { words: ['acknowledge', 'alert queue'], route: 'signals', what: 'the alert queue, where alerts are acknowledged' },
@@ -202,7 +211,7 @@ export const CONCEPTS = {
   loinc:
     'LOINC is the standard code system for laboratory tests. Signal by ProbeSyQ routes results by LOINC code to their surveillance profiles — a pathogen-specific profile and the aggregate it belongs to — so the same test counts the same way whichever system sent it.',
   vendorAgnostic:
-    'Vendor-agnostic means one Signal by ProbeSyQ view works across EHR vendors. The Facilities page shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
+    'Vendor-agnostic means one Signal by ProbeSyQ view works across EHR vendors. System → Integration Demo shows the same sidecar inside simulated Epic, Oracle Health and MEDITECH environments; these are simulations, not connections to those vendors.',
 };
 
 /** The score's components and weights, from the scorer. */
@@ -247,7 +256,7 @@ export const fhirInThisBuild = (mode: DataMode): string =>
 export const smartInThisBuild = (smartEnabled: boolean): string =>
   smartEnabled
     ? 'In this build, the SMART Sandbox page can launch Signal by ProbeSyQ against the public SMART Health IT synthetic sandbox, with read-only access to Observations. No real EHR is involved.'
-    : "In this build no SMART launch happens: the vendor sidecar on the Facilities page shows where a SMART-launched view would sit inside each simulated EHR environment. The full-stack build of Signal by ProbeSyQ can enable a SMART launch against a public synthetic sandbox.";
+    : "In this build no SMART launch happens: the vendor sidecar under System → Integration Demo shows where a SMART-launched view would sit inside each simulated EHR environment. The full-stack build of Signal by ProbeSyQ can enable a SMART launch against a public synthetic sandbox.";
 
 export const OUT_OF_SCOPE =
   'I can help with Signal by ProbeSyQ, its surveillance data, outbreak signals, facilities, trends, analytics, and how the application works.';
@@ -274,5 +283,6 @@ export const PAGE_QUESTIONS: Record<AssistantRoute, string[]> = {
   'dynamic-surveillance': ['What does this page show?', 'How is the Composite Score calculated?', 'What does Data Confidence mean?'],
   evaluation: ['What does this page show?', 'How is the Composite Score calculated?', 'What is Signal by ProbeSyQ?'],
   'smart-demo': ['What is SMART on FHIR?', 'What is FHIR?', 'What does this page show?'],
+  'integration-demo': ['What does vendor-agnostic mean?', 'What is SMART on FHIR?', 'What does this page show?'],
   other: ['What is Signal by ProbeSyQ?', 'Summarize the current outbreak situation.', 'How does the Composite Outbreak Signal Score work?'],
 };

@@ -70,12 +70,13 @@ describe('navigation model', () => {
       ['/fhir-ingestion', 'Data Ingestion'],
       ['/dynamic-surveillance', 'Detection Methods'],
       ['/smart-demo', 'Integration Testing'],
+      ['/integration-demo', 'Integration Demo'],
       ['/evaluation', 'Validation'],
       ['/architecture', 'Architecture'],
       ['/overview', 'Project Overview'],
     ]);
     // A local build lists only the pages that work without a backend.
-    expect(systemItems('local', false).map((item) => item.to)).toEqual(['/architecture', '/overview']);
+    expect(systemItems('local', false).map((item) => item.to)).toEqual(['/integration-demo', '/architecture', '/overview']);
   });
 });
 
@@ -108,7 +109,7 @@ describe('Facilities', () => {
   it('is titled Facilities, with facility status first and Data Confidence in view', async () => {
     renderAt('/facilities');
     expect(await screen.findByRole('heading', { level: 1, name: 'Facilities' })).toBeTruthy();
-    const status = screen.getByRole('heading', { name: 'Facility status' }).closest('section') as HTMLElement;
+    const status = screen.getByRole('heading', { name: 'Facility overview' }).closest('section') as HTMLElement;
     expect(within(status).getByText('3 of 3 facilities reporting · all feeds healthy')).toBeTruthy();
     for (const name of ['Worcester Central Medical Center', 'Central Massachusetts Regional Hospital', 'Shrewsbury Community Medical Center']) {
       expect(within(status).getByText(name)).toBeTruthy();
@@ -123,9 +124,15 @@ describe('Facilities', () => {
     expect(lastPath).toBe('/facilities?from=bookmark');
   });
 
-  it('makes no status claim it cannot back', async () => {
+  it('makes no status claim it cannot back (Facilities and the Integration Demo)', async () => {
     renderAt('/facilities');
     await screen.findByRole('heading', { level: 1, name: 'Facilities' });
+    for (const claim of ['Signal Engine', 'Normalization', 'Last Sync', 'Interoperability Status', 'Connected']) {
+      expect(document.body.textContent).not.toContain(claim);
+    }
+    cleanup();
+    renderAt('/integration-demo');
+    await screen.findByRole('heading', { level: 1, name: 'Integration Demo' });
     const text = document.body.textContent ?? '';
     for (const claim of ['Signal Engine', 'Normalization', 'Last Sync', 'Interoperability Status', 'Connected']) {
       expect(text).not.toContain(claim);

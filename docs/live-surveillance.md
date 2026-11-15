@@ -64,6 +64,13 @@ indicators with their change since the previous day and the engine's own
 summary, and one line naming the highest-priority alert awaiting review with
 a link to Signals, where alerts are acknowledged and investigated.
 
+**Live Surveillance and Facilities.** Live Surveillance is the home of feed
+operations: each source's type (FHIR R4, HL7 v2, LIS/API), state, last
+observation, message counts and delay or outage notes. Facilities shows each
+facility's contribution and data quality (freshness, completeness, terminology
+mapping, integrity) and the Data Confidence breakdown; in Live it links back
+here for the feed itself.
+
 **Where each thing lives.** The top bar carries the global context: the mode
 with its one simulated-data disclosure, the Live clock and run status (or the
 replay day and its controls), the selected profile's reading on wider

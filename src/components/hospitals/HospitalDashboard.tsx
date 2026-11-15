@@ -10,10 +10,6 @@ import {
   YAxis,
 } from 'recharts';
 import type { HospitalMetrics, PrivacyResult } from '../../types';
-import { formatDateTime, formatSimulationDate } from '../../lib/format';
-import { getScenario } from '../../data/simulation';
-import SeverityBadge from '../signals/SeverityBadge';
-import { EmptyState } from '../common/States';
 import { useModeWording } from '../../lib/modeWording';
 
 const VOLUME_COLOR = '#2563EB';
@@ -33,8 +29,6 @@ interface HospitalDashboardProps {
   privacy: FacilityCountPrivacy;
   /** How a day is named: "Day 5" (Scenario Replay) or "Feb 12" (Live Surveillance). */
   label?: (day: number) => string;
-  /** The surveillance date shown; Scenario Replay's calendar by default. */
-  surveillanceDate?: string;
 }
 
 const axisProps = {
@@ -53,12 +47,17 @@ const tooltipStyles = {
   labelStyle: { color: '#0F172A', fontWeight: 600 },
 };
 
+/**
+ * One facility's activity for the selected profile: its tests, positivity and
+ * first signal, and two compact trends (volume and positivity). Individual
+ * laboratory records are on Laboratory Data, and the facility's data quality
+ * is in its own section, so neither is repeated here.
+ */
 export default function HospitalDashboard({
   metrics,
   currentDay,
   privacy,
   label = (day: number) => `Day ${day}`,
-  surveillanceDate,
 }: HospitalDashboardProps) {
   const today = privacy.on(currentDay);
   const stats = [
@@ -85,11 +84,6 @@ export default function HospitalDashboard({
           : 'Not contributing on this day'
         : 'No signal through the current day',
     },
-    {
-      label: surveillanceDate ? 'Live surveillance date' : 'Replay date',
-      value: formatSimulationDate(surveillanceDate ?? getScenario(currentDay).simulationDate),
-      note: surveillanceDate ? label(currentDay) : `Replay Day ${currentDay}`,
-    },
   ];
 
   const volumeData = metrics.volumeSeries.map((point) => ({
@@ -104,10 +98,15 @@ export default function HospitalDashboard({
   }));
   const wording = useModeWording();
   const withheldDays = metrics.positivitySeries.filter((point) => privacy.on(point.day).suppressed).map((p) => p.day);
+  // The charts in words, for screen readers (withheld days stay withheld).
+  const volumeSummary = `Tests by day: ${volumeData.map((p) => `${p.dayLabel} ${p.tests}`).join(', ')}.`;
+  const positivitySummary = `Positivity by day: ${positivityData
+    .map((p) => `${p.dayLabel} ${p.positivity === null ? 'withheld (fewer than 5 positives)' : `${p.positivity}%`}`)
+    .join(', ')}.`;
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((stat) => (
           <div key={stat.label} className="ls-card p-4">
             <p className="ls-label">{stat.label}</p>
@@ -122,10 +121,11 @@ export default function HospitalDashboard({
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <section className="ls-card">
           <header className="ls-card-header">
-            <h2 className="ls-card-title">Test Volume</h2>
+            <h3 className="ls-card-title">Test Volume</h3>
             <span className="ls-label">{wording.trendRange(currentDay)}</span>
           </header>
-          <div className="h-[200px] p-4">
+          <p className="sr-only">{volumeSummary}</p>
+          <div className="h-[180px] p-4" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={volumeData} margin={{ top: 4, right: 8, bottom: 0, left: -12 }}>
                 <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
@@ -145,10 +145,11 @@ export default function HospitalDashboard({
 
         <section className="ls-card">
           <header className="ls-card-header">
-            <h2 className="ls-card-title">Positivity Rate</h2>
+            <h3 className="ls-card-title">Positivity Rate</h3>
             <span className="ls-label">{wording.trendRange(currentDay)}</span>
           </header>
-          <div className="h-[200px] p-4">
+          <p className="sr-only">{positivitySummary}</p>
+          <div className="h-[180px] p-4" aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={positivityData}
@@ -187,62 +188,6 @@ export default function HospitalDashboard({
         </section>
       </div>
 
-      <section className="ls-card">
-        <header className="ls-card-header">
-          <h2 className="ls-card-title">Recent Observations — {label(currentDay)}</h2>
-          <div className="flex items-center gap-2">
-            <span className="ls-label">
-              {metrics.dayObservations.length} on this day ·{' '}
-              {metrics.observations.length} cumulative
-            </span>
-            <SeverityBadge severity={metrics.severity} />
-          </div>
-        </header>
-        {metrics.dayObservations.length === 0 ? (
-          <EmptyState
-            icon="≡"
-            title="No observations received yet"
-            message="This facility has not delivered any simulated laboratory observations for the current replay day."
-          />
-        ) : (
-          <>
-          <p className="px-4 pt-3 text-[11px] text-muted">
-            Results are not listed here: on a facility summary they would reveal counts the small-count rule
-            withholds. Individual records are on Laboratory Data.
-          </p>
-          <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Recent observations table">
-            <table className="w-full min-w-[720px] border-collapse">
-              <thead className="border-b border-hairline bg-canvas">
-                <tr>
-                  <th scope="col" className="ls-th">Date/Time</th>
-                  <th scope="col" className="ls-th">Patient ID</th>
-                  <th scope="col" className="ls-th">Test</th>
-                  <th scope="col" className="ls-th">LOINC</th>
-                  <th scope="col" className="ls-th">FHIR Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                {metrics.dayObservations.slice(0, 8).map((observation) => (
-                  <tr key={observation.id} className="hover:bg-canvas">
-                    <td className="ls-td text-muted">
-                      {formatDateTime(observation.effectiveDateTime)}
-                    </td>
-                    <td className="ls-td font-mono text-xs">{observation.patientId}</td>
-                    <td className="ls-td">{observation.testName}</td>
-                    <td className="ls-td font-mono text-xs text-muted">
-                      {observation.loincCode}
-                    </td>
-                    <td className="ls-td text-muted">
-                      {observation.fhirStatus} <span className="text-[#166534]">✓</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </>
-        )}
-      </section>
     </div>
   );
 }

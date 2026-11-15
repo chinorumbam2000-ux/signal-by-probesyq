@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useSimulation } from '../context/SimulationContext';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
@@ -58,7 +59,12 @@ export default function LaboratoryDataPage() {
 
   const [search, setSearch] = useState('');
   const [vendorFilter, setVendorFilter] = useState('all');
-  const [hospitalFilter, setHospitalFilter] = useState('all');
+  // ?facility=<code> (from Facilities' "View this facility's laboratory records") preselects that facility.
+  const [searchParams] = useSearchParams();
+  const [hospitalFilter, setHospitalFilter] = useState(() => {
+    const requested = searchParams.get('facility');
+    return requested === 'HOSP-A' || requested === 'HOSP-B' || requested === 'HOSP-C' ? requested : 'all';
+  });
   const [resultFilter, setResultFilter] = useState('all');
   const [testFilter, setTestFilter] = useState('all');
   const [dayFilter, setDayFilter] = useState('all');
