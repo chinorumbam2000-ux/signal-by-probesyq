@@ -166,8 +166,9 @@ describe('page headers and dates', () => {
     expect(screen.getByTestId('replay-subtitle').textContent).toBe('Historical training scenario');
     expect(pressed('Scenario Replay')).toBe('true');
     const header = screen.getByRole('heading', { level: 1, name: 'Scenario Replay' }).closest('header') as HTMLElement;
-    expect(header.textContent).toContain('Replay date:');
-    expect(header.textContent).toContain('Replay Day 1 of 5');
+    // The replay day and date are in the top bar; the page carries the day's story.
+    expect(within(topBar()).getByTestId('replay-day').textContent).toMatch(/^Day 1 of 5/);
+    expect(screen.getByTestId('replay-story').textContent).toContain('Day 1 of 5');
     expect(header.textContent).not.toMatch(/Live surveillance date|simulated clock|Simulated source feeds/i);
     expect(topBar().textContent).not.toMatch(/Live surveillance date|Simulated source feeds/);
     expect(screen.getAllByTestId('mode-caption')[0].textContent).toBe('Scenario Replay · Historical training scenario');
@@ -182,13 +183,13 @@ describe('page headers and dates', () => {
     for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     await within(topBar()).findByText(/Day 5 of 5/);
     expect([1, 2, 3, 4, 5].map((day) => getScoreForDay(day).composite)).toEqual([0, 24, 50, 74, 87]);
-    const table = screen.getAllByRole('table').find((t) => within(t).queryByRole('columnheader', { name: 'Persistence' })) as HTMLElement;
+    const table = screen.getByRole('table', { name: /five-day progression/ });
     const scores = within(table)
       .getAllByRole('row')
       .slice(1)
       .map((row) => {
         const cells = within(row).getAllByRole('cell');
-        return Number(cells[cells.length - 2]?.textContent);
+        return Number(cells[cells.length - 1].querySelector('.tabular-nums')?.textContent);
       });
     expect(scores).toEqual([0, 24, 50, 74, 87]);
   });

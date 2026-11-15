@@ -91,8 +91,8 @@ describe('Scenario Replay routes', () => {
     for (let i = 0; i < 4; i += 1) fireEvent.click(screen.getByRole('button', { name: 'Next replay day' }));
     await within(topBar()).findByText(/Day 5 of 5/);
     expect([1, 2, 3, 4, 5].map((day) => getScoreForDay(day).composite)).toEqual([0, 24, 50, 74, 87]);
-    const table = screen.getAllByRole('table').find((t) => within(t).queryByRole('columnheader', { name: 'Persistence' })) as HTMLElement;
-    const scores = within(table).getAllByRole('row').slice(1).map((row) => Number((() => { const cells = within(row).getAllByRole('cell'); return cells[cells.length - 2]?.textContent; })()));
+    const table = screen.getByRole('table', { name: /five-day progression/ });
+    const scores = within(table).getAllByRole('row').slice(1).map((row) => Number((() => { const cells = within(row).getAllByRole('cell'); return cells[cells.length - 1].querySelector('.tabular-nums')?.textContent; })()));
     expect(scores).toEqual([0, 24, 50, 74, 87]);
   });
 });

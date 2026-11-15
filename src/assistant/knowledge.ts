@@ -97,8 +97,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
   simulation: {
     nav: 'Scenario Replay',
     title: 'Scenario Replay',
-    shows: 'the five-day simulated respiratory outbreak scenario, its day-by-day progression and the replay controls.',
-    use: 'Step, play or reset the replay days here or with the controls in the top bar; every analyst page follows the same replay day.',
+    shows: 'the historical training scenario: the five-day simulated respiratory outbreak, the selected day' + "'" + 's stage and story, its Current State, what changed since the previous day, and the whole progression.',
+    use: 'Jump to any day on the five-day timeline or use Auto Play here; step back, forward or reset with the controls in the top bar. Every analyst page follows the same replay day.',
   },
   live: {
     nav: 'Live Surveillance',

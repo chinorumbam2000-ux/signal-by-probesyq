@@ -100,7 +100,9 @@ describe('top bar follows the selected profile', () => {
     renderAt('/replay?profile=covid-19');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
     expect(reading().getAttribute('aria-label')).toMatch(/^Replay profile: Respiratory Viral Activity, Critical, score 87/);
-    expect(topBar().textContent).toContain('Regional Early-Warning Signal');
+    // The top bar carries the day and date; the stage is the page's story.
+    expect(topBar().textContent).toContain('Day 5 of 5');
+    expect(screen.getByTestId('replay-story').textContent).toContain('Regional Early-Warning Signal');
     // The selection is kept for the way back.
     expect(lastSearch).toBe('?profile=covid-19');
   });

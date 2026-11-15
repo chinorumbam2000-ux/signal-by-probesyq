@@ -469,11 +469,17 @@ currentDay changes
    └── all three vendor sidecars updated
 ```
 
-Controls are available in the top bar (Previous / Next / Reset) on every page,
-and in full on `/simulation` (Previous Day, Advance Day, Auto Play, Pause, Reset
-Simulation). Auto Play advances roughly every 3 seconds and stops at Day 5.
-Previous cannot go below Day 1; Advance cannot go beyond Day 5; Reset always
-returns to Day 1.
+The replay day is changed in one of two ways. The top bar (on every
+Replay-scoped page) carries the day and date with Previous / Next / Reset; the
+Scenario Replay page (`/replay`) adds the five-day timeline, which jumps to any
+day, and one Auto Play control that becomes *Pause Auto Play* while it runs.
+Auto Play advances roughly every 3 seconds and stops at Day 5 (pressed on Day 5,
+it restarts from Day 1). Previous cannot go below Day 1; Next cannot go beyond
+Day 5; Reset always returns to Day 1. The Scenario Replay page carries the
+story — the day's stage and narrative, Current State (the one detailed
+snapshot, with the score), only what changed since the previous day with why
+the score moved, and a concise five-day progression table — rather than
+another copy of the day, date or controls.
 
 ### The simulation calendar
 

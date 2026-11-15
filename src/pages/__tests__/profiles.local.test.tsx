@@ -262,6 +262,6 @@ describe('profile-aware pages', () => {
     atDay(5);
     renderAt('/replay');
     await screen.findByRole('heading', { level: 1, name: 'Scenario Replay' }, WAIT);
-    expect(screen.getByText(/The narrated scenario is Respiratory Viral Activity/)).toBeTruthy();
+    expect(screen.getByTestId('replay-intro').textContent).toMatch(/showing how Respiratory Viral Activity — the aggregate respiratory profile — develops/);
   });
 });

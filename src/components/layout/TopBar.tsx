@@ -32,7 +32,6 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   const classroom = mode === 'classroom';
   const {
     currentDay,
-    currentScenario,
     simulationDate,
     signalScore,
     nextDay,
@@ -124,15 +123,15 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
                 Simulated surveillance data<span className="sr-only"> — about replay data</span>
               </Link>
             </p>
-            {/* The stage belongs to the narrated replay: shown on Scenario Replay only. */}
+            {/* The replay day and date; the stage is the Scenario Replay page's own story context. */}
             <p
               className="truncate text-sm font-semibold text-ink"
-              title={`Day ${currentDay} of 5 · ${onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}`}
+              title={`Day ${currentDay} of 5 · ${formatSimulationDate(simulationDate)}`}
               data-testid="replay-day"
             >
               Day {currentDay} of 5
               <span className="ml-2 font-normal text-muted">
-                {onReplay ? currentScenario.stage : formatSimulationDate(simulationDate)}
+                {formatSimulationDate(simulationDate)}
               </span>
             </p>
           </div>
@@ -158,7 +157,13 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
             >
               ›
             </button>
-            <button type="button" onClick={resetSimulation} className="ls-btn px-3 py-1.5">
+            <button
+              type="button"
+              onClick={resetSimulation}
+              className="ls-btn px-3 py-1.5"
+              aria-label="Reset Scenario Replay to Day 1"
+              title="Reset Scenario Replay to Day 1"
+            >
               Reset
             </button>
           </div>

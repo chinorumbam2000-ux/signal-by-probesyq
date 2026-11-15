@@ -2,14 +2,26 @@ import { useEffect } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 import Card from '../components/common/Card';
-import PageMeta from '../components/common/PageMeta';
 import DayOverDayChange from '../components/common/DayOverDayChange';
 import { ErrorState } from '../components/common/States';
 import SeverityBadge from '../components/signals/SeverityBadge';
 import { SEVERITY_STYLES } from '../lib/format';
 import { SCORE_DISCLAIMER_TEXT, withProductName } from '../lib/brand';
 import MethodNote from '../components/common/MethodNote';
+import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
 
+/**
+ * Scenario Replay (/replay): the historical training scenario. A known
+ * five-day progression of Respiratory Viral Activity, stepped through to see
+ * how the signal develops and how it is scored.
+ *
+ * Each piece of context has one home. The top bar carries the replay day and
+ * date with the previous / next / Reset controls (on every Replay-scoped
+ * page); this page carries the story: the five-day timeline (jump to any
+ * day), Auto Play, the selected day's stage and narrative, Current State (the
+ * one detailed snapshot, with the score), what changed since the previous
+ * day, and the whole progression in one concise table.
+ */
 export default function SimulationPage() {
   // This page is the Scenario Replay: visiting it switches the app to replay mode.
   const { setMode } = useLiveSurveillance();
@@ -18,22 +30,20 @@ export default function SimulationPage() {
     currentDay,
     currentScenario,
     signalScore,
+    dataConfidence,
     dayOverDay,
     isPlaying,
-    isFirstDay,
     isLastDay,
     error,
     clearError,
-    nextDay,
-    previousDay,
     goToDay,
-    resetSimulation,
     playSimulation,
     pauseSimulation,
     surveillanceDays,
     scoreForDay,
   } = useSimulation();
   const scenarios = surveillanceDays.map((item) => item.scenario);
+  const profileName = PROFILE_BY_ID[RVS_PROFILE_ID].displayName;
 
   if (error) {
     return (
@@ -49,73 +59,48 @@ export default function SimulationPage() {
     { label: 'Tests', value: currentScenario.totalTests.toLocaleString('en-US') },
     { label: 'Positives', value: currentScenario.totalPositives.toLocaleString('en-US') },
     { label: 'Positivity', value: `${currentScenario.positivityRate.toFixed(1)}%` },
-    { label: 'Affected Hospitals', value: `${currentScenario.affectedHospitals.length} / 3` },
-    { label: 'Affected ZIP Codes', value: `${currentScenario.affectedZipCodes.length} / 3` },
+    { label: 'Affected Facilities', value: `${currentScenario.affectedHospitals.length} / 3` },
+    { label: 'Affected Areas', value: `${currentScenario.affectedZipCodes.length} / 3` },
     {
       label: 'Persistence',
-      value: `${currentScenario.persistenceDays} ${
-        currentScenario.persistenceDays === 1 ? 'day' : 'days'
-      }`,
+      value: `${currentScenario.persistenceDays} ${currentScenario.persistenceDays === 1 ? 'day' : 'days'}`,
     },
-    { label: 'Signal Score', value: `${signalScore.composite} / 100` },
+    { label: 'Data Confidence', value: `${dataConfidence.score} / 100 · ${dataConfidence.level}` },
   ];
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            Scenario Replay
-          </h1>
-          <p className="mt-0.5 text-sm font-medium text-brand" data-testid="replay-subtitle">
-            Historical training scenario
-          </p>
-          <p className="mt-1 max-w-3xl text-sm text-muted">
-            A controlled, known five-day sequence for training, walkthroughs and review: how a simulated
-            respiratory outbreak signal developed across three fictional facilities. It is not the current
-            operational state — Live Surveillance is. Its replay dates are its own. Changing
-            the replay day here updates every analyst page: the dashboard, map, laboratory data,
-            signals, facilities and the clinician sidecar.
-          </p>
-          <p className="mt-1 max-w-3xl text-xs text-muted">
-            The narrated scenario is Respiratory Viral Activity, the aggregate respiratory profile. The other surveillance profiles on the
-            Dashboard follow the same replay day, with their own data and their own scores.
-          </p>
-        </div>
-        <PageMeta />
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Scenario Replay</h1>
+        <p className="mt-0.5 text-sm font-medium text-brand" data-testid="replay-subtitle">
+          Historical training scenario
+        </p>
+        <p className="mt-1 max-w-3xl text-sm text-muted" data-testid="replay-intro">
+          A controlled, known five-day sequence showing how {profileName} — the aggregate respiratory profile — develops
+          across three fictional facilities, on synthetic data. Live Surveillance is the operational mode; the replay
+          day chosen here (or with the top bar) is the one every analyst page shows.
+        </p>
       </header>
 
-      <div className={`ls-card overflow-hidden border ${styles.soft}`}>
+      {/* The story of the selected day, and the whole sequence to move through it. */}
+      <section
+        aria-labelledby="replay-story-title"
+        className={`ls-card overflow-hidden border ${styles.soft}`}
+        data-testid="replay-story"
+      >
         <span aria-hidden="true" className={`block h-1 w-full ${styles.accent}`} />
-        <div className="p-6">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div>
-              <p className="ls-label">Current Replay Day</p>
-              <p className="mt-1 text-4xl font-semibold tracking-tight text-ink">
-                Day {currentDay} <span className="text-muted">of 5</span>
-              </p>
-              <p className="mt-1.5 text-lg font-medium text-brand">
-                {currentScenario.stage}
-              </p>
-            </div>
-            <div className="text-left sm:ml-auto sm:text-right">
-              <p className="ls-label">Composite Signal Score</p>
-              <p className="mt-1 text-4xl font-semibold tabular-nums text-ink">
-                {signalScore.composite}
-                <span className="text-xl font-medium text-muted"> / 100</span>
-              </p>
-              <div className="mt-2 flex sm:justify-end">
-                <SeverityBadge severity={signalScore.severity} size="md" />
-              </div>
-            </div>
-          </div>
-
-          <p className="mt-5 max-w-4xl text-sm leading-relaxed text-ink">
+        <div className="p-5 sm:p-6">
+          <p className="ls-label">Replay day</p>
+          <h2 id="replay-story-title" className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+            Day {currentDay} <span className="text-muted">of 5</span>
+            <span className="mt-1 block text-lg font-medium text-brand">{currentScenario.stage}</span>
+          </h2>
+          <p className="mt-3 max-w-4xl text-sm leading-relaxed text-ink">
             {withProductName(currentScenario.description)}
           </p>
 
-          {/* Day-by-day progress rail: the isolated signal becoming regional. */}
-          <ol className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-5">
+          {/* The five-day timeline: the whole progression, and a way to jump to any day. */}
+          <ol className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-5" aria-label="Five-day timeline" data-testid="replay-timeline">
             {scenarios.map((scenario) => {
               const isCurrent = scenario.day === currentDay;
               const isReached = scenario.day <= currentDay;
@@ -135,24 +120,22 @@ export default function SimulationPage() {
                     }`}
                   >
                     <span
+                      aria-hidden="true"
                       className={`block h-1 w-full rounded-full ${
-                        isReached
-                          ? SEVERITY_STYLES[scenarioScore.severity].accent
-                          : 'bg-hairline'
+                        isReached ? SEVERITY_STYLES[scenarioScore.severity].accent : 'bg-hairline'
                       }`}
                     />
+                    {/* The visible text is the accessible name: "Day 2, Isolated Facility Signal, Score 24 · Watch". */}
                     <span className="mt-2 block text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
                       Day {scenario.day}
+                      <span className="sr-only">, </span>
                     </span>
-                    <span
-                      className={`mt-0.5 block text-xs font-medium leading-snug ${
-                        isReached ? 'text-ink' : 'text-muted'
-                      }`}
-                    >
+                    <span className={`mt-0.5 block text-xs font-medium leading-snug ${isReached ? 'text-ink' : 'text-muted'}`}>
                       {scenario.stage}
+                      <span className="sr-only">, </span>
                     </span>
                     <span className="mt-1 block text-[11px] tabular-nums text-muted">
-                      {isReached ? `Score ${scenarioScore.composite}` : 'Not yet reached'}
+                      {isReached ? `Score ${scenarioScore.composite} · ${scenarioScore.severity}` : 'Not yet reached'}
                     </span>
                   </button>
                 </li>
@@ -160,136 +143,102 @@ export default function SimulationPage() {
             })}
           </ol>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          {/* One stateful Auto Play control; day steps and Reset are in the top bar. */}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={previousDay}
-              disabled={isFirstDay}
+              onClick={isPlaying ? pauseSimulation : playSimulation}
+              aria-pressed={isPlaying}
               className="ls-btn"
+              data-testid="replay-autoplay"
             >
-              ‹ Previous Day
+              {isPlaying ? '❚❚ Pause Auto Play' : '▶ Auto Play'}
             </button>
-            <button
-              type="button"
-              onClick={nextDay}
-              disabled={isLastDay}
-              className="ls-btn-primary"
-            >
-              Advance Day ›
-            </button>
-            <button
-              type="button"
-              onClick={playSimulation}
-              disabled={isPlaying}
-              className="ls-btn"
-            >
-              ▶ Auto Play
-            </button>
-            <button
-              type="button"
-              onClick={pauseSimulation}
-              disabled={!isPlaying}
-              className="ls-btn"
-            >
-              ❚❚ Pause
-            </button>
-            <button type="button" onClick={resetSimulation} className="ls-btn">
-              ↺ Reset Replay
-            </button>
-
-            {isPlaying ? (
-              <span className="ml-1 inline-flex items-center gap-2 rounded-full bg-brand-light px-3 py-1 text-xs font-medium text-brand">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
-                Auto-playing — advances every 3 seconds, stops at Day 5
-              </span>
-            ) : null}
-            {isLastDay && !isPlaying ? (
-              <span className="ml-1 text-xs font-medium text-muted">
-                Final day reached. Reset to run the scenario again.
-              </span>
-            ) : null}
+            <span role="status" className="text-xs font-medium text-muted" data-testid="replay-autoplay-status">
+              {isPlaying
+                ? 'Auto-playing — advances every 3 seconds, stops at Day 5.'
+                : isLastDay
+                  ? 'Final day reached. Auto Play restarts from Day 1; Reset in the top bar returns there too.'
+                  : 'Steps through the remaining days, one every 3 seconds.'}
+            </span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <DayOverDayChange comparison={dayOverDay} />
-
-      <Card title="Current State" subtitle={`Derived from Replay Day ${currentDay}`}>
-        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4 xl:grid-cols-8">
-          {state.map((item) => (
-            <div key={item.label} className="rounded-lg bg-canvas p-3">
-              <dt className="ls-label">{item.label}</dt>
-              <dd className="mt-1 text-lg font-semibold tabular-nums text-ink">
-                {item.value}
-              </dd>
-            </div>
-          ))}
-          <div className="rounded-lg bg-canvas p-3">
-            <dt className="ls-label">Severity</dt>
-            <dd className="mt-1.5">
-              <SeverityBadge severity={signalScore.severity} />
-            </dd>
+      <Card title="Current State" subtitle="The selected replay day's figures">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3" data-testid="replay-current-state">
+          <div>
+            <p className="ls-label">Composite Outbreak Signal Score</p>
+            <p className="mt-1 flex items-center gap-2">
+              <span className="text-3xl font-semibold tabular-nums text-ink">
+                {signalScore.composite}
+                <span className="text-lg font-medium text-muted"> / 100</span>
+              </span>
+              <SeverityBadge severity={signalScore.severity} size="md" />
+            </p>
           </div>
-        </dl>
+          <dl className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
+            {state.map((item) => (
+              <div key={item.label} className="rounded-lg bg-canvas p-3">
+                <dt className="ls-label">{item.label}</dt>
+                <dd className="mt-1 text-sm font-semibold tabular-nums text-ink">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </Card>
+
+      <DayOverDayChange comparison={dayOverDay} concise />
 
       <Card
         title="How the outbreak develops"
-        subtitle="From an isolated laboratory signal to a regional multi-site signal"
+        subtitle="The whole five-day progression"
         bodyClassName="p-0"
       >
-        <div className="w-full overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse">
+        <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Five-day progression table">
+          <table className="w-full min-w-[620px] border-collapse">
+            <caption className="sr-only">
+              The five-day progression of {profileName}: stage, tests, positivity, affected facilities and areas, and score
+            </caption>
             <thead className="border-b border-hairline bg-canvas">
               <tr>
                 <th scope="col" className="ls-th">Day</th>
                 <th scope="col" className="ls-th">Stage</th>
                 <th scope="col" className="ls-th text-right">Tests</th>
                 <th scope="col" className="ls-th text-right">Positivity</th>
-                <th scope="col" className="ls-th text-right">Facilities</th>
-                <th scope="col" className="ls-th text-right">ZIPs</th>
-                <th scope="col" className="ls-th text-right">Persistence</th>
-                <th scope="col" className="ls-th text-right">Score</th>
-                <th scope="col" className="ls-th">Severity</th>
+                <th scope="col" className="ls-th text-right">Facilities · Areas</th>
+                <th scope="col" className="ls-th">Score</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
               {scenarios.map((scenario) => {
                 const isReached = scenario.day <= currentDay;
+                const isCurrent = scenario.day === currentDay;
                 const scenarioScore = scoreForDay(scenario.day);
                 return (
                   <tr
                     key={scenario.day}
-                    onClick={() => goToDay(scenario.day)}
-                    className={`cursor-pointer transition-colors hover:bg-canvas ${
-                      scenario.day === currentDay ? 'bg-brand-light' : ''
-                    } ${isReached ? '' : 'opacity-45'}`}
+                    aria-current={isCurrent ? 'step' : undefined}
+                    className={`${isCurrent ? 'bg-brand-light' : ''} ${isReached ? '' : 'text-muted'}`}
+                    data-testid="progression-row"
                   >
-                    <td className="ls-td font-semibold">Day {scenario.day}</td>
+                    <th scope="row" className="ls-td text-left font-semibold">Day {scenario.day}</th>
                     <td className="ls-td">{scenario.stage}</td>
-                    <td className="ls-td text-right tabular-nums">
-                      {isReached ? scenario.totalTests : '—'}
-                    </td>
+                    <td className="ls-td text-right tabular-nums">{isReached ? scenario.totalTests : '—'}</td>
                     <td className="ls-td text-right tabular-nums">
                       {isReached ? `${scenario.positivityRate.toFixed(1)}%` : '—'}
                     </td>
                     <td className="ls-td text-right tabular-nums">
-                      {isReached ? scenario.affectedHospitals.length : '—'}
-                    </td>
-                    <td className="ls-td text-right tabular-nums">
-                      {isReached ? scenario.affectedZipCodes.length : '—'}
-                    </td>
-                    <td className="ls-td text-right tabular-nums">
-                      {isReached ? scenario.persistenceDays : '—'}
-                    </td>
-                    <td className="ls-td text-right font-semibold tabular-nums">
-                      {isReached ? scenarioScore.composite : '—'}
+                      {isReached ? `${scenario.affectedHospitals.length} · ${scenario.affectedZipCodes.length}` : '—'}
                     </td>
                     <td className="ls-td">
                       {isReached ? (
-                        <SeverityBadge severity={scenarioScore.severity} />
+                        <span className="inline-flex items-center gap-2">
+                          <span className="font-semibold tabular-nums">{scenarioScore.composite}</span>
+                          <SeverityBadge severity={scenarioScore.severity} />
+                        </span>
                       ) : (
-                        <span className="text-xs text-muted">Not yet reached</span>
+                        <span className="text-xs">Not yet reached</span>
                       )}
                     </td>
                   </tr>
