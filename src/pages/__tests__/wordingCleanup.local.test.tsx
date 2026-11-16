@@ -119,14 +119,18 @@ describe('About this data is the authoritative home', () => {
   });
 });
 
-describe('Live: "How this works" is short and points to System', () => {
-  it('one collapsed disclosure with the pipeline, the reference-history line and the Detection Methods link', async () => {
-    renderAt('/dashboard');
+describe('Live: "How this works" lives under System → Architecture', () => {
+  it('not on the Dashboard; on Architecture, the pipeline, the reference-history line and the Detection Methods link', async () => {
+    const view = renderAt('/dashboard');
     await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
-    const how = screen.getByTestId('live-how-it-works') as HTMLDetailsElement;
-    expect(how.tagName).toBe('DETAILS');
-    expect(how.open).toBe(false);
-    expect(within(how).getByText('How this works')).toBeTruthy();
+    expect(screen.queryByTestId('live-how-it-works')).toBeNull();
+    expect(screen.queryByText('How this works')).toBeNull();
+    view.unmount();
+    renderAt('/architecture');
+    await screen.findByRole('heading', { level: 1, name: 'Signal by ProbeSyQ Architecture' }, WAIT);
+    const how = screen.getByTestId('live-how-it-works');
+    expect(how.closest('section')?.querySelector('h2')?.textContent).toBe('How Live Surveillance works');
+    expect(screen.getAllByTestId('live-how-it-works')).toHaveLength(1);
     expect(within(within(how).getByRole('list', { name: 'From observation to signal' })).getAllByRole('listitem').map((li) => li.textContent?.replace('→', '').trim())).toEqual([
       'Observation', 'Normalization', 'Profile routing', 'Surveillance calculation', 'Signal update',
     ]);

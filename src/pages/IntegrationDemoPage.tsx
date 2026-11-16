@@ -7,6 +7,7 @@ import IntegrationDetails from '../components/hospitals/IntegrationDetails';
 import { useLiveSurveillance } from '../context/LiveSurveillanceContext';
 import type { HospitalId } from '../types';
 import { PROFILE_BY_ID, RVS_PROFILE_ID } from '../lib/profiles/registry';
+import { InjectObservation } from '../components/live/LiveParts';
 
 /**
  * Each simulated environment gets a visually distinct but entirely generic
@@ -38,8 +39,9 @@ const ENVIRONMENT_THEMES: Record<
  * three simulated EHR environments, and how each facility's synthetic data
  * reaches Signal by ProbeSyQ. An integration demonstration, kept apart from
  * the analyst's Facilities page (surveillance contribution and data quality).
- * The SMART on FHIR sandbox launch and its sidecar (/smart/sidecar) are
- * separate and unchanged.
+ * Its test tools send one synthetic observation into Live Surveillance. The
+ * SMART on FHIR sandbox launch and its sidecar (/smart/sidecar) are separate
+ * and unchanged.
  */
 export default function IntegrationDemoPage() {
   const { currentDay, currentScenario, signalScore, facilities, dataConfidence, feedHealth, isLoading, error, clearError } =
@@ -208,6 +210,9 @@ export default function IntegrationDemoPage() {
           <IntegrationDetails facility={activeHospital} feed={activeFeed} />
         </>
       )}
+
+      {/* Test tools: one synthetic observation into Live Surveillance, through its facility's own source format. */}
+      <InjectObservation />
     </div>
   );
 }

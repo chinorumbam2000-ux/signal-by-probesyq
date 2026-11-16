@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /**
- * One control starts Live Surveillance: "Start Live Surveillance", on the
- * Dashboard's Live Surveillance strip. The top bar shows no run state; the
+ * One control starts Live Surveillance: "Start Live Surveillance", in the
+ * Dashboard's header, with Reset and the compact Speed selector. The top bar shows no run state; the
  * Dashboard's context selector changes context but never starts playback;
  * the former /live address opens the Dashboard.
  */
@@ -74,6 +74,9 @@ describe('one Start control for Live Surveillance', () => {
     expect(starts[0].textContent).toBe('▶ Start Live Surveillance');
     expect(starts[0].className).toContain('ls-btn-primary');
     expect(starts[0].closest('[role=group]')?.getAttribute('aria-label')).toBe('Live simulation controls');
+    // In the Dashboard's header, not in the Live strip.
+    expect(starts[0].closest('header')?.querySelector('h1')?.textContent).toBe('Regional Outbreak Status');
+    expect(screen.getByTestId('dashboard-live').contains(starts[0])).toBe(false);
   });
 
   it('the top bar shows neither playback controls nor the run state; the Live page keeps the run state', async () => {
@@ -98,19 +101,24 @@ describe('one Start control for Live Surveillance', () => {
     expect(within(topBar()).queryAllByRole('button').filter((b) => /start|pause|resume|reset/i.test(b.textContent ?? ''))).toEqual([]);
   });
 
-  it('the Dashboard\'s Live strip: the run state and the one set of controls, the detail collapsed beneath', async () => {
+  it('the Dashboard\'s Live strip: the run state, the detail in three collapsed cards; the controls are in the header', async () => {
     renderAt('/dashboard');
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     const live = screen.getByTestId('dashboard-live');
     expect(screen.getByTestId('dashboard-live-status').textContent).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
-    expect(within(live).getByRole('group', { name: 'Live simulation controls' })).toBeTruthy();
+    // The one control group is in the header; the strip holds no playback control.
+    expect(screen.getAllByRole('group', { name: 'Live simulation controls' })).toHaveLength(1);
+    expect(within(live).queryByRole('group', { name: 'Live simulation controls' })).toBeNull();
+    expect(within(live).queryAllByRole('button')).toEqual([]);
     expect(startButtons()).toHaveLength(1);
-    // The operational detail is there, collapsed.
-    for (const id of ['live-sources', 'live-today', 'live-activity', 'inject', 'live-how-it-works']) {
+    // The operational detail is there, collapsed; the test tools and How this works are under System.
+    for (const id of ['live-sources', 'live-today', 'live-activity']) {
       const section = within(live).getByTestId(id) as HTMLDetailsElement;
       expect(section.tagName, id).toBe('DETAILS');
       expect(section.open, id).toBe(false);
     }
+    expect(screen.queryByTestId('inject')).toBeNull();
+    expect(screen.queryByTestId('live-how-it-works')).toBeNull();
     expect(within(live).getByTestId('source-status').textContent).toMatch(/FHIR R4/);
   });
 
@@ -156,13 +164,18 @@ describe('one Start control for Live Surveillance', () => {
     vi.useFakeTimers();
     const controls = () => screen.getByRole('group', { name: 'Live simulation controls' });
     const names = () => within(controls()).getAllByRole('button').map((b) => b.textContent);
-    expect(names()).toEqual(['▶ Start Live Surveillance', '↺ Reset', '1×', '2×', '4×']);
+    expect(names()).toEqual(['▶ Start Live Surveillance', '↺ Reset', 'Speed: 1×']);
     fireEvent.click(within(controls()).getByRole('button', { name: 'Start Live Surveillance' }));
-    expect(names()).toEqual(['❚❚ Pause', '↺ Reset', '1×', '2×', '4×']);
+    expect(names()).toEqual(['❚❚ Pause', '↺ Reset', 'Speed: 1×']);
     expect(vi.getTimerCount()).toBe(1);
+    fireEvent.click(within(controls()).getByRole('button', { name: 'Speed: 1×' }));
     fireEvent.click(within(controls()).getByRole('button', { name: '2×' }));
-    expect(within(controls()).getByRole('button', { name: '2×' }).getAttribute('aria-pressed')).toBe('true');
-    expect(vi.getTimerCount()).toBe(1);
+    expect(names()).toEqual(['❚❚ Pause', '↺ Reset', 'Speed: 2×']);
+    // Moving focus in and out of the speed list queues React's own zero-delay work; flush it, then count.
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+    expect(vi.getTimerCount()).toBe(1); // still exactly one playback timer
     const clock = () => screen.getAllByTestId('live-clock')[0].textContent;
     const before = clock();
     act(() => {
@@ -196,7 +209,7 @@ describe('Roella: how to start Live Surveillance', () => {
       const a = ask(q, liveCtx({ started: false, playing: false }));
       expect(a.intent, q).toBe('mode_start');
       expect(a.text).toContain('On the Dashboard');
-      expect(a.text).toContain('press Start Live Surveillance in the Live Surveillance strip at the top');
+      expect(a.text).toContain('press Start Live Surveillance in the Live Surveillance controls at the top');
       expect(a.text).toContain('They are the only ones: the rest of the app shows the live data but never starts or stops it.');
       expect(a.text).toContain('It has not started yet.');
     }

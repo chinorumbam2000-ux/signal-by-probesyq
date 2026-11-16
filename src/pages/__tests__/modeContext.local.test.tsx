@@ -13,6 +13,7 @@ import { MINUTES_PER_TICK, MODE_STORAGE_KEY, TICK_MS } from '../../context/LiveS
 import { ALL_DATES } from '../../lib/live/dataset';
 import { END_MINUTE, operatingMinute } from '../../lib/live/simulator';
 import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
+import { chooseSpeed } from './liveSpeed';
 
 vi.mock('../../components/map/OutbreakMap', () => ({
   default: () => <div data-testid="outbreak-map" />,
@@ -64,7 +65,7 @@ async function liveDuringOutage() {
   renderAt('/dashboard');
   await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
   vi.useFakeTimers();
-  fireEvent.click(button('4×'));
+  chooseSpeed(4);
   fireEvent.click(button('Start Live Surveillance'));
   const target = operatingMinute(dayIndex('2026-02-13'), 10 * 60 + 30);
   act(() => {
@@ -164,13 +165,14 @@ describe('Scenario Replay keeps its own wording', () => {
 });
 
 describe('Dashboard / Live Surveillance overlap', () => {
-  it('the Dashboard has one Live strip: the status line and the controls, the sources collapsed', async () => {
+  it('the Dashboard has one Live strip: the status line, the sources collapsed; the controls in the header', async () => {
     renderAt('/dashboard');
     const live = await screen.findByTestId('dashboard-live', undefined, WAIT);
     const line = within(live).getByTestId('dashboard-live-status');
     expect(line.textContent?.replace(/·, /g, ' · ')).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
     expect(line.getAttribute('role')).toBe('status');
-    expect(within(live).getByRole('group', { name: 'Live simulation controls' })).toBeTruthy();
+    expect(screen.getAllByRole('group', { name: 'Live simulation controls' })).toHaveLength(1);
+    expect(within(live).queryByRole('group', { name: 'Live simulation controls' })).toBeNull();
     // The source cards are there, collapsed under "Source activity".
     const sources = within(live).getByTestId('live-sources') as HTMLDetailsElement;
     expect(sources.open).toBe(false);

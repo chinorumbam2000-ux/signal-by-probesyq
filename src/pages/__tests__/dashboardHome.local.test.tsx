@@ -102,18 +102,20 @@ describe('NAVIGATION: the sidebar lists pages, not modes', () => {
 });
 
 describe('LIVE: the Dashboard is the Live operational home', () => {
-  it('opens in Live context with the one Start, the strip and its collapsed detail', async () => {
+  it('opens in Live context with the one Start in the header, the strip and its collapsed detail', async () => {
     renderAt('/dashboard');
     await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     expect(pressed('Live Surveillance')).toBe('true');
     const live = screen.getByTestId('dashboard-live');
     expect(within(live).getByTestId('dashboard-live-status').textContent).toBe('Live Surveillance · Not started · 3 / 3 sources ready');
-    expect(within(within(live).getByRole('group', { name: 'Live simulation controls' })).getAllByRole('button').map((b) => b.textContent)).toEqual([
-      '▶ Start Live Surveillance', '↺ Reset', '1×', '2×', '4×',
+    const header = screen.getByRole('heading', { level: 1, name: 'Regional Outbreak Status' }).closest('header') as HTMLElement;
+    expect(within(within(header).getByRole('group', { name: 'Live simulation controls' })).getAllByRole('button').map((b) => b.textContent)).toEqual([
+      '▶ Start Live Surveillance', '↺ Reset', 'Speed: 1×',
     ]);
-    const summaries = Array.from(live.querySelectorAll('details > summary')).map((s) => s.textContent?.replace(/[›⌄▾]/g, '').trim());
-    expect(summaries).toEqual(['Source activity', 'Today so far', 'Activity stream', 'Test tools: inject a synthetic test observation', 'How this works']);
+    const titles = Array.from(live.querySelectorAll('details > summary')).map((s) => s.querySelector('.font-semibold')?.textContent);
+    expect(titles).toEqual(['Source activity', 'Today so far', 'Activity stream']);
     expect(Array.from(live.querySelectorAll('details')).every((d) => !d.open)).toBe(true);
+    expect(live.textContent).not.toMatch(/Test tools|How this works/);
     expect(screen.queryByTestId('dashboard-replay')).toBeNull();
   });
 
@@ -190,7 +192,7 @@ describe('ROELLA: navigation answers follow the Dashboard', () => {
   const ask = (q: string) => answerText(answerQuestion(q, { day: 5, route: 'dashboard' }, {}).answer);
 
   it('points Live Surveillance, Scenario Replay and the Dashboard to the right place', () => {
-    expect(ask('Where do I start Live Surveillance?')).toContain('press Start Live Surveillance in the Live Surveillance strip');
+    expect(ask('Where do I start Live Surveillance?')).toContain('press Start Live Surveillance in the Live Surveillance controls at the top');
     expect(ask('Where is Live Surveillance?')).toContain("Live Surveillance is the Dashboard's default context");
     expect(ask('Where is Scenario Replay?')).toContain("Switch the Dashboard's context selector to Scenario Replay");
     expect(ask('What is the Dashboard?')).toContain('operational home');

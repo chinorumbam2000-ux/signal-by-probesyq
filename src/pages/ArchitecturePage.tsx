@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Card from '../components/common/Card';
 import PageMeta from '../components/common/PageMeta';
+import { LiveHowItWorks } from '../components/live/LiveParts';
 import { useDataSourceContext } from '../data-access/DataSourceProvider';
 import FlowDiagram, { type FlowStep } from '../components/architecture/FlowDiagram';
 import FederatedConcept from '../components/architecture/FederatedConcept';
@@ -259,6 +260,16 @@ export default function ArchitecturePage() {
           values. It has no live connection to any hospital, laboratory, EHR vendor or
           public-health authority.
         </p>
+      </Card>
+
+      {/* ============ LIVE SURVEILLANCE ============ */}
+      <Card
+        id="live-surveillance"
+        title="How Live Surveillance works"
+        subtitle="From one synthetic observation to a signal update"
+        action={<StatusBadge status="PROTOTYPE" />}
+      >
+        <LiveHowItWorks />
       </Card>
 
       {/* ============ GEOGRAPHY ============ */}

@@ -10,6 +10,7 @@ import App from '../../App';
 import { MODE_STORAGE_KEY, MINUTES_PER_TICK, TICK_MS } from '../../context/LiveSurveillanceContext';
 import { OPERATING_MINUTES } from '../../lib/live/dataset';
 import { signInForTest } from './signedIn';
+import { chooseSpeed } from './liveSpeed';
 
 vi.mock('../../components/map/OutbreakMap', () => ({
   default: () => <div data-testid="outbreak-map" />,
@@ -98,7 +99,7 @@ describe('Live Surveillance', () => {
     renderAt('/dashboard');
     await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
-    expect(screen.getByText(/No activity yet/)).toBeTruthy();
+    expect(within(screen.getByTestId('activity-stream')).getByText(/No activity yet/)).toBeTruthy();
     const sources = () => screen.getByTestId('source-status');
     expect(sources().getAttribute('data-run-state')).toBe('idle');
     // The page and top bar say the sources are simulated; the panel does not repeat it.
@@ -124,7 +125,7 @@ describe('Live Surveillance', () => {
     play(60);
     fireEvent.click(button('↺ Reset'));
     expect(vi.getTimerCount()).toBe(0);
-    expect(screen.getByText(/No activity yet/)).toBeTruthy();
+    expect(within(screen.getByTestId('activity-stream')).getByText(/No activity yet/)).toBeTruthy();
     expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' }).length).toBeGreaterThan(0);
   });
 
@@ -132,7 +133,7 @@ describe('Live Surveillance', () => {
     renderAt('/dashboard');
     await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
-    fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
+    chooseSpeed(4);
     fireEvent.click(button('Start Live Surveillance'));
     play(OPERATING_MINUTES * 8 + 30, 4);
     fireEvent.click(button('❚❚ Pause'));
@@ -166,14 +167,22 @@ describe('Live Surveillance', () => {
     await screen.findByText(/Closed days through Feb 15/, {}, WAIT);
   });
 
-  it('sends a synthetic test observation through the same pipeline (no way to set a score)', async () => {
-    renderAt('/dashboard');
-    await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
+  it('sends a synthetic test observation through the same pipeline (no way to set a score), from System → Integration Demo', async () => {
+    renderAt('/integration-demo');
+    await screen.findByRole('heading', { level: 1, name: 'Integration Demo' }, WAIT);
     const inject = screen.getByTestId('inject');
+    expect(within(inject).getByRole('heading', { name: 'Test tools: inject a synthetic test observation' })).toBeTruthy();
     expect(within(inject).queryByLabelText(/score/i)).toBeNull();
+    fireEvent.change(within(inject).getByLabelText('Facility'), { target: { value: 'HOSP-B' } });
+    fireEvent.click(within(inject).getByLabelText('Negative'));
     fireEvent.click(within(inject).getByRole('button', { name: 'Send test observation' }));
-    expect(within(inject).getByRole('status').textContent).toContain('Sent: SARS-CoV-2 RNA, positive, from Worcester Central (FHIR R4).');
+    expect(within(inject).getByRole('status').textContent).toMatch(/^Sent: SARS-CoV-2 RNA, negative, from .+ \(HL7 v2\)\.$/);
+    // The same Live state: the Dashboard's activity stream records it.
+    fireEvent.click(screen.getAllByRole('link', { name: /^Dashboard/ })[0]);
+    await screen.findByTestId('dashboard-live', undefined, WAIT);
     expect(screen.getByTestId('activity-stream').textContent).toContain('synthetic test observation');
+    expect(screen.getByTestId('live-activity-summary').textContent).toMatch(/^Latest: /);
+    expect(screen.queryByTestId('inject')).toBeNull();
   });
 
   it('leaves Scenario Replay untouched', async () => {

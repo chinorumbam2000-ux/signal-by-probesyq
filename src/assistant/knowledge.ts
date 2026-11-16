@@ -53,8 +53,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     nav: 'Dashboard',
     title: 'Regional Outbreak Status',
     shows:
-      'the operational home and surveillance overview. At the top, the surveillance context (Live Surveillance by default, or Scenario Replay) and, in Live Surveillance, the Live Surveillance controls with the sources, today so far and the activity stream collapsed beneath them; then Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the Composite Outbreak Signal Score beside Data Confidence, the key indicators with their change since the previous day and why the score moved, a small trend, a geographic summary, and the highest-priority alert awaiting review across every profile.',
-    use: 'Start Live Surveillance with the controls at the top (Pause, Resume, Reset and 1×, 2× or 4× are there too), or switch the context selector to Scenario Replay. Then start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, and review alerts in Signals. Facility data quality is on Facilities, trend detail on Analytics.',
+      'the operational home and surveillance overview. At the top, the surveillance context (Live Surveillance by default, or Scenario Replay) and, in Live Surveillance, the Live Surveillance controls (Start, Pause or Resume, Reset and the Speed selector) beside it, then the run state with the source activity, today so far and the activity stream in collapsed cards; then Active Surveillance — every surveillance profile (the aggregate Respiratory Viral Activity and Gastrointestinal Syndrome, and the pathogen-specific Influenza A, COVID-19, RSV and Cholera), each scored against its own baseline — then, for the selected profile, the Composite Outbreak Signal Score beside Data Confidence, the key indicators with their change since the previous day and why the score moved, a small trend, a geographic summary, and the highest-priority alert awaiting review across every profile.',
+    use: 'Start Live Surveillance with the controls at the top (Pause, Resume, Reset and the Speed selector — 1×, 2× or 4× — are there too), or switch the context selector to Scenario Replay. Then start with Active Surveillance to see which profiles need attention, choose one with the Surveillance profile selector, and review alerts in Signals. Facility data quality is on Facilities, trend detail on Analytics.',
   },
   map: {
     nav: 'Outbreak Map',
@@ -108,8 +108,8 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     title: 'Live Surveillance',
     reachedBy: 'Live Surveillance is the Dashboard' + "'" + 's default context: open Dashboard in the sidebar and use the Live Surveillance controls at the top',
     shows:
-      'the Dashboard' + "'" + 's Live Surveillance strip — the run state and the controls — and, collapsed beneath it, the three simulated source feeds (FHIR R4, HL7 v2 and LIS/API) with each source' + "'" + 's state, last observation and messages, today' + "'" + 's provisional readings, the live activity stream, a test tool to send a synthetic observation, and How this works.',
-    use: 'Start, pause, resume or reset the simulation and choose its speed there. Each day closes at 19:30 and becomes the current signal on every page.',
+      'the Dashboard' + "'" + 's Live Surveillance controls at the top and its run state, with, in collapsed cards beneath it, the three simulated source feeds (FHIR R4, HL7 v2 and LIS/API) with each source' + "'" + 's state, last observation and messages, today' + "'" + 's provisional readings and the live activity stream. The test tools are under System → Integration Demo, and how it works under System → Architecture.',
+    use: 'Start, pause, resume or reset the simulation and choose its speed with the Speed selector there. Each day closes at 19:30 and becomes the current signal on every page.',
   },
   reports: {
     nav: 'Reports',
@@ -122,7 +122,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     section: 'System',
     title: 'Signal by ProbeSyQ Architecture',
     shows:
-      'the current prototype pipeline, the configurable geography, future multi-source surveillance, the next development stage and the longer-term architecture, each labelled with its status.',
+      'the current prototype pipeline, how Live Surveillance turns an observation into a signal update, the configurable geography, future multi-source surveillance, the next development stage and the longer-term architecture, each labelled with its status.',
     use: 'Read the status labels to separate what this prototype implements from what is planned.',
   },
   overview: {
@@ -171,7 +171,7 @@ export const PAGES: Record<Exclude<AssistantRoute, 'other'>, PageInfo> = {
     section: 'System',
     title: 'Integration Demo',
     shows: 'the clinician sidecar inside three simulated EHR environments (generic shells labelled Epic, Oracle Health and MEDITECH), and how each facility' + "'" + 's synthetic data reaches Signal by ProbeSyQ. A demonstration only: no vendor connection or partnership.',
-    use: 'Switch between the simulated environments to see the same sidecar in each. The sidecar shows Scenario Replay' + "'" + 's Respiratory Viral Activity figures.',
+    use: 'Switch between the simulated environments to see the same sidecar in each. The sidecar shows Scenario Replay' + "'" + 's Respiratory Viral Activity figures. Its Test tools send one synthetic test observation into Live Surveillance.',
   },
 };
 

@@ -16,7 +16,7 @@ const readDismissed = () => {
  * One line for a first-time visitor: what the product does, and that
  * everything is synthetic. Dismissible for the browser session; changes no
  * data. It holds no action of its own: Live Surveillance is started from the
- * Dashboard's Live Surveillance strip, its one Start control.
+ * Dashboard's header, its one Start control.
  */
 export default function StartHere() {
   const { mode, started } = useLiveSurveillance();

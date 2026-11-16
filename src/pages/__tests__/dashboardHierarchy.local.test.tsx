@@ -20,6 +20,7 @@ import { ALL_DATES } from '../../lib/live/dataset';
 import { operatingMinute } from '../../lib/live/simulator';
 import type { AcknowledgementRecord } from '../../types';
 import { chooseScenarioReplayForTest, signInForTest } from './signedIn';
+import { chooseSpeed } from './liveSpeed';
 
 vi.mock('../../components/map/OutbreakMap', () => ({
   default: () => <div data-testid="outbreak-map" />,
@@ -217,7 +218,7 @@ describe('Dashboard hierarchy (Live Surveillance)', () => {
     renderAt('/dashboard');
     await screen.findByRole('button', { name: 'Start Live Surveillance' }, WAIT);
     vi.useFakeTimers();
-    fireEvent.click(screen.getAllByRole('button', { name: '4×' })[0]);
+    chooseSpeed(4);
     fireEvent.click(screen.getAllByRole('button', { name: 'Start Live Surveillance' })[0]);
     const target = operatingMinute(ALL_DATES.indexOf('2026-02-13') + 1, 10 * 60 + 30);
     act(() => {

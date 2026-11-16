@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { HospitalId } from '../../types';
 import { HOSPITALS } from '../../data/hospitals';
-import { SPEEDS, useLiveSurveillance, type SurveillanceMode } from '../../context/LiveSurveillanceContext';
+import { SPEEDS, useLiveSurveillance, type Speed, type SurveillanceMode } from '../../context/LiveSurveillanceContext';
 import { ALL_DATES, SOURCE_TYPE, TEST_NAMES, type LiveTestCode } from '../../lib/live/dataset';
 import { clock } from '../../lib/live/sources';
 import { END_MINUTE, LIVE_PROFILES, dayAndMinuteOf, shortFacilityName, type AuditEntry } from '../../lib/live/simulator';
@@ -10,6 +10,7 @@ import { liveDayLabel, liveProvisional } from '../../lib/live/view';
 import { PROFILE_BY_ID, RVS_PROFILE_ID, settingsFor } from '../../lib/profiles/registry';
 import { HISTORY_DATES } from '../../lib/live/dataset';
 import SeverityBadge from '../signals/SeverityBadge';
+import ExpandableCard from '../common/ExpandableCard';
 
 /* ------------------------------------------------------------------------ */
 
@@ -71,18 +72,124 @@ export function ModeSwitch() {
 /* ------------------------------------------------------------------------ */
 
 /**
- * The live simulation's controls — the one place that starts it, on the
- * Dashboard's Live Surveillance strip.
+ * The playback speed: one compact button ("Speed: 1×") that opens the three
+ * speeds. The open list is a group of pressed/unpressed buttons; choosing one
+ * closes it and returns focus to the button, Escape closes it too, and the
+ * new speed is announced. Arrow keys move between the speeds.
+ */
+export function SpeedSelector() {
+  const { speed, setSpeed } = useLiveSurveillance();
+  const [open, setOpen] = useState(false);
+  const [announced, setAnnounced] = useState('');
+  const trigger = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const listId = useId();
+
+  const close = () => {
+    setOpen(false);
+    trigger.current?.focus();
+  };
+  const choose = (s: Speed) => {
+    setSpeed(s);
+    setAnnounced(`Playback speed ${s}×`);
+    close();
+  };
+  const onListKey = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+      return;
+    }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const buttons = Array.from(list.current?.querySelectorAll<HTMLButtonElement>('button') ?? []);
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const next =
+      event.key === 'Home' ? 0
+        : event.key === 'End' ? buttons.length - 1
+          : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next]?.focus();
+  };
+
+  return (
+    <div
+      className="relative"
+      onBlur={(event) => {
+        // Tabbing out of the selector closes it.
+        if (open && !event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
+      <button
+        ref={trigger}
+        type="button"
+        className="ls-btn px-3 py-1.5 text-sm"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown' && !open) {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
+        data-testid="speed-selector"
+      >
+        Speed: {speed}×
+        <svg aria-hidden="true" viewBox="0 0 16 16" className={`h-3.5 w-3.5 text-muted transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.75">
+          <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open ? (
+        // A click anywhere outside closes the list (the same pattern as the top bar's notifications).
+        <div aria-hidden="true" className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+      ) : null}
+      {open ? (
+        <div
+          ref={list}
+          id={listId}
+          role="group"
+          aria-label="Playback speed"
+          onKeyDown={onListKey}
+          className="absolute right-0 top-full z-40 mt-1 flex w-28 flex-col gap-0.5 rounded-lg border border-hairline bg-white p-1 shadow-panel"
+        >
+          {SPEEDS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={speed === s}
+              // Opening moves focus to the selected speed.
+              autoFocus={speed === s}
+              onClick={() => choose(s)}
+              className={`flex min-h-[36px] items-center justify-between rounded-md px-2.5 text-sm ${
+                speed === s ? 'bg-brand-light font-semibold text-brand' : 'text-ink hover:bg-canvas'
+              }`}
+            >
+              {s}×
+              {speed === s ? <span aria-hidden="true" className="text-xs">✓</span> : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <span className="sr-only" aria-live="polite">
+        {announced}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The live simulation's controls — the one place that starts it, in the
+ * Dashboard's header in Live Surveillance: the one stateful action (Start,
+ * Pause or Resume), Reset, and the compact speed selector.
  */
 export function LiveControls() {
-  const { simulator, playing, started, speed, start, pause, resume, reset, setSpeed } = useLiveSurveillance();
+  const { simulator, playing, started, start, pause, resume, reset } = useLiveSurveillance();
   const finished = simulator.finished;
-  const progress = Math.round((simulator.op / END_MINUTE) * 100);
   const btn = 'ls-btn px-3 py-1.5 text-sm';
   return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Live simulation controls">
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Live simulation controls" data-testid="live-controls">
       {!started ? (
-        <button type="button" className="ls-btn-primary" onClick={start} data-testid="live-start">
+        <button type="button" className="ls-btn-primary px-3 py-1.5" onClick={start} data-testid="live-start">
           <span aria-hidden="true">▶ </span>Start Live Surveillance
         </button>
       ) : playing ? (
@@ -97,17 +204,19 @@ export function LiveControls() {
       <button type="button" className={btn} onClick={reset}>
         ↺ Reset
       </button>
-      <div role="group" aria-label="Speed" className="flex gap-1">
-        {SPEEDS.map((s) => (
-          <button key={s} type="button" aria-pressed={speed === s} onClick={() => setSpeed(s)} className={`${btn} ${speed === s ? 'ring-2 ring-brand' : ''}`}>
-            {s}×
-          </button>
-        ))}
-      </div>
-      <span className="text-xs text-muted" aria-live="off">
-        {finished ? 'Simulation complete' : `${progress}% of the ${ALL_DATES.length - 7}-day live period`}
-      </span>
+      <SpeedSelector />
     </div>
+  );
+}
+
+/** How far through the live period the simulation is (or that it is complete). */
+export function LiveProgress() {
+  const { simulator } = useLiveSurveillance();
+  const progress = Math.round((simulator.op / END_MINUTE) * 100);
+  return (
+    <span className="text-xs text-muted" aria-live="off" data-testid="live-progress">
+      {simulator.finished ? 'Simulation complete' : `${progress}% of the ${ALL_DATES.length - 7}-day live period`}
+    </span>
   );
 }
 
@@ -314,166 +423,197 @@ export function TodaySoFar({ embedded = false }: { embedded?: boolean }) {
 /* ------------------------------------------------------------------------ */
 
 /**
- * Enter one synthetic test observation. The person changes data, never an
- * outcome: the observation goes through its facility's own adapter, routing
- * and recalculation like any other.
+ * Enter one synthetic test observation into Live Surveillance. The person
+ * changes data, never an outcome: the observation goes through its facility's
+ * own adapter, routing and recalculation like any other. A test tool, so it
+ * lives under System (Integration Demo), not on the Dashboard.
  */
-export function InjectObservation({ embedded = false }: { embedded?: boolean }) {
+export function InjectObservation() {
   const { inject, simulator } = useLiveSurveillance();
   const [hospitalId, setHospitalId] = useState<HospitalId>('HOSP-A');
   const [code, setCode] = useState<LiveTestCode>('94500-6');
   const [positive, setPositive] = useState(true);
   const [done, setDone] = useState<string | null>(null);
   return (
-    <details className={embedded ? 'group' : 'ls-card px-4 py-3'} data-testid="inject">
-      <summary className={embedded ? DISCLOSURE_SUMMARY : 'cursor-pointer text-sm font-semibold text-ink'}>
-        Test tools: inject a synthetic test observation
-        {embedded ? <Chevron /> : null}
-      </summary>
-      <p className="mt-1 text-xs text-muted">
-        A test observation, not a patient result. It is sent in the facility&apos;s source format and processed
-        exactly like any other observation; scores change only through the data.
-      </p>
-      <form
-        className="mt-2 flex flex-wrap items-end gap-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (simulator.finished) return setDone('The live period is complete. Reset to inject observations.');
-          inject(hospitalId, code, positive);
-          return setDone(`Sent: ${TEST_NAMES[code]}, ${positive ? 'positive' : 'negative'}, from ${shortFacilityName(hospitalId)} (${SOURCE_TYPE[hospitalId]}).`);
-        }}
-      >
-        <label className="text-xs font-semibold text-ink">
-          Facility
-          <select className="ls-select mt-1 block" value={hospitalId} onChange={(e) => setHospitalId(e.target.value as HospitalId)}>
-            {HOSPITALS.map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.name} ({SOURCE_TYPE[h.id]})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-semibold text-ink">
-          Test
-          <select className="ls-select mt-1 block" value={code} onChange={(e) => setCode(e.target.value as LiveTestCode)}>
-            {(Object.keys(TEST_NAMES) as LiveTestCode[]).map((c) => (
-              <option key={c} value={c}>
-                {TEST_NAMES[c]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <fieldset className="text-xs font-semibold text-ink">
-          <legend>Result</legend>
-          <div className="mt-1 flex gap-3">
-            {[true, false].map((value) => (
-              <label key={String(value)} className="flex items-center gap-1 font-normal">
-                <input type="radio" name="inject-result" checked={positive === value} onChange={() => setPositive(value)} />
-                {value ? 'Positive' : 'Negative'}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <button type="submit" className="ls-btn px-3 py-1.5 text-sm">
-          Send test observation
-        </button>
-      </form>
-      {done ? (
-        <p role="status" className="mt-2 text-xs text-ink">
-          {done}
+    <section aria-labelledby="test-tools-title" className="ls-card" data-testid="inject">
+      <header className="ls-card-header">
+        <div className="min-w-0">
+          <h2 id="test-tools-title" className="ls-card-title">
+            Test tools: inject a synthetic test observation
+          </h2>
+          <p className="mt-0.5 text-xs text-muted">
+            Sends one observation into Live Surveillance; its effect shows on the Dashboard.
+          </p>
+        </div>
+        <Link to="/dashboard" className="shrink-0 text-xs font-semibold text-brand hover:underline">
+          Open the Dashboard <span aria-hidden="true">→</span>
+        </Link>
+      </header>
+      <div className="px-5 pb-5 pt-3">
+        <p className="mt-1 text-xs text-muted">
+          A test observation, not a patient result. It is sent in the facility&apos;s source format and processed
+          exactly like any other observation; scores change only through the data.
         </p>
-      ) : null}
-    </details>
+        <form
+          className="mt-2 flex flex-wrap items-end gap-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (simulator.finished) return setDone('The live period is complete. Reset to inject observations.');
+            inject(hospitalId, code, positive);
+            return setDone(`Sent: ${TEST_NAMES[code]}, ${positive ? 'positive' : 'negative'}, from ${shortFacilityName(hospitalId)} (${SOURCE_TYPE[hospitalId]}).`);
+          }}
+        >
+          <label className="text-xs font-semibold text-ink">
+            Facility
+            <select className="ls-select mt-1 block" value={hospitalId} onChange={(e) => setHospitalId(e.target.value as HospitalId)}>
+              {HOSPITALS.map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name} ({SOURCE_TYPE[h.id]})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-ink">
+            Test
+            <select className="ls-select mt-1 block" value={code} onChange={(e) => setCode(e.target.value as LiveTestCode)}>
+              {(Object.keys(TEST_NAMES) as LiveTestCode[]).map((c) => (
+                <option key={c} value={c}>
+                  {TEST_NAMES[c]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <fieldset className="text-xs font-semibold text-ink">
+            <legend>Result</legend>
+            <div className="mt-1 flex gap-3">
+              {[true, false].map((value) => (
+                <label key={String(value)} className="flex items-center gap-1 font-normal">
+                  <input type="radio" name="inject-result" checked={positive === value} onChange={() => setPositive(value)} />
+                  {value ? 'Positive' : 'Negative'}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <button type="submit" className="ls-btn px-3 py-1.5 text-sm">
+            Send test observation
+          </button>
+        </form>
+        {done ? (
+          <p role="status" className="mt-2 text-xs text-ink">
+            {done}
+          </p>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
 /* ------------------------------------------------------------------------ */
 
-const DISCLOSURE_SUMMARY =
-  'flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-2.5 text-sm font-medium text-ink hover:bg-canvas [&::-webkit-details-marker]:hidden';
-
-function Chevron() {
-  return (
-    <span aria-hidden="true" className="text-muted transition-transform group-open:rotate-90">
-      ›
-    </span>
-  );
-}
-
-/** One collapsed section of the Dashboard's Live Surveillance operations. */
-function LiveDisclosure({ title, testId, children }: { title: string; testId: string; children: ReactNode }) {
-  return (
-    <details className="group" data-testid={testId}>
-      <summary className={DISCLOSURE_SUMMARY}>
-        {title}
-        <Chevron />
-      </summary>
-      <div className="px-4 pb-4">{children}</div>
-    </details>
-  );
-}
-
-/** How an observation becomes a signal, briefly; the technical detail lives under System. */
+/**
+ * How an observation becomes a signal in Live Surveillance, and why no
+ * statistical confirmation is shown. Explanatory, so it lives under System
+ * (Architecture), not on the Dashboard; the methods are on Detection Methods.
+ */
 export function LiveHowItWorks() {
   const reference = settingsFor(RVS_PROFILE_ID).ewma.referenceDays;
   return (
-    <details className="group" data-testid="live-how-it-works">
-      <summary className={DISCLOSURE_SUMMARY}>
-        How this works
-        <Chevron />
-      </summary>
-      <div className="px-4 pb-4">
-        <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink" aria-label="From observation to signal">
-          {['Observation', 'Normalization', 'Profile routing', 'Surveillance calculation', 'Signal update'].map((step, index) => (
-            <li key={step} className="flex items-center gap-1.5">
-              {index > 0 ? <span aria-hidden="true" className="text-muted">→</span> : null}
-              <span className="rounded-full bg-canvas px-2 py-0.5 font-medium">{step}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-2 text-xs text-muted" data-testid="live-statistics">
-          Statistical confirmation (EWMA, CUSUM) needs a {reference}-day reference history; this feed holds{' '}
-          {HISTORY_DATES.length} days, so none is shown or invented.
-        </p>
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          <Link to="/dynamic-surveillance" className="font-semibold text-brand hover:underline">
-            View Detection Methods <span aria-hidden="true">→</span>
-          </Link>
-          <Link to="/architecture" className="font-semibold text-brand hover:underline">
-            Architecture <span aria-hidden="true">→</span>
-          </Link>
-        </p>
-      </div>
-    </details>
+    <div data-testid="live-how-it-works">
+      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-ink" aria-label="From observation to signal">
+        {['Observation', 'Normalization', 'Profile routing', 'Surveillance calculation', 'Signal update'].map((step, index) => (
+          <li key={step} className="flex items-center gap-1.5">
+            {index > 0 ? <span aria-hidden="true" className="text-muted">→</span> : null}
+            <span className="rounded-full bg-canvas px-2 py-0.5 font-medium">{step}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-2 text-xs text-muted" data-testid="live-statistics">
+        Statistical confirmation (EWMA, CUSUM) needs a {reference}-day reference history; this feed holds{' '}
+        {HISTORY_DATES.length} days, so none is shown or invented.
+      </p>
+      <p className="mt-2 text-xs">
+        <Link to="/dynamic-surveillance" className="font-semibold text-brand hover:underline">
+          View Detection Methods <span aria-hidden="true">→</span>
+        </Link>
+      </p>
+    </div>
   );
 }
 
+/* ------------------------------------------------------------------------ */
+
+const ICON = 'h-4 w-4';
+const SourcesIcon = () => (
+  <svg viewBox="0 0 16 16" className={ICON} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M2.5 8a5.5 5.5 0 0 1 11 0M5 8a3 3 0 0 1 6 0" />
+    <circle cx="8" cy="8" r="1" fill="currentColor" />
+    <path d="M8 9v4.5" />
+  </svg>
+);
+const TodayIcon = () => (
+  <svg viewBox="0 0 16 16" className={ICON} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+    <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+  </svg>
+);
+const ActivityIcon = () => (
+  <svg viewBox="0 0 16 16" className={ICON} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.5 8.5h3l2-5 3 9 2-4h3" />
+  </svg>
+);
+
+/** "3 / 3 sources ready", "2 / 3 active · Shrewsbury delayed": from the same feed state as the panel. */
+function SourcesSummary() {
+  const { feeds, active, run } = useLiveRun();
+  if (run === 'idle') return <>{`${feeds.filter((f) => f.isReporting).length} / ${feeds.length} sources ready`}</>;
+  if (run === 'complete') return <>Live period complete</>;
+  const issues = feeds
+    .filter((f) => f.status !== 'HEALTHY')
+    .map((f) => `${shortFacilityName(f.hospitalId)} ${FEED_ISSUE[f.status] ?? f.status.toLowerCase()}`);
+  return <>{[`${run === 'paused' ? 'Paused · ' : ''}${active} / ${feeds.length} active`, ...issues].join(' · ')}</>;
+}
+
+/** The open day and its results so far (Respiratory Viral Activity: every live test). */
+function TodaySummary() {
+  const { simulator } = useLiveSurveillance();
+  if (simulator.finished) return <>Live period complete</>;
+  const total = liveProvisional(simulator)[RVS_PROFILE_ID]?.scenario.totalTests ?? 0;
+  const { dayIndex } = dayAndMinuteOf(simulator.op);
+  const results = total === 0 ? 'No results yet' : `${total.toLocaleString('en-US')} ${total === 1 ? 'result' : 'results'} so far`;
+  return <>{`${liveDayLabel(dayIndex)} · ${results}`}</>;
+}
+
+/** The newest entry of the activity stream, or that there is none yet. */
+function ActivitySummary() {
+  const { simulator } = useLiveSurveillance();
+  const latest = simulator.audit[simulator.audit.length - 1];
+  if (!latest) return <>No activity yet</>;
+  return <>{`Latest: ${KIND_LABEL[latest.kind]} · ${latest.text.replace(' from the simulated ', ' from the ')}`}</>;
+}
+
 /**
- * Live Surveillance operations, on the Dashboard: one compact strip with the
- * run state and the one set of controls (Start / Pause / Resume, Reset, 1x /
- * 2x / 4x), and the operational detail collapsed beneath it — the sources,
- * today's provisional readings, the activity stream, the test tools and how it
- * works. Nothing here is expanded by default.
+ * Live Surveillance on the Dashboard, beneath the header's controls: the run
+ * state in one line, then the operational detail as three collapsed cards —
+ * Source activity, Today so far and the Activity stream — each with a one-line
+ * summary. The test tools and how it works are under System.
  */
 export function LiveOperations() {
   return (
     <section aria-label="Live Surveillance" className="ls-card" data-testid="dashboard-live">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
         <LiveStatusLine bare />
-        <LiveControls />
+        <LiveProgress />
       </div>
-      <div className="divide-y divide-hairline border-t border-hairline">
-        <LiveDisclosure title="Source activity" testId="live-sources">
+      <div className="space-y-2 border-t border-hairline p-3">
+        <ExpandableCard icon={<SourcesIcon />} title="Source activity" summary={<SourcesSummary />} testId="live-sources">
           <SourceStatusPanel embedded />
-        </LiveDisclosure>
-        <LiveDisclosure title="Today so far" testId="live-today">
+        </ExpandableCard>
+        <ExpandableCard icon={<TodayIcon />} title="Today so far" summary={<TodaySummary />} testId="live-today">
           <TodaySoFar embedded />
-        </LiveDisclosure>
-        <LiveDisclosure title="Activity stream" testId="live-activity">
+        </ExpandableCard>
+        <ExpandableCard icon={<ActivityIcon />} title="Activity stream" summary={<ActivitySummary />} testId="live-activity">
           <ActivityStream embedded />
-        </LiveDisclosure>
-        <InjectObservation embedded />
-        <LiveHowItWorks />
+        </ExpandableCard>
       </div>
     </section>
   );

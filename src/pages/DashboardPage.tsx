@@ -17,7 +17,7 @@ import { usePortfolio } from '../lib/profiles/usePortfolio';
 import ProfileSelector from '../components/profiles/ProfileSelector';
 import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
-import { LiveOperations, ModeSwitch } from '../components/live/LiveParts';
+import { LiveControls, LiveOperations, ModeSwitch } from '../components/live/LiveParts';
 import StartHere from '../components/dashboard/StartHere';
 import { withProfileParam } from '../lib/profiles/selection';
 
@@ -33,8 +33,9 @@ import { withProfileParam } from '../lib/profiles/selection';
  * It summarises; the full pages own the detail. Signals owns the alert queue
  * and its actions, Facilities the five Data Confidence inputs and feed health,
  * Analytics the trend exploration. In Live Surveillance it is also the
- * operational home: its Live strip holds the one set of playback controls and,
- * collapsed, the source activity.
+ * operational home: its header holds the one set of playback controls (Start /
+ * Pause / Resume, Reset, Speed), and its Live strip the run state with, in
+ * collapsed cards, the source activity, today so far and the activity stream.
  *
  * The selected profile comes from ?profile= (Respiratory Viral Activity by
  * default). A profile with no data or no usable baseline shows why it has no
@@ -90,6 +91,8 @@ export default function DashboardPage() {
         <div className="flex flex-col items-start gap-2 sm:items-end">
           {/* The surveillance context: Live Surveillance (default) or the Scenario Replay training scenario. */}
           <ModeSwitch />
+          {/* In Live Surveillance, the one set of playback controls: Start / Pause / Resume, Reset, Speed. */}
+          {isLive ? <LiveControls /> : null}
           <PageMeta />
         </div>
       </header>
@@ -97,7 +100,7 @@ export default function DashboardPage() {
       <StartHere />
 
       {isLive ? (
-        // The one place Live Surveillance is operated; its detail is collapsed beneath the strip.
+        // The run state and, collapsed, the sources, today so far and the activity stream.
         <LiveOperations />
       ) : (
         <section

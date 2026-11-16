@@ -167,6 +167,8 @@ export type IntentId =
   | 'mode_replay'
   | 'mode_dates'
   | 'mode_start'
+  | 'live_test_tools'
+  | 'live_pipeline'
   | 'profile_type_about'
   | 'profile_membership'
   | 'profile_difference'

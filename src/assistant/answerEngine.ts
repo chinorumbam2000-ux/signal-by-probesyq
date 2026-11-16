@@ -527,7 +527,7 @@ const simulationHelp = (p: ParsedQuestion, ctx: AssistantContext): AssistantAnsw
   ctx.live
     ? answer('simulation_help', [
         ...(/simulation/.test(p.normalized) ? [text(RENAMED)] : []),
-        text('Scenario Replay is the secondary, training mode: a controlled historical scenario that steps through a known five-day outbreak sequence. You are in Live Surveillance now, the primary mode; choose Scenario Replay in the sidebar to step through the replay, and Live Surveillance to come back.'),
+        text('Scenario Replay is the secondary, training mode: a controlled historical scenario that steps through a known five-day outbreak sequence. You are in Live Surveillance now, the primary mode; choose Scenario Replay with the Dashboard’s context selector to step through the replay, and Live Surveillance to come back.'),
       ], ['What is the main mode?', 'Why are the dates different?'])
     : answer('simulation_help', [
     ...(/simulation/.test(p.normalized) ? [text(RENAMED)] : []),
