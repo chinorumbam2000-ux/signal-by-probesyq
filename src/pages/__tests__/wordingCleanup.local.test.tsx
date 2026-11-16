@@ -73,7 +73,9 @@ describe('one simulated-data disclosure per area', () => {
     await replayAt('/dashboard');
     expect(screen.getAllByText('About this privacy rule')).toHaveLength(1);
     expect(screen.getByText('Day 1 to Day 5 · aggregate data')).toBeTruthy();
-    expect(screen.getByTestId('start-here').textContent).toMatch(/Everything is synthetic/);
+    // The one simulated-data disclosure is the top bar's (the Start here banner is gone).
+    expect(screen.getByTestId('mode-disclosure').textContent).toMatch(/Simulated surveillance data/);
+    expect(screen.queryByTestId('start-here')).toBeNull();
   });
 
   it('the page header names the period; the date and clock are the top bar\'s', async () => {

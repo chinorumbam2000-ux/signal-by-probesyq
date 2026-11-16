@@ -71,21 +71,14 @@ describe('Live Surveillance', () => {
     expect(document.body.textContent).not.toMatch(/Demo Environment|Classroom Demo/);
   });
 
-  it('explains the product to a first-time visitor beside the one Start control, and can be dismissed', async () => {
-    const view = renderAt('/dashboard');
-    const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    expect(within(strip).queryByRole('link', { name: /Live Surveillance|Scenario Replay/ })).toBeNull();
-    // The one Start control is the Dashboard's Live strip; starting it retires the introduction.
+  it('has no Start here banner, before or after Start; the one Start control remains', async () => {
+    renderAt('/dashboard');
+    await screen.findByTestId('dashboard-live', undefined, WAIT);
+    expect(screen.queryByTestId('start-here')).toBeNull();
     expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' })).toHaveLength(1);
     fireEvent.click(screen.getByRole('button', { name: 'Start Live Surveillance' }));
     expect(screen.queryByTestId('start-here')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: '❚❚ Pause' }));
-    view.unmount();
-    window.sessionStorage.removeItem('labsentinel.surveillanceMode.v1');
-    renderAt('/dashboard');
-    fireEvent.click(await screen.findByRole('button', { name: 'Dismiss the introduction' }, WAIT));
-    expect(screen.queryByTestId('start-here')).toBeNull();
-    expect(window.sessionStorage.getItem('labsentinel.startHere.dismissed.v1')).toBe('1');
   });
 
   it('never shows the replay-narrated EHR sidecar beside live figures', async () => {

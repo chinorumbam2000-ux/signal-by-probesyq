@@ -54,6 +54,36 @@ const controls = () => screen.getByRole('group', { name: 'Live simulation contro
 const speedButton = () => within(controls()).getByRole('button', { name: /^Speed: [124]×$/ });
 const SPEED_NAME = /^[124]×$/;
 
+describe('START BANNER: removed from the Dashboard', () => {
+  const absent = () => {
+    const main = screen.getByRole('main');
+    expect(screen.queryByTestId('start-here')).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Start here' })).toBeNull();
+    expect(main.textContent).not.toMatch(/Start here\.|turns laboratory results into\s+early-warning|what that means/);
+    expect(within(main).queryByRole('link', { name: 'what that means' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Dismiss the introduction' })).toBeNull();
+  };
+
+  it('Live: no banner, link or dismiss button; the controls and the three cards remain', async () => {
+    renderAt('/dashboard');
+    await screen.findByTestId('dashboard-live', undefined, WAIT);
+    absent();
+    expect(within(controls()).getAllByRole('button').map((b) => b.textContent)).toEqual(['▶ Start Live Surveillance', '↺ Reset', 'Speed: 1×']);
+    for (const id of ['live-sources', 'live-today', 'live-activity']) expect(screen.getByTestId(id)).toBeTruthy();
+    // The header is followed directly by the Live strip.
+    const header = dashboardHeader();
+    expect(header.nextElementSibling?.getAttribute('data-testid')).toBe('dashboard-live');
+  });
+
+  it('Scenario Replay: no banner either; the Replay strip follows the header', async () => {
+    window.sessionStorage.setItem(MODE_STORAGE_KEY, 'replay');
+    renderAt('/dashboard');
+    await screen.findByTestId('dashboard-replay', undefined, WAIT);
+    absent();
+    expect(dashboardHeader().nextElementSibling?.getAttribute('data-testid')).toBe('dashboard-replay');
+  });
+});
+
 describe('LIVE CONTROL LOCATION', () => {
   it('the controls are in the Dashboard header, beside the context selector; none in the Live strip', async () => {
     renderAt('/dashboard');

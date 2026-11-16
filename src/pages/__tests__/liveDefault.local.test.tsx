@@ -132,12 +132,10 @@ describe('Live Surveillance first', () => {
     expect(within(nav).queryByRole('group', { name: /Surveillance (mode|context)/ })).toBeNull();
   });
 
-  it('Start Here explains the product and holds no action of its own: the one Start is the Live strip\'s', async () => {
+  it('no Start here banner on the Dashboard; the one Start is the Dashboard header\'s', async () => {
     renderAt('/dashboard');
-    const strip = await screen.findByTestId('start-here', undefined, WAIT);
-    expect(strip.textContent).toMatch(/turns laboratory results into\s+early-warning outbreak signals/);
-    expect(within(strip).getAllByRole('link').map((a) => a.textContent)).toEqual(['what that means']);
-    expect(within(strip).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual(['Dismiss the introduction']);
+    await screen.findByTestId('dashboard-live', undefined, WAIT);
+    expect(screen.queryByTestId('start-here')).toBeNull();
     expect(screen.getAllByRole('button', { name: 'Start Live Surveillance' })).toHaveLength(1);
   });
 });

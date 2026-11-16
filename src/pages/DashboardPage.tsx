@@ -18,14 +18,14 @@ import ProfileSelector from '../components/profiles/ProfileSelector';
 import ActiveSurveillance from '../components/profiles/ActiveSurveillance';
 import ProfileHeading from '../components/profiles/ProfileHeading';
 import { LiveControls, LiveOperations, ModeSwitch } from '../components/live/LiveParts';
-import StartHere from '../components/dashboard/StartHere';
 import { withProfileParam } from '../lib/profiles/selection';
 
 /**
  * The Public Health Dashboard: a concise overview for deciding what needs
  * attention. It reads top to bottom as
  *
- *   Start here · profile selector · Live status line · Active Surveillance
+ *   header (context selector, Live controls) · Live status line · profile
+ *   selector · Active Surveillance
  *   · the selected profile · its score and Data Confidence · key indicators
  *   (with the change since the previous day, why the score moved, one small
  *   trend) · geographic summary · the highest-priority alert.
@@ -96,8 +96,6 @@ export default function DashboardPage() {
           <PageMeta />
         </div>
       </header>
-
-      <StartHere />
 
       {isLive ? (
         // The run state and, collapsed, the sources, today so far and the activity stream.
