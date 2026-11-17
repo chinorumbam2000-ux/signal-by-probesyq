@@ -198,8 +198,8 @@ describe('LANDING CONTENT', () => {
   });
 
   it('states the product summary and the laboratory → signal flow', () => {
-    expect(screen.getByTestId('product-summary').textContent).toMatch(
-      /^Signal by ProbeSyQ transforms laboratory and surveillance data into early-warning outbreak intelligence, helping public-health teams identify emerging patterns before they become obvious through traditional reporting\.$/,
+    expect(screen.getByTestId('product-summary').textContent).toBe(
+      'A vendor-agnostic, plug-and-play outbreak intelligence sidecar that turns routine laboratory data into earlier public-health signals.',
     );
     const flow = screen.getByRole('list', { name: 'From laboratory data to early-warning signals' });
     expect(within(flow).getAllByRole('listitem').map((li) => li.textContent?.replace('→', '').trim())).toEqual([
@@ -211,14 +211,18 @@ describe('LANDING CONTENT', () => {
     const section = screen.getByRole('heading', { level: 2, name: 'What Signal does' }).closest('section') as HTMLElement;
     expect(section.id).toBe('capabilities');
     expect(within(section).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
-      'Early-warning surveillance', 'Multi-profile monitoring', 'Outbreak intelligence', 'Interoperability', 'Analytics & geography', 'Investigation workflow',
+      'Early-warning surveillance', 'Multi-profile monitoring', 'Outbreak intelligence', 'Plug-and-play interoperability', 'Analytics & geography', 'Investigation workflow',
     ]);
+    const interoperability = within(section).getByRole('heading', { level: 3, name: 'Plug-and-play interoperability' }).closest('li') as HTMLElement;
+    expect(interoperability.querySelector('p')?.textContent).toBe(
+      'Designed to connect alongside existing LIS and EHR environments through standards-based integration.',
+    );
     // Only the heading and the cards: no introductory paragraph restating the hero.
     expect([...section.querySelectorAll('p')].filter((p) => !p.closest('li')).map((p) => p.textContent)).toEqual(['Capabilities']);
     expect(text()).not.toContain('From routine laboratory results to outbreak intelligence');
   });
 
-  it('explains the five-stage flow, with one note that nothing real is connected', () => {
+  it('explains the five-stage flow, the sidecar architecture, and one note that nothing real is connected', () => {
     const flow = screen.getByTestId('data-flow');
     expect([...flow.querySelectorAll(':scope > li')].map((li) => li.querySelector('.text-base')?.textContent)).toEqual([
       'Laboratory systems', 'Interoperability', 'Signal by ProbeSyQ', 'Analytics & surveillance', 'Early-warning intelligence',
@@ -228,6 +232,7 @@ describe('LANDING CONTENT', () => {
     const notes = [...section.querySelectorAll('p')].filter((p) => !p.closest('li'));
     expect(notes.map((p) => p.textContent)).toEqual([
       'Data flow',
+      'Signal is designed to sit alongside existing laboratory and EHR systems, using standards-based interoperability such as HL7 v2 and FHIR to ingest data without replacing existing infrastructure.',
       'This public prototype is not connected to any real laboratory, hospital or EHR system.',
     ]);
     expect(section.textContent).not.toMatch(/synthetic/i);

@@ -47,8 +47,8 @@ const CAPABILITIES: { title: string; text: string; icon: ReactNode }[] = [
     icon: <RadarIcon />,
   },
   {
-    title: 'Interoperability',
-    text: 'Designed around healthcare data-exchange concepts such as FHIR, HL7 and laboratory information systems.',
+    title: 'Plug-and-play interoperability',
+    text: 'Designed to connect alongside existing LIS and EHR environments through standards-based integration.',
     icon: <ExchangeIcon />,
   },
   {
@@ -187,8 +187,8 @@ export default function PublicLandingPage() {
                 Signal <span className="font-medium text-muted">by ProbeSyQ</span>
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#334155]" data-testid="product-summary">
-                Signal by ProbeSyQ transforms laboratory and surveillance data into early-warning outbreak intelligence,
-                helping public-health teams identify emerging patterns before they become obvious through traditional reporting.
+                A vendor-agnostic, plug-and-play outbreak intelligence sidecar that turns routine laboratory data into earlier
+                public-health signals.
               </p>
 
               <ol aria-label="From laboratory data to early-warning signals" className="mt-6 flex flex-wrap items-center gap-x-1.5 gap-y-2" data-testid="hero-flow">
@@ -276,7 +276,11 @@ export default function PublicLandingPage() {
                 </li>
               ))}
             </ol>
-            <p className="mt-8 inline-flex items-start gap-2 rounded-xl border border-hairline bg-canvas px-4 py-3 text-sm text-[#334155]">
+            <p className="mt-8 max-w-3xl text-base leading-relaxed text-[#334155]" data-testid="sidecar-architecture">
+              Signal is designed to sit alongside existing laboratory and EHR systems, using standards-based interoperability
+              such as HL7 v2 and FHIR to ingest data without replacing existing infrastructure.
+            </p>
+            <p className="mt-4 inline-flex items-start gap-2 rounded-xl border border-hairline bg-canvas px-4 py-3 text-sm text-[#334155]">
               <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
               This public prototype is not connected to any real laboratory, hospital or EHR system.
             </p>
