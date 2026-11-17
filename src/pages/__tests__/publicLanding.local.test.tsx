@@ -260,7 +260,7 @@ describe('LANDING CONTENT', () => {
     const about = screen.getByRole('heading', { level: 2, name: 'Munyaradzi Chinorumba' }).closest('section') as HTMLElement;
     expect(about.id).toBe('about');
     expect(screen.getByTestId('about-creator').textContent).toBe(
-      'Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.' +
+      'Munyaradzi Chinorumba is a Master of Science in Healthcare Technology (MSHT) degree holder with a background in Medical Laboratory Sciences and a growing focus on clinical information systems, data interoperability, analytics, and healthcare AI.' +
         'Signal by ProbeSyQ is where those fields meet.',
     );
     // No fields card or list, and no qualifications of any kind.

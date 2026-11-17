@@ -307,8 +307,9 @@ export default function PublicLandingPage() {
             </div>
             <div className="min-w-0 space-y-4 text-base leading-relaxed text-[#334155] sm:text-lg sm:leading-relaxed" data-testid="about-creator">
               <p>
-                Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory
-                Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.
+                Munyaradzi Chinorumba is a Master of Science in Healthcare Technology (MSHT) degree holder with a background in
+                Medical Laboratory Sciences and a growing focus on clinical information systems, data interoperability,
+                analytics, and healthcare AI.
               </p>
               <p>Signal by ProbeSyQ is where those fields meet.</p>
             </div>
