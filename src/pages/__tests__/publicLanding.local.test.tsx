@@ -200,7 +200,7 @@ describe('LANDING CONTENT', () => {
 
   it('states the product summary and the laboratory → signal flow', () => {
     expect(screen.getByTestId('product-summary').textContent).toBe(
-      'A vendor-agnostic, plug-and-play outbreak intelligence sidecar that turns routine laboratory data into earlier public-health signals.',
+      'A vendor-agnostic, plug-and-play outbreak intelligence sidecar application that transforms routine laboratory data into early, actionable public-health signals.',
     );
     const flow = screen.getByRole('list', { name: 'From laboratory data to early-warning signals' });
     expect(within(flow).getAllByRole('listitem').map((li) => li.textContent?.replace('→', '').trim())).toEqual([

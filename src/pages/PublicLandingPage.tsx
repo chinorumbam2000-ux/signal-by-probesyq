@@ -182,8 +182,8 @@ export default function PublicLandingPage() {
                 Signal <span className="font-medium text-muted">by ProbeSyQ</span>
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#334155]" data-testid="product-summary">
-                A vendor-agnostic, plug-and-play outbreak intelligence sidecar that turns routine laboratory data into earlier
-                public-health signals.
+                A vendor-agnostic, plug-and-play outbreak intelligence sidecar application that transforms routine laboratory
+                data into early, actionable public-health signals.
               </p>
 
               <ol aria-label="From laboratory data to early-warning signals" className="mt-6 flex flex-wrap items-center gap-x-1.5 gap-y-2" data-testid="hero-flow">
