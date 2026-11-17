@@ -6,7 +6,6 @@ import SignalNetworkVisual from '../components/landing/SignalNetworkVisual';
 import {
   BellIcon,
   ChartMapIcon,
-  CheckIcon,
   ClipboardIcon,
   ExchangeIcon,
   FlaskIcon,
@@ -19,9 +18,9 @@ import { COMPANY_NAME, COMPANY_TAGLINE, OWNER_LEGAL_NAME } from '../lib/brand';
 import { SIGN_IN_PATH } from '../lib/demoSession';
 
 /**
- * The public landing page at "/": what Signal by ProbeSyQ is, how its
- * intelligence flow works, who built it and why, and an honest note on what
- * this public version is. Its one call to action, "Sign in", opens the
+ * The public landing page at "/": what Signal by ProbeSyQ is (hero), what it
+ * does, how it works, the mission behind it, who built it, and the one
+ * authoritative note on what this public version is. Each section has one job. Its one call to action, "Sign in", opens the
  * existing sign-in screen at /signin.
  *
  * Like the sign-in screen, the page is its own scroll container (the document
@@ -76,17 +75,6 @@ const FLOW: { title: string; text: string; icon: ReactNode }[] = [
   { title: 'Early-warning intelligence', text: 'Signals, alerts and maps for epidemiological review.', icon: <BellIcon /> },
 ];
 
-const INTERSECTION = ['Laboratory science', 'Healthcare technology', 'Interoperability', 'Analytics', 'AI-enabled healthcare innovation'];
-
-const MISSION_PARTS = ['AI', 'Data interoperability', 'Data analytics', 'Clinical laboratory knowledge'];
-
-const MISSION_FOR_SIGNAL = [
-  'Outbreak intelligence that public-health teams can act on',
-  'Stronger public-health surveillance',
-  'Earlier recognition of disease patterns',
-  'Better use of the routine laboratory data that already carries the early signal',
-];
-
 const DISCLOSURE = [
   'Uses synthetic data only. No real patient data.',
   'A portfolio prototype, not a production system.',
@@ -114,14 +102,13 @@ function SignInLink({ size = 'md' }: { size?: 'sm' | 'md' }) {
   );
 }
 
-function SectionHeading({ id, eyebrow, title, intro }: { id: string; eyebrow: string; title: string; intro?: string }) {
+function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
   return (
-    <div className="max-w-2xl">
+    <div className="min-w-0 max-w-2xl">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F766E]">{eyebrow}</p>
       <h2 id={id} tabIndex={-1} className="mt-2 text-2xl font-semibold tracking-tight text-ink focus:outline-none sm:text-3xl">
         {title}
       </h2>
-      {intro ? <p className="mt-3 text-base leading-relaxed text-muted">{intro}</p> : null}
     </div>
   );
 }
@@ -242,9 +229,7 @@ export default function PublicLandingPage() {
               <div className="ls-landing-visual rounded-[24px] p-1.5 shadow-panel ring-1 ring-[#163E66]/10">
                 <SignalNetworkVisual className="block h-auto w-full" />
               </div>
-              <figcaption className="mt-3 text-center text-xs text-muted">
-                Illustration. The public version runs entirely on synthetic data.
-              </figcaption>
+              <figcaption className="mt-3 text-center text-xs text-muted">Illustration of the Signal intelligence flow.</figcaption>
             </figure>
           </div>
         </section>
@@ -252,12 +237,7 @@ export default function PublicLandingPage() {
         {/* 2. What Signal does */}
         <section id="capabilities" aria-labelledby="capabilities-title" className="scroll-mt-16 border-t border-hairline bg-canvas">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <SectionHeading
-              id="capabilities-title"
-              eyebrow="What Signal does"
-              title="From routine laboratory results to outbreak intelligence"
-              intro="Signal reads the testing activity laboratories already produce and turns it into signals a public-health team can review."
-            />
+            <SectionHeading id="capabilities-title" eyebrow="Capabilities" title="What Signal does" />
             <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="capabilities">
               {CAPABILITIES.map((capability) => (
                 <li key={capability.title} className="ls-card flex flex-col p-5 transition-shadow hover:shadow-panel">
@@ -270,15 +250,10 @@ export default function PublicLandingPage() {
           </div>
         </section>
 
-        {/* 3. How the intelligence flow works */}
+        {/* 3. How Signal works */}
         <section id="how-it-works" aria-labelledby="how-it-works-title" className="scroll-mt-16 bg-white">
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <SectionHeading
-              id="how-it-works-title"
-              eyebrow="How it works"
-              title="How the intelligence flow works"
-              intro="Five stages, from a laboratory result to an early-warning signal."
-            />
+            <SectionHeading id="how-it-works-title" eyebrow="Data flow" title="How Signal works" />
             <ol className="ls-landing-steps mt-10 grid gap-3 md:grid-cols-5 md:gap-0" data-testid="data-flow">
               {FLOW.map((step, index) => (
                 <li key={step.title} className="ls-landing-step relative flex gap-4 md:flex-col md:gap-0 md:px-3">
@@ -303,86 +278,52 @@ export default function PublicLandingPage() {
             </ol>
             <p className="mt-8 inline-flex items-start gap-2 rounded-xl border border-hairline bg-canvas px-4 py-3 text-sm text-[#334155]">
               <InfoIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-              In this public version every stage runs on synthetic data; no laboratory or hospital system is connected.
+              This public prototype is not connected to any real laboratory, hospital or EHR system.
             </p>
           </div>
         </section>
 
-        {/* 4. About the creator */}
-        <section id="about" aria-labelledby="about-title" className="scroll-mt-16 border-t border-hairline bg-canvas">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <SectionHeading id="about-title" eyebrow="About the creator" title={OWNER_LEGAL_NAME} />
-            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-12" data-testid="about-creator">
-              <div className="min-w-0">
-                <div className="flex items-center gap-4">
-                  <span
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#163E66] to-[#2563EB] text-lg font-semibold text-white"
-                    aria-hidden="true"
-                  >
-                    MC
-                  </span>
-                  <p className="text-sm font-medium leading-snug text-[#334155]">
-                    Healthcare technology graduate student
-                    <span className="block text-muted">Medical Laboratory Sciences background</span>
-                  </p>
-                </div>
-                <p className="mt-6 text-base leading-relaxed text-[#334155]">
-                  Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory
-                  Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.
-                </p>
-              </div>
-              <div className="ls-card min-w-0 p-5 sm:p-6">
-                <p className="text-base font-medium leading-relaxed text-ink">Signal by ProbeSyQ reflects where those fields meet:</p>
-                <ul className="mt-4 flex flex-wrap gap-2" aria-label="Signal by ProbeSyQ brings together">
-                  {INTERSECTION.map((field) => (
-                    <li key={field} className="rounded-full border border-hairline bg-canvas px-3 py-1 text-sm font-medium text-[#1E3A5F]">
-                      {field}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. Mission */}
+        {/* 4. Mission */}
         <section aria-labelledby="mission-title" className="ls-landing-mission relative overflow-hidden text-white">
           <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#7DD3C0]">Mission</p>
-            <h2 id="mission-title" className="mt-2 max-w-3xl text-2xl font-semibold tracking-tight sm:text-3xl">
-              Connecting health information so it can be interpreted and acted upon
+            <h2 id="mission-title" className="text-xs font-semibold uppercase tracking-[0.14em] text-[#7DD3C0]">
+              Mission
             </h2>
-            <ul className="mt-8 flex flex-wrap items-center gap-2" aria-label="Brought together" data-testid="mission-parts">
-              {MISSION_PARTS.map((part, index) => (
-                <li key={part} className="flex items-center gap-2">
-                  <span className="rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white">{part}</span>
-                  {index < MISSION_PARTS.length - 1 ? (
-                    <span aria-hidden="true" className="text-lg font-semibold text-[#7DD3C0]">
-                      +
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-            <figure className="mt-8 max-w-3xl border-l-2 border-[#4DB6A5] pl-5">
+            <figure className="mt-6 max-w-4xl border-l-2 border-[#4DB6A5] pl-5 sm:pl-6">
               <blockquote>
-                <p className="text-lg leading-relaxed text-[#E2E8F0]" data-testid="mission-statement">
+                <p className="text-xl font-medium leading-relaxed text-white sm:text-2xl sm:leading-relaxed" data-testid="mission-statement">
                 “My goal is to bring together AI, data interoperability, data analytics and clinical laboratory knowledge to
                 build healthcare technology systems that improve how health information is connected, interpreted and acted
                 upon.”
                 </p>
               </blockquote>
-              <figcaption className="mt-3 text-sm font-medium text-[#B6C6DA]">{OWNER_LEGAL_NAME}</figcaption>
+              <figcaption className="mt-4 text-sm font-medium text-[#B6C6DA]">{OWNER_LEGAL_NAME}</figcaption>
             </figure>
-            <h3 className="mt-10 text-base font-semibold text-white">For Signal, that means</h3>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-              {MISSION_FOR_SIGNAL.map((aim) => (
-                <li key={aim} className="flex items-start gap-3 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm leading-relaxed text-[#E2E8F0]">
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-[#7DD3C0]" />
-                  {aim}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-8 max-w-3xl text-base leading-relaxed text-[#CBD5E1]">
+              For Signal, that means turning routine laboratory data into earlier, actionable public-health intelligence.
+            </p>
+          </div>
+        </section>
+
+        {/* 5. About the creator */}
+        <section id="about" aria-labelledby="about-title" className="scroll-mt-16 border-b border-hairline bg-canvas">
+          <div className="mx-auto grid max-w-6xl items-start gap-6 px-4 py-16 sm:px-6 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16 lg:py-20">
+            <div className="flex min-w-0 items-center gap-4">
+              <span
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#163E66] to-[#2563EB] text-lg font-semibold text-white"
+                aria-hidden="true"
+              >
+                MC
+              </span>
+              <SectionHeading id="about-title" eyebrow="About the creator" title={OWNER_LEGAL_NAME} />
+            </div>
+            <div className="min-w-0 space-y-4 text-base leading-relaxed text-[#334155] sm:text-lg sm:leading-relaxed" data-testid="about-creator">
+              <p>
+                Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory
+                Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.
+              </p>
+              <p>Signal by ProbeSyQ is where those fields meet.</p>
+            </div>
           </div>
         </section>
 

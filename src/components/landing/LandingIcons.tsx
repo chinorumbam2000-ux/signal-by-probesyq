@@ -90,13 +90,6 @@ export const BellIcon = ({ className }: IconProps) => (
   </Icon>
 );
 
-/** A check, for list items. */
-export const CheckIcon = ({ className }: IconProps) => (
-  <Icon className={className}>
-    <path d="m5 12.5 4.5 4.5L19 7.5" />
-  </Icon>
-);
-
 /** An information mark, for the disclosure. */
 export const InfoIcon = ({ className }: IconProps) => (
   <Icon className={className}>

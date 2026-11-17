@@ -207,50 +207,65 @@ describe('LANDING CONTENT', () => {
     ]);
   });
 
-  it('shows six capabilities', () => {
-    const section = screen.getByRole('heading', { level: 2, name: 'From routine laboratory results to outbreak intelligence' }).closest('section') as HTMLElement;
+  it('shows six capabilities, without re-introducing the product', () => {
+    const section = screen.getByRole('heading', { level: 2, name: 'What Signal does' }).closest('section') as HTMLElement;
+    expect(section.id).toBe('capabilities');
     expect(within(section).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
       'Early-warning surveillance', 'Multi-profile monitoring', 'Outbreak intelligence', 'Interoperability', 'Analytics & geography', 'Investigation workflow',
     ]);
+    // Only the heading and the cards: no introductory paragraph restating the hero.
+    expect([...section.querySelectorAll('p')].filter((p) => !p.closest('li')).map((p) => p.textContent)).toEqual(['Capabilities']);
+    expect(text()).not.toContain('From routine laboratory results to outbreak intelligence');
   });
 
-  it('explains the five-stage intelligence flow without implying a live connection', () => {
+  it('explains the five-stage flow, with one note that nothing real is connected', () => {
     const flow = screen.getByTestId('data-flow');
     expect([...flow.querySelectorAll(':scope > li')].map((li) => li.querySelector('.text-base')?.textContent)).toEqual([
       'Laboratory systems', 'Interoperability', 'Signal by ProbeSyQ', 'Analytics & surveillance', 'Early-warning intelligence',
     ]);
-    expect(flow.closest('section')?.textContent).toContain('In this public version every stage runs on synthetic data; no laboratory or hospital system is connected.');
-  });
-
-  it('introduces Munyaradzi Chinorumba, and has no qualifications section', () => {
-    const about = screen.getByRole('heading', { level: 2, name: 'Munyaradzi Chinorumba' }).closest('section') as HTMLElement;
-    expect(about.id).toBe('about');
-    expect(about.textContent).toContain(
-      'Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.',
-    );
-    expect(within(within(about).getByRole('list', { name: 'Signal by ProbeSyQ brings together' })).getAllByRole('listitem').map((li) => li.textContent)).toEqual([
-      'Laboratory science', 'Healthcare technology', 'Interoperability', 'Analytics', 'AI-enabled healthcare innovation',
+    const section = flow.closest('section') as HTMLElement;
+    expect(within(section).getByRole('heading', { level: 2 }).textContent).toBe('How Signal works');
+    const notes = [...section.querySelectorAll('p')].filter((p) => !p.closest('li'));
+    expect(notes.map((p) => p.textContent)).toEqual([
+      'Data flow',
+      'This public prototype is not connected to any real laboratory, hospital or EHR system.',
     ]);
-    // No résumé-style section of any kind.
-    expect(screen.queryByTestId('qualifications')).toBeNull();
-    expect(text()).not.toMatch(/Qualifications|Education|Certification|Skills|Clark University|BSc\b|Master’s/i);
-    expect(within(about).queryByRole('heading', { level: 3 })).toBeNull();
+    expect(section.textContent).not.toMatch(/synthetic/i);
   });
 
-  it('states the mission, and what it means for Signal', () => {
-    expect(screen.getByTestId('mission-statement').textContent).toBe(
+  it('states the mission as one statement plus one supporting line', () => {
+    const statement = screen.getByTestId('mission-statement');
+    expect(statement.textContent).toBe(
       '“My goal is to bring together AI, data interoperability, data analytics and clinical laboratory knowledge to build healthcare technology systems that improve how health information is connected, interpreted and acted upon.”',
     );
-    expect(within(screen.getByTestId('mission-parts')).getAllByRole('listitem').map((li) => li.textContent?.replace('+', '').trim())).toEqual([
-      'AI', 'Data interoperability', 'Data analytics', 'Clinical laboratory knowledge',
-    ]);
-    const mission = screen.getByTestId('mission-statement').closest('section') as HTMLElement;
-    for (const aim of [/Outbreak intelligence/, /public-health surveillance/, /Earlier recognition of disease patterns/, /routine laboratory data/]) {
-      expect(mission.textContent).toMatch(aim);
-    }
+    const mission = statement.closest('section') as HTMLElement;
+    expect(within(mission).getByRole('heading', { level: 2 }).textContent).toBe('Mission');
+    expect(mission.textContent).toContain(
+      'For Signal, that means turning routine laboratory data into earlier, actionable public-health intelligence.',
+    );
+    // The formula and the four separate aims are gone.
+    expect(screen.queryByTestId('mission-parts')).toBeNull();
+    expect(within(mission).queryAllByRole('list')).toHaveLength(0);
+    expect(within(mission).queryByRole('heading', { level: 3 })).toBeNull();
+    expect(text()).not.toMatch(/Stronger public-health surveillance|Earlier recognition of disease patterns|Connecting health information/);
   });
 
-  it('discloses the public version honestly, below the hero, with the ownership notice in the footer', () => {
+  it('introduces Munyaradzi Chinorumba personally, with no résumé-style content', () => {
+    const about = screen.getByRole('heading', { level: 2, name: 'Munyaradzi Chinorumba' }).closest('section') as HTMLElement;
+    expect(about.id).toBe('about');
+    expect(screen.getByTestId('about-creator').textContent).toBe(
+      'Munyaradzi Chinorumba is a healthcare technology graduate student with a background in Medical Laboratory Sciences and a growing focus on healthcare AI, data interoperability, analytics and clinical information systems.' +
+        'Signal by ProbeSyQ is where those fields meet.',
+    );
+    // No fields card or list, and no qualifications of any kind.
+    expect(within(about).queryAllByRole('list')).toHaveLength(0);
+    expect(within(about).queryByRole('heading', { level: 3 })).toBeNull();
+    expect(screen.queryByTestId('qualifications')).toBeNull();
+    expect(text()).not.toMatch(/Qualifications|Education|Certification|Skills|Clark University|BSc\b|Master’s/i);
+    expect(text()).not.toContain('AI-enabled healthcare innovation');
+  });
+
+  it('keeps the synthetic-data disclosure in one place, below the hero, with the ownership notice in the footer', () => {
     const disclosure = screen.getByTestId('landing-disclosure');
     for (const point of [
       'Uses synthetic data only. No real patient data.',
@@ -262,6 +277,12 @@ describe('LANDING CONTENT', () => {
     }
     const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
     expect(hero.compareDocumentPosition(disclosure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(hero.querySelector('figcaption')?.textContent).toBe('Illustration of the Signal intelligence flow.');
+    // "synthetic" appears only in the disclosure.
+    const synthetic = [...landing().querySelectorAll('p, li, figcaption, span')].filter(
+      (el) => el.children.length === 0 && /synthetic/i.test(el.textContent ?? ''),
+    );
+    expect(synthetic.every((el) => disclosure.contains(el))).toBe(true);
     const footer = screen.getByRole('contentinfo');
     expect(within(footer).getByTestId('ownership-notice').textContent).toBe(
       'ProbeSyQ™ and Signal by ProbeSyQ™ are trademarks claimed by their owner. © 2026 Munyaradzi Chinorumba. All rights reserved.',
@@ -279,10 +300,10 @@ describe('ACCESSIBILITY', () => {
     const headings = [...landing().querySelectorAll('h1, h2, h3, h4, h5, h6')];
     expect(headings.filter((h) => h.tagName === 'H1')).toHaveLength(1);
     expect(headings.filter((h) => h.tagName === 'H2').map((h) => h.textContent)).toEqual([
-      'From routine laboratory results to outbreak intelligence',
-      'How the intelligence flow works',
+      'What Signal does',
+      'How Signal works',
+      'Mission',
       'Munyaradzi Chinorumba',
-      'Connecting health information so it can be interpreted and acted upon',
       'About this public version',
     ]);
     let previous = 1;
@@ -319,7 +340,7 @@ describe('ACCESSIBILITY', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Page sections' })).getByRole('link', { name: 'About' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Munyaradzi Chinorumba' }));
     fireEvent.click(screen.getByRole('link', { name: /See how it works/ }));
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'How the intelligence flow works' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'How Signal works' }));
     expect(scrolls).toHaveLength(2);
   });
 
