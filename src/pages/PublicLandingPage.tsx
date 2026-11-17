@@ -88,15 +88,10 @@ const SECTIONS = [
   { id: 'about', label: 'About' },
 ];
 
-/** The pill-shaped Sign in link (it navigates, so it is a link). */
-function SignInLink({ size = 'md' }: { size?: 'sm' | 'md' }) {
+/** The header's pill-shaped Sign in link (it navigates, so it is a link): the page's one call to action. */
+function SignInLink() {
   return (
-    <Link
-      to={SIGN_IN_PATH}
-      className={`ls-btn-primary rounded-full shadow-card ${
-        size === 'md' ? 'min-h-[44px] px-7 py-2.5 text-base' : 'min-h-[36px] px-4 py-1.5 text-sm'
-      }`}
-    >
+    <Link to={SIGN_IN_PATH} className="ls-btn-primary min-h-[36px] rounded-full px-4 py-1.5 text-sm shadow-card">
       Sign in
     </Link>
   );
@@ -169,7 +164,7 @@ export default function PublicLandingPage() {
                 ))}
               </ul>
             </nav>
-            <SignInLink size="sm" />
+            <SignInLink />
           </div>
         </div>
       </header>
@@ -212,17 +207,6 @@ export default function PublicLandingPage() {
                   </li>
                 ))}
               </ol>
-
-              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
-                <SignInLink />
-                <a
-                  href="#how-it-works"
-                  onClick={(event) => goTo(event, 'how-it-works')}
-                  className="rounded-full px-1 py-2 text-sm font-semibold text-brand underline-offset-4 hover:underline"
-                >
-                  See how it works <span aria-hidden="true">↓</span>
-                </a>
-              </div>
             </div>
 
             <figure className="min-w-0">

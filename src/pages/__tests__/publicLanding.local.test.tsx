@@ -88,21 +88,22 @@ describe('PUBLIC ROOT', () => {
 });
 
 describe('SIGN-IN', () => {
-  it('the pill-shaped "Sign in" links open the existing sign-in screen', async () => {
+  it('the one pill-shaped "Sign in" link, in the header, opens the existing sign-in screen', async () => {
     renderAt('/');
     await screen.findByTestId('public-landing', undefined, WAIT);
+    // A single call to action, in the page header; the hero has no buttons or links.
     const links = screen.getAllByRole('link', { name: 'Sign in' });
-    // One compact link in the page header, one prominent call to action in the hero.
-    expect(links).toHaveLength(2);
-    for (const link of links) {
-      expect(link.getAttribute('href')).toBe(SIGN_IN_PATH);
-      expect(link.className).toContain('rounded-full');
-      expect(link.className).toContain('ls-btn-primary');
-      expect(link.textContent).toBe('Sign in');
-    }
+    expect(links).toHaveLength(1);
+    const [cta] = links;
+    expect(within(landing()).getByRole('banner').contains(cta)).toBe(true);
+    expect(cta.getAttribute('href')).toBe(SIGN_IN_PATH);
+    expect(cta.className).toContain('rounded-full');
+    expect(cta.className).toContain('ls-btn-primary');
+    expect(cta.textContent).toBe('Sign in');
     const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
-    const cta = within(hero).getByRole('link', { name: 'Sign in' });
-    expect(cta.className).toContain('min-h-[44px]');
+    expect(within(hero).queryAllByRole('link')).toHaveLength(0);
+    expect(within(hero).queryAllByRole('button')).toHaveLength(0);
+    expect(screen.queryByRole('link', { name: /See how it works/ })).toBeNull();
     expect(within(landing()).queryByRole('link', { name: /Get Started|Launch Demo|Enter App/i })).toBeNull();
 
     fireEvent.click(cta);
@@ -133,7 +134,7 @@ describe('SIGN-IN', () => {
 
   it('landing → Sign in → sign-in → the Dashboard, in Live Surveillance', { timeout: 20000 }, async () => {
     renderAt('/');
-    fireEvent.click((await screen.findAllByRole('link', { name: 'Sign in' }, WAIT))[1]);
+    fireEvent.click(await screen.findByRole('link', { name: 'Sign in' }, WAIT));
     await signIn();
     await screen.findByTestId('active-surveillance', undefined, WAIT);
     expect(screen.getByTestId('dashboard-live')).toBeTruthy();
@@ -344,7 +345,7 @@ describe('ACCESSIBILITY', () => {
   it('section links scroll to the section and move keyboard focus to its heading', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Page sections' })).getByRole('link', { name: 'About' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'Munyaradzi Chinorumba' }));
-    fireEvent.click(screen.getByRole('link', { name: /See how it works/ }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Page sections' })).getByRole('link', { name: 'How it works' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: 'How Signal works' }));
     expect(scrolls).toHaveLength(2);
   });
