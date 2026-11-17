@@ -6,10 +6,10 @@ import { DemoSessionProvider, useDemoSession } from './context/DemoSessionContex
 import { DataSourceProvider } from './data-access/DataSourceProvider';
 import AppShell from './components/layout/AppShell';
 import RequireDemoSession from './components/layout/RequireDemoSession';
-import { safeReturnPath } from './lib/demoSession';
+import { DEFAULT_RETURN_PATH, safeReturnPath, SIGN_IN_PATH } from './lib/demoSession';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { LoadingState } from './components/common/States';
-import LandingPage from './pages/LandingPage';
+import SignInPage from './pages/SignInPage';
 import DashboardPage from './pages/DashboardPage';
 import MapPage from './pages/MapPage';
 import LaboratoryDataPage from './pages/LaboratoryDataPage';
@@ -35,6 +35,11 @@ const SmartLaunchPage = lazy(() => import('./pages/smart/SmartLaunchPage'));
 const SmartCallbackPage = lazy(() => import('./pages/smart/SmartCallbackPage'));
 const SmartSidecarPage = lazy(() => import('./pages/smart/SmartSidecarPage'));
 const SmartDemoPage = lazy(() => import('./pages/smart/SmartDemoPage'));
+/*
+ * The public landing page is its own chunk too: only a signed-out visitor at
+ * "/" needs it, so sign-ins, deep links and the application never load it.
+ */
+const PublicLandingPage = lazy(() => import('./pages/PublicLandingPage'));
 
 function Deferred({ children }: { children: ReactNode }) {
   return <Suspense fallback={<LoadingState label="Loading…" />}>{children}</Suspense>;
@@ -84,7 +89,7 @@ function RenamedRoute({ to }: { to: string }) {
 }
 
 /**
- * "/" is the sign-in screen. A signed-in visitor goes on to the page they
+ * "/signin" is the sign-in screen. A signed-in visitor goes on to the page they
  * originally asked for (kept in the redirect's location state), or the
  * dashboard. This is also what completes a sign-in: the router runs
  * navigations as transitions, so the session update re-renders this route
@@ -97,7 +102,23 @@ function SignInRoute() {
     const from = (location.state as { from?: unknown } | null)?.from;
     return <Navigate to={safeReturnPath(from)} replace />;
   }
-  return <LandingPage />;
+  return <SignInPage />;
+}
+
+/**
+ * "/" is the public landing page: it introduces Signal by ProbeSyQ and leads
+ * to the sign-in screen. A signed-in visitor goes on to the Dashboard, the
+ * operational home, as "/" always did for them.
+ */
+function PublicHomeRoute() {
+  const { session } = useDemoSession();
+  if (session) return <Navigate to={DEFAULT_RETURN_PATH} replace />;
+  // A plain white screen for the moment the chunk loads: the page opens on white.
+  return (
+    <Suspense fallback={<div className="ls-shell bg-white" />}>
+      <PublicLandingPage />
+    </Suspense>
+  );
 }
 
 export default function App() {
@@ -114,8 +135,10 @@ export default function App() {
           */}
           <Route path="/smart/launch" element={<Deferred><SmartLaunchPage /></Deferred>} />
           <Route path="/smart/callback" element={<Deferred><SmartCallbackPage /></Deferred>} />
+          {/* The public landing page shows no Signal by ProbeSyQ data, so it needs no simulation. */}
+          <Route path="/" element={<PublicHomeRoute />} />
           <Route element={<SimulationLayout />}>
-            <Route path="/" element={<SignInRoute />} />
+            <Route path={SIGN_IN_PATH} element={<SignInRoute />} />
             <Route path="/smart/sidecar" element={<Deferred><SmartSidecarPage /></Deferred>} />
             {/* Every application screen requires a (presentation-only) sign-in session. */}
             <Route

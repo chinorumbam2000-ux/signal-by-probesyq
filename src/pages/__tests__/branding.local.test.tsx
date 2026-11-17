@@ -52,7 +52,7 @@ describe('Signal by ProbeSyQ', () => {
   });
 
   it('leads the sign-in screen with "Signal", then "by ProbeSyQ"', async () => {
-    renderAt('/');
+    renderAt('/signin');
     const heading = await screen.findByRole('heading', { level: 1, name: 'Signal by ProbeSyQ' });
     // "by ProbeSyQ" is a quieter, secondary part of the heading.
     expect(heading.firstChild?.textContent?.trim()).toBe('Signal');

@@ -1,8 +1,9 @@
 import { COPYRIGHT_NOTICE, TRADEMARK_NOTICE } from '../../lib/brand';
 
 /**
- * The portfolio's ownership notice: small, and only on the sign-in footer and
- * in About this data — never on the analyst working screens.
+ * The portfolio's ownership notice: small, and only in the public landing
+ * page's footer, the sign-in footer and About this data — never on the analyst
+ * working screens.
  */
 export default function OwnershipNotice({ className = '' }: { className?: string }) {
   return (

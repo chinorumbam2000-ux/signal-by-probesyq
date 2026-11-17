@@ -21,7 +21,7 @@ import { DEMO_ROLE, NAME_MAX_LENGTH, safeReturnPath, validateSignIn, type SignIn
  * and last child centre the content while still letting it scroll on a very
  * short viewport (the document itself never scrolls).
  */
-export default function LandingPage() {
+export default function SignInPage() {
   const { signIn } = useDemoSession();
   const navigate = useNavigate();
   const location = useLocation();

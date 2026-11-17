@@ -141,4 +141,12 @@ describe('return path after sign-in', () => {
     }
     expect(DEFAULT_RETURN_PATH).toBe('/dashboard');
   });
+
+  it('never returns to the landing page or the sign-in screen', () => {
+    for (const entry of ['/', '/signin', '/signin/', '/signin?x=1', '/signin#top']) {
+      expect(safeReturnPath(entry), entry).toBe(DEFAULT_RETURN_PATH);
+    }
+    // A page that merely starts with the same letters is still a page.
+    expect(safeReturnPath('/signals')).toBe('/signals');
+  });
 });

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSimulation } from '../../context/SimulationContext';
 import { useDemoSession } from '../../context/DemoSessionContext';
-import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor } from '../../lib/demoSession';
+import { DEMO_ROLE, FALLBACK_INITIALS, FALLBACK_NAME, initialsFor, SIGN_IN_PATH } from '../../lib/demoSession';
 import type { AppMode } from '../../lib/appModes';
 import { formatClockTime, formatSimulationDate } from '../../lib/format';
 import SeverityBadge from '../signals/SeverityBadge';
@@ -71,9 +71,10 @@ export default function TopBar({ mode = 'classroom', onOpenNav }: { mode?: AppMo
   const initials = session ? initialsFor(session.name) : FALLBACK_INITIALS;
 
   // Ends the sign-in session only: the replay day and its review state are left as they are.
+  // Signing out returns to the sign-in screen, as before.
   const handleSignOut = () => {
     signOut();
-    navigate('/', { replace: true });
+    navigate(SIGN_IN_PATH, { replace: true });
   };
 
   return (

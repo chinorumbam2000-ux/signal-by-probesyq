@@ -47,7 +47,7 @@ const WAIT = { timeout: 5000 };
 
 describe('sign-in', () => {
   it('the button reads exactly "Sign in"', async () => {
-    renderAt('/');
+    renderAt('/signin');
     const button = await screen.findByRole('button', { name: 'Sign in' }, WAIT);
     expect(button.textContent?.trim()).toBe('Sign in');
     expect(button.getAttribute('type')).toBe('submit');
@@ -60,7 +60,7 @@ describe('sign-in page fits the viewport', () => {
   // 1440×900, 1280×800 and down to 600px tall; short screens still scroll).
   // This guards the structure those measurements depend on.
   it('keeps its own scroll fallback and the short-viewport hooks, on the sign-in page only', async () => {
-    renderAt('/');
+    renderAt('/signin');
     await screen.findByRole('button', { name: 'Sign in' }, WAIT);
     const main = document.querySelector('main')!;
     expect(main.className).toContain('ls-auth-backdrop');
@@ -95,7 +95,7 @@ describe('ownership notice', () => {
   });
 
   it('is shown on the sign-in screen and in About this data', { timeout: 20000 }, async () => {
-    renderAt('/');
+    renderAt('/signin');
     const onSignIn = await screen.findByTestId('ownership-notice', undefined, WAIT);
     expect(onSignIn.textContent).toContain('Signal by ProbeSyQ™');
     expect(onSignIn.textContent).toContain('All rights reserved.');

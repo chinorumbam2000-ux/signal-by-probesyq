@@ -81,7 +81,7 @@ describe('default mode', () => {
 
   it('the first page after sign-in is in Live Surveillance', { timeout: 20000 }, async () => {
     window.sessionStorage.clear();
-    renderAt('/');
+    renderAt('/signin');
     fireEvent.change(await screen.findByLabelText('Name', undefined, WAIT), { target: { value: 'Avery Analyst' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'any-password' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));

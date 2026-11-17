@@ -384,6 +384,96 @@ html.ls-presentation .ls-roella-panel {
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * Public landing page ("/")
+ *
+ * Same navy, blue and teal as the product, on white and canvas surfaces.
+ * Gradients stay faint; the only motion is in the hero illustration (data
+ * flowing along its paths, the early-warning point pulsing), and none of it
+ * runs under prefers-reduced-motion.
+ * ------------------------------------------------------------------ */
+.ls-landing-hero {
+  background-image:
+    radial-gradient(70% 60% at 88% 8%, rgba(37, 99, 235, 0.09) 0%, rgba(37, 99, 235, 0) 70%),
+    radial-gradient(55% 55% at 4% 92%, rgba(77, 182, 165, 0.10) 0%, rgba(77, 182, 165, 0) 70%),
+    linear-gradient(180deg, #ffffff 0%, #f5f8fc 100%);
+}
+
+.ls-landing-visual {
+  background: linear-gradient(135deg, rgba(143, 182, 217, 0.35), rgba(77, 182, 165, 0.25));
+}
+
+.ls-landing-mission {
+  background-image:
+    radial-gradient(60% 80% at 100% 0%, rgba(37, 99, 235, 0.35) 0%, rgba(37, 99, 235, 0) 70%),
+    radial-gradient(50% 70% at 0% 100%, rgba(77, 182, 165, 0.22) 0%, rgba(77, 182, 165, 0) 70%),
+    linear-gradient(135deg, #0b1f33 0%, #163e66 100%);
+}
+
+/* The flow's connectors: vertical on narrow screens, horizontal from md up. */
+.ls-landing-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 23px;
+  top: 52px;
+  bottom: -10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #8fb6d9, rgba(143, 182, 217, 0.25));
+}
+
+@media (min-width: 768px) {
+  .ls-landing-step:not(:last-child)::after {
+    left: 68px;
+    right: -4px;
+    top: 23px;
+    bottom: auto;
+    width: auto;
+    height: 2px;
+    background: linear-gradient(90deg, #8fb6d9, rgba(143, 182, 217, 0.25));
+  }
+}
+
+@keyframes ls-landing-flow {
+  to {
+    stroke-dashoffset: -56;
+  }
+}
+
+@keyframes ls-landing-pulse {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+.ls-landing-flow {
+  animation: ls-landing-flow 2.6s linear infinite;
+}
+
+.ls-landing-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ls-landing-pulse 2.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-landing-flow,
+  .ls-landing-pulse {
+    animation: none;
+  }
+
+  /* A still ring, so the early-warning point reads the same without motion. */
+  .ls-landing-pulse {
+    opacity: 0.55;
+    transform: none;
+  }
+}
+
 /* A quiet scrollbar for the Ask Roella conversation: visible, but thin. */
 .ls-scroll {
   scrollbar-width: thin;

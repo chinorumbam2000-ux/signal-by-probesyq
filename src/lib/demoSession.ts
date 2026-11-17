@@ -15,6 +15,8 @@ export const DEMO_ROLE = 'Public Health Analyst' as const;
 export const DEMO_SESSION_KEY = 'labsentinel.demoSession.v1';
 export const NAME_MAX_LENGTH = 80;
 export const DEFAULT_RETURN_PATH = '/dashboard';
+/** The sign-in screen. "/" is the public landing page that leads to it. */
+export const SIGN_IN_PATH = '/signin';
 export const NAME_REQUIRED = 'Enter your name.';
 export const PASSWORD_REQUIRED = 'Enter your password.';
 /** Shown only if no session can be read (the guard normally prevents that), or for initials that cannot be parsed. */
@@ -126,6 +128,7 @@ export const safeReturnPath = (candidate: unknown): string => {
     return DEFAULT_RETURN_PATH;
   }
   const pathname = path.split(/[?#]/)[0];
-  if (pathname === '/' || pathname === '') return DEFAULT_RETURN_PATH;
+  // The landing page and the sign-in screen are never somewhere to return to.
+  if (pathname === '/' || pathname === '' || pathname.replace(/\/+$/, '') === SIGN_IN_PATH) return DEFAULT_RETURN_PATH;
   return path;
 };

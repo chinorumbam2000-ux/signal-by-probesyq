@@ -64,7 +64,7 @@ const everythingStored = () =>
 
 describe('presentation sign-in', () => {
   it('shows the Signal by ProbeSyQ access screen with the PSQ mark and no Roella', async () => {
-    renderAt('/');
+    renderAt('/signin');
     expect(await screen.findByRole('heading', { level: 1, name: 'Signal by ProbeSyQ' })).toBeTruthy();
     expect(screen.getByText('Outbreak Intelligence')).toBeTruthy();
     expect(screen.getByText('Healthcare Technology Systems', { exact: false })).toBeTruthy();
@@ -75,7 +75,7 @@ describe('presentation sign-in', () => {
   });
 
   it('rejects a blank name, then a blank password', async () => {
-    renderAt('/');
+    renderAt('/signin');
     const form = await screen.findByRole('form', { name: 'Sign in to Signal by ProbeSyQ' });
     fireEvent.submit(form);
     expect(screen.getByText('Enter your name.')).toBeTruthy();
