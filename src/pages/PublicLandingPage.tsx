@@ -38,7 +38,7 @@ const CAPABILITIES: { title: string; text: string; icon: ReactNode }[] = [
   },
   {
     title: 'Multi-profile monitoring',
-    text: 'Watches an aggregate respiratory profile alongside pathogen-specific surveillance profiles.',
+    text: 'Monitors multiple disease and syndrome profiles to detect and track emerging outbreak patterns.',
     icon: <LayersIcon />,
   },
   {

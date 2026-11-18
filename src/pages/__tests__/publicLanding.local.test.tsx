@@ -214,6 +214,11 @@ describe('LANDING CONTENT', () => {
     expect(within(section).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
       'Early-warning surveillance', 'Multi-profile monitoring', 'Outbreak intelligence', 'Plug-and-play interoperability', 'Analytics & geography', 'Investigation workflow',
     ]);
+    const multiProfile = within(section).getByRole('heading', { level: 3, name: 'Multi-profile monitoring' }).closest('li') as HTMLElement;
+    expect(multiProfile.querySelector('p')?.textContent).toBe(
+      'Monitors multiple disease and syndrome profiles to detect and track emerging outbreak patterns.',
+    );
+    expect(text()).not.toContain('Watches an aggregate respiratory profile');
     const interoperability = within(section).getByRole('heading', { level: 3, name: 'Plug-and-play interoperability' }).closest('li') as HTMLElement;
     expect(interoperability.querySelector('p')?.textContent).toBe(
       'Designed to connect alongside existing LIS and EHR environments through standards-based integration.',
